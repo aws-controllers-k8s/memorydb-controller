@@ -1,0 +1,8 @@
+ignore:
+  resource_names:
+    - ACL
+    - Cluster
+    - ParameterGroup
+    - Snapshot
+    - SubnetGroup
+    - User
