@@ -3,7 +3,7 @@ module github.com/aws-controllers-k8s/memorydb-controller
 go 1.17
 
 require (
-	github.com/aws-controllers-k8s/runtime v0.16.0
+	github.com/aws-controllers-k8s/runtime v0.16.3
 	github.com/aws/aws-sdk-go v1.40.28
 	github.com/spf13/pflag v1.0.5
 	k8s.io/apimachinery v0.23.0
