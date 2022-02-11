@@ -27,3 +27,226 @@ var (
 	_ = &aws.JSONValue{}
 	_ = ackv1alpha1.AWSAccountID("")
 )
+
+// An Access Control List. You can authenticate users with Access Contol Lists.
+// ACLs enable you to control cluster access by grouping users. These Access
+// control lists are designed as a way to organize access to clusters.
+type ACL struct {
+	ARN                  *string `json:"arn,omitempty"`
+	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
+	Name                 *string `json:"name,omitempty"`
+	Status               *string `json:"status,omitempty"`
+}
+
+// Denotes the user's authentication properties, such as whether it requires
+// a password to authenticate. Used in output responses.
+type Authentication struct {
+	PasswordCount *int64 `json:"passwordCount,omitempty"`
+}
+
+// Indicates if the cluster has a Multi-AZ configuration (multiaz) or not (singleaz).
+type AvailabilityZone struct {
+	Name *string `json:"name,omitempty"`
+}
+
+// Contains all of the attributes of a specific cluster.
+type Cluster struct {
+	ARN                    *string `json:"arn,omitempty"`
+	Description            *string `json:"description,omitempty"`
+	EnginePatchVersion     *string `json:"enginePatchVersion,omitempty"`
+	EngineVersion          *string `json:"engineVersion,omitempty"`
+	KMSKeyID               *string `json:"kmsKeyID,omitempty"`
+	MaintenanceWindow      *string `json:"maintenanceWindow,omitempty"`
+	Name                   *string `json:"name,omitempty"`
+	NodeType               *string `json:"nodeType,omitempty"`
+	NumberOfShards         *int64  `json:"numberOfShards,omitempty"`
+	ParameterGroupName     *string `json:"parameterGroupName,omitempty"`
+	ParameterGroupStatus   *string `json:"parameterGroupStatus,omitempty"`
+	SnapshotRetentionLimit *int64  `json:"snapshotRetentionLimit,omitempty"`
+	SnapshotWindow         *string `json:"snapshotWindow,omitempty"`
+	SnsTopicARN            *string `json:"snsTopicARN,omitempty"`
+	SnsTopicStatus         *string `json:"snsTopicStatus,omitempty"`
+	Status                 *string `json:"status,omitempty"`
+	SubnetGroupName        *string `json:"subnetGroupName,omitempty"`
+}
+
+// A list of cluster configuration options.
+type ClusterConfiguration struct {
+	Description            *string `json:"description,omitempty"`
+	EngineVersion          *string `json:"engineVersion,omitempty"`
+	MaintenanceWindow      *string `json:"maintenanceWindow,omitempty"`
+	Name                   *string `json:"name,omitempty"`
+	NodeType               *string `json:"nodeType,omitempty"`
+	NumShards              *int64  `json:"numShards,omitempty"`
+	ParameterGroupName     *string `json:"parameterGroupName,omitempty"`
+	Port                   *int64  `json:"port,omitempty"`
+	SnapshotRetentionLimit *int64  `json:"snapshotRetentionLimit,omitempty"`
+	SnapshotWindow         *string `json:"snapshotWindow,omitempty"`
+	SubnetGroupName        *string `json:"subnetGroupName,omitempty"`
+	TopicARN               *string `json:"topicARN,omitempty"`
+	VPCID                  *string `json:"vpcID,omitempty"`
+}
+
+// Represents the information required for client programs to connect to the
+// cluster and its nodes.
+type Endpoint struct {
+	Address *string `json:"address,omitempty"`
+}
+
+// Provides details of the Redis engine version
+type EngineVersionInfo struct {
+	EnginePatchVersion   *string `json:"enginePatchVersion,omitempty"`
+	EngineVersion        *string `json:"engineVersion,omitempty"`
+	ParameterGroupFamily *string `json:"parameterGroupFamily,omitempty"`
+}
+
+// Represents a single occurrence of something interesting within the system.
+// Some examples of events are creating a cluster or adding or removing a node.
+type Event struct {
+	Message    *string `json:"message,omitempty"`
+	SourceName *string `json:"sourceName,omitempty"`
+}
+
+// Represents an individual node within a cluster. Each node runs its own instance
+// of the cluster's protocol-compliant caching software.
+type Node struct {
+	AvailabilityZone *string `json:"availabilityZone,omitempty"`
+	Name             *string `json:"name,omitempty"`
+	Status           *string `json:"status,omitempty"`
+}
+
+// Describes an individual setting that controls some aspect of MemoryDB behavior.
+type Parameter struct {
+	AllowedValues        *string `json:"allowedValues,omitempty"`
+	DataType             *string `json:"dataType,omitempty"`
+	Description          *string `json:"description,omitempty"`
+	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
+	Name                 *string `json:"name,omitempty"`
+	Value                *string `json:"value,omitempty"`
+}
+
+// Represents the output of a CreateParameterGroup operation. A parameter group
+// represents a combination of specific values for the parameters that are passed
+// to the engine software during startup.
+type ParameterGroup_SDK struct {
+	ARN         *string `json:"arn,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Family      *string `json:"family,omitempty"`
+	Name        *string `json:"name,omitempty"`
+}
+
+// Describes a name-value pair that is used to update the value of a parameter.
+type ParameterNameValue struct {
+	ParameterName  *string `json:"parameterName,omitempty"`
+	ParameterValue *string `json:"parameterValue,omitempty"`
+}
+
+// Update action that has yet to be processed for the corresponding apply/stop
+// request
+type PendingModifiedServiceUpdate struct {
+	ServiceUpdateName *string `json:"serviceUpdateName,omitempty"`
+}
+
+// Represents a single security group and its status.
+type SecurityGroupMembership struct {
+	SecurityGroupID *string `json:"securityGroupID,omitempty"`
+	Status          *string `json:"status,omitempty"`
+}
+
+// An update that you can apply to your MemoryDB clusters.
+type ServiceUpdate struct {
+	ClusterName       *string `json:"clusterName,omitempty"`
+	Description       *string `json:"description,omitempty"`
+	NodesUpdated      *string `json:"nodesUpdated,omitempty"`
+	ServiceUpdateName *string `json:"serviceUpdateName,omitempty"`
+}
+
+// A request to apply a service update
+type ServiceUpdateRequest struct {
+	ServiceUpdateNameToApply *string `json:"serviceUpdateNameToApply,omitempty"`
+}
+
+// Represents a collection of nodes in a cluster. One node in the node group
+// is the read/write primary node. All the other nodes are read-only Replica
+// nodes.
+type Shard struct {
+	Name          *string `json:"name,omitempty"`
+	NumberOfNodes *int64  `json:"numberOfNodes,omitempty"`
+	Slots         *string `json:"slots,omitempty"`
+	Status        *string `json:"status,omitempty"`
+}
+
+// Shard configuration options. Each shard configuration has the following:
+// Slots and ReplicaCount.
+type ShardConfiguration struct {
+	ReplicaCount *int64  `json:"replicaCount,omitempty"`
+	Slots        *string `json:"slots,omitempty"`
+}
+
+// Provides details of a shard in a snapshot
+type ShardDetail struct {
+	Name *string `json:"name,omitempty"`
+	Size *string `json:"size,omitempty"`
+}
+
+// Represents a copy of an entire cluster as of the time when the snapshot was
+// taken.
+type Snapshot struct {
+	ARN      *string `json:"arn,omitempty"`
+	KMSKeyID *string `json:"kmsKeyID,omitempty"`
+	Name     *string `json:"name,omitempty"`
+	Source   *string `json:"source,omitempty"`
+	Status   *string `json:"status,omitempty"`
+}
+
+// Represents the subnet associated with a cluster. This parameter refers to
+// subnets defined in Amazon Virtual Private Cloud (Amazon VPC) and used with
+// MemoryDB.
+type Subnet struct {
+	Identifier *string `json:"identifier,omitempty"`
+}
+
+// Represents the output of one of the following operations:
+//
+//    * CreateSubnetGroup
+//
+//    * UpdateSubnetGroup
+//
+// A subnet group is a collection of subnets (typically private) that you can
+// designate for your clusters running in an Amazon Virtual Private Cloud (VPC)
+// environment.
+type SubnetGroup struct {
+	ARN         *string `json:"arn,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	VPCID       *string `json:"vpcID,omitempty"`
+}
+
+// A tag that can be added to an MemoryDB resource. Tags are composed of a Key/Value
+// pair. You can use tags to categorize and track all your MemoryDB resources.
+// When you add or remove tags on clusters, those actions will be replicated
+// to all nodes in the cluster. A tag with a null Value is permitted. For more
+// information, see Tagging your MemoryDB resources (https://docs.aws.amazon.com/MemoryDB/latest/devguide/tagging-resources.html)
+type Tag struct {
+	Key   *string `json:"key,omitempty"`
+	Value *string `json:"value,omitempty"`
+}
+
+// A cluster whose updates have failed
+type UnprocessedCluster struct {
+	ClusterName  *string `json:"clusterName,omitempty"`
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	ErrorType    *string `json:"errorType,omitempty"`
+}
+
+// You create users and assign them specific permissions by using an access
+// string. You assign the users to Access Control Lists aligned with a specific
+// role (administrators, human resources) that are then deployed to one or more
+// MemoryDB clusters.
+type User struct {
+	ARN                  *string `json:"arn,omitempty"`
+	AccessString         *string `json:"accessString,omitempty"`
+	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
+	Name                 *string `json:"name,omitempty"`
+	Status               *string `json:"status,omitempty"`
+}

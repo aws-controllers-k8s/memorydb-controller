@@ -3,3 +3,4 @@ kind: Kustomization
 bases:
   - common
 resources:
+  - bases/memorydb.services.k8s.aws_parametergroups.yaml

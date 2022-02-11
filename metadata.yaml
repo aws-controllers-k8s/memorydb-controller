@@ -1,10 +1,8 @@
-
-  
 service:
-  full_name: "Amazon MemoryDB"
+  full_name: "Amazon MemoryDB for Redis"
   short_name: "MemoryDB"
   link: "https://aws.amazon.com/memorydb/"
-  documentation: "https://docs.aws.amazon.com/memorydb/latest/APIReference/Welcome.html"
+  documentation: "https://docs.aws.amazon.com/memorydb/"
 api_versions:
   - api_version: v1alpha1
     status: available
