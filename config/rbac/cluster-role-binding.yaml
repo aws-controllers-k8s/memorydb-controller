@@ -8,5 +8,5 @@ roleRef:
   name: ack-memorydb-controller
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: ack-memorydb-controller
   namespace: ack-system
