@@ -1,0 +1,30 @@
+id: "PG_CREATE_WITH_PARAMS"
+description: "In this test we create PG with Params"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: ParameterGroup
+  metadata:
+    name: pg$RANDOM_SUFFIX
+steps:
+  - id: "PG_INITIAL_CREATE"
+    description: "PG with activerehashing as no"
+    create:
+      spec:
+        description: PG with activerehashing as no
+        family: memorydb_redis6
+        name: pg$RANDOM_SUFFIX
+        parameterNameValues:
+          - parameterName: activerehashing
+            parameterValue: "no"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_PG"
+    description: "Delete parameter group"
+    delete: pg$RANDOM_SUFFIX

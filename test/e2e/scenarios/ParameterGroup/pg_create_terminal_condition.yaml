@@ -1,0 +1,26 @@
+id: "PG_CREATE_TERMINAL_CONDITION"
+description: "In this test we create invalid PG"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: ParameterGroup
+  metadata:
+    name: pg$RANDOM_SUFFIX
+steps:
+  - id: "PG_INITIAL_CREATE"
+    description: "PG with invalid family"
+    create:
+      spec:
+        description: PG with invalid family
+        family: memorydb_redis
+        name: pg$RANDOM_SUFFIX
+    wait: 300
+    expect:
+      status:
+        conditions:
+          ACK.Terminal: "True"
+  - id: "DELETE_PG"
+    description: "Delete parameter group"
+    delete: pg$RANDOM_SUFFIX

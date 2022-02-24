@@ -1,8 +1,58 @@
 ignore:
   resource_names:
+    - Snapshot
+    - User
     - ACL
     - Cluster
-    - ParameterGroup
-    - Snapshot
     - SubnetGroup
-    - User
+resources:
+  ParameterGroup:
+    exceptions:
+      errors:
+        404:
+          code: ParameterGroupNotFoundFault
+      terminal_codes:
+        - ParameterGroupQuotaExceededFault
+        - ParameterGroupAlreadyExistsFault
+        - InvalidParameterGroupStateFault
+        - InvalidParameterValueException
+        - InvalidParameterCombinationException
+    fields:
+      Name:
+        is_primary_key: true
+        is_required: true
+        from:
+          operation: CreateParameterGroup
+          path: ParameterGroupName
+      ParameterNameValues:
+        from:
+          operation: UpdateParameterGroup
+          path: ParameterNameValues
+      Parameters:
+        is_read_only: true
+        from:
+          operation: DescribeParameters
+          path: Parameters
+    hooks:
+      sdk_read_many_post_set_output:
+        template_path: hooks/parametergroup/sdk_read_many_post_set_output.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/parametergroup/sdk_read_many_post_set_output.go.tpl
+      sdk_update_post_set_output:
+        template_path: hooks/parametergroup/sdk_read_many_post_set_output.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/parametergroup/sdk_update_pre_build_request.go.tpl
+    renames:
+      operations:
+        CreateParameterGroup:
+          input_fields:
+            ParameterGroupName: Name
+        UpdateParameterGroup:
+          input_fields:
+            ParameterGroupName: Name
+        DeleteParameterGroup:
+          input_fields:
+            ParameterGroupName: Name
+        DescribeParameterGroups:
+          input_fields:
+            ParameterGroupName: Name

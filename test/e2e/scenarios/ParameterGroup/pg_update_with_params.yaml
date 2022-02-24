@@ -1,0 +1,40 @@
+id: "PG_UPDATE_WITH_PARAMS"
+description: "In this test we create PG and update the parameter"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: ParameterGroup
+  metadata:
+    name: pg$RANDOM_SUFFIX
+steps:
+  - id: "PG_INITIAL_CREATE"
+    description: "Create PG with default"
+    create:
+      spec:
+        description: PG with no params while creating
+        family: memorydb_redis6
+        name: pg$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "PG_UPDATE"
+    description: "Update activerehashing to no"
+    patch:
+      spec:
+        parameterNameValues:
+          - parameterName: activerehashing
+            parameterValue: "no"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_PG"
+    description: "Delete parameter group"
+    delete: pg$RANDOM_SUFFIX
