@@ -28,20 +28,43 @@ var (
 	_ = ackv1alpha1.AWSAccountID("")
 )
 
+// Returns the updates being applied to the ACL.
+type ACLPendingChanges struct {
+	UserNamesToAdd    []*string `json:"userNamesToAdd,omitempty"`
+	UserNamesToRemove []*string `json:"userNamesToRemove,omitempty"`
+}
+
 // An Access Control List. You can authenticate users with Access Contol Lists.
 // ACLs enable you to control cluster access by grouping users. These Access
 // control lists are designed as a way to organize access to clusters.
-type ACL struct {
-	ARN                  *string `json:"arn,omitempty"`
-	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	Status               *string `json:"status,omitempty"`
+type ACL_SDK struct {
+	ARN                  *string   `json:"arn,omitempty"`
+	Clusters             []*string `json:"clusters,omitempty"`
+	MinimumEngineVersion *string   `json:"minimumEngineVersion,omitempty"`
+	Name                 *string   `json:"name,omitempty"`
+	// Returns the updates being applied to the ACL.
+	PendingChanges *ACLPendingChanges `json:"pendingChanges,omitempty"`
+	Status         *string            `json:"status,omitempty"`
+	UserNames      []*string          `json:"userNames,omitempty"`
+}
+
+// The status of the ACL update
+type ACLsUpdateStatus struct {
+	ACLToApply *string `json:"aclToApply,omitempty"`
 }
 
 // Denotes the user's authentication properties, such as whether it requires
 // a password to authenticate. Used in output responses.
 type Authentication struct {
-	PasswordCount *int64 `json:"passwordCount,omitempty"`
+	PasswordCount *int64  `json:"passwordCount,omitempty"`
+	Type          *string `json:"type_,omitempty"`
+}
+
+// Denotes the user's authentication properties, such as whether it requires
+// a password to authenticate. Used in output responses.
+type AuthenticationMode struct {
+	Passwords []*ackv1alpha1.SecretKeyReference `json:"passwords,omitempty"`
+	Type      *string                           `json:"type_,omitempty"`
 }
 
 // Indicates if the cluster has a Multi-AZ configuration (multiaz) or not (singleaz).
@@ -51,6 +74,7 @@ type AvailabilityZone struct {
 
 // Contains all of the attributes of a specific cluster.
 type Cluster struct {
+	ACLName                *string `json:"aclName,omitempty"`
 	ARN                    *string `json:"arn,omitempty"`
 	Description            *string `json:"description,omitempty"`
 	EnginePatchVersion     *string `json:"enginePatchVersion,omitempty"`
@@ -105,6 +129,12 @@ type EngineVersionInfo struct {
 type Event struct {
 	Message    *string `json:"message,omitempty"`
 	SourceName *string `json:"sourceName,omitempty"`
+}
+
+// Used to streamline results of a search based on the property being filtered.
+type Filter struct {
+	Name   *string   `json:"name,omitempty"`
+	Values []*string `json:"values,omitempty"`
 }
 
 // Represents an individual node within a cluster. Each node runs its own instance
@@ -203,7 +233,9 @@ type Snapshot struct {
 // subnets defined in Amazon Virtual Private Cloud (Amazon VPC) and used with
 // MemoryDB.
 type Subnet struct {
-	Identifier *string `json:"identifier,omitempty"`
+	// Indicates if the cluster has a Multi-AZ configuration (multiaz) or not (singleaz).
+	AvailabilityZone *AvailabilityZone `json:"availabilityZone,omitempty"`
+	Identifier       *string           `json:"identifier,omitempty"`
 }
 
 // Represents the output of one of the following operations:
@@ -215,11 +247,12 @@ type Subnet struct {
 // A subnet group is a collection of subnets (typically private) that you can
 // designate for your clusters running in an Amazon Virtual Private Cloud (VPC)
 // environment.
-type SubnetGroup struct {
-	ARN         *string `json:"arn,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Name        *string `json:"name,omitempty"`
-	VPCID       *string `json:"vpcID,omitempty"`
+type SubnetGroup_SDK struct {
+	ARN         *string   `json:"arn,omitempty"`
+	Description *string   `json:"description,omitempty"`
+	Name        *string   `json:"name,omitempty"`
+	Subnets     []*Subnet `json:"subnets,omitempty"`
+	VPCID       *string   `json:"vpcID,omitempty"`
 }
 
 // A tag that can be added to an MemoryDB resource. Tags are composed of a Key/Value
@@ -243,10 +276,14 @@ type UnprocessedCluster struct {
 // string. You assign the users to Access Control Lists aligned with a specific
 // role (administrators, human resources) that are then deployed to one or more
 // MemoryDB clusters.
-type User struct {
-	ARN                  *string `json:"arn,omitempty"`
-	AccessString         *string `json:"accessString,omitempty"`
-	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`
-	Name                 *string `json:"name,omitempty"`
-	Status               *string `json:"status,omitempty"`
+type User_SDK struct {
+	ACLNames     []*string `json:"aclNames,omitempty"`
+	ARN          *string   `json:"arn,omitempty"`
+	AccessString *string   `json:"accessString,omitempty"`
+	// Denotes the user's authentication properties, such as whether it requires
+	// a password to authenticate. Used in output responses.
+	Authentication       *Authentication `json:"authentication,omitempty"`
+	MinimumEngineVersion *string         `json:"minimumEngineVersion,omitempty"`
+	Name                 *string         `json:"name,omitempty"`
+	Status               *string         `json:"status,omitempty"`
 }

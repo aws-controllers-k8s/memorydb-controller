@@ -9,7 +9,10 @@ rules:
 - apiGroups:
   - memorydb.services.k8s.aws
   resources:
+  - acls
   - parametergroups
+  - subnetgroups
+  - users
   verbs:
   - create
   - delete
@@ -21,7 +24,10 @@ rules:
 - apiGroups:
   - memorydb.services.k8s.aws
   resources:
+  - acls
   - parametergroups
+  - subnetgroups
+  - users
   verbs:
   - get
   - patch

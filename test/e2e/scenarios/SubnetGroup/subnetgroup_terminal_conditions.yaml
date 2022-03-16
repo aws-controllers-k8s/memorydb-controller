@@ -1,0 +1,52 @@
+id: "SUBNET_TERMINAL_CONDITIONS"
+description: "In this test we create SubnetGroup and update it to assert terminal conditions"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: SubnetGroup
+  metadata:
+    name: subnet$RANDOM_SUFFIX
+steps:
+  - id: "SUBNET_INITIAL_CREATE"
+    description: "Subnet group invalid subnet"
+    create:
+      spec:
+        description: Subnet group invalid subnet
+        name: subnet$RANDOM_SUFFIX
+        subnetIDs:
+          - NOTAVALIDSUBNET
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 100
+  - id: "UPDATE_SUBNET_VALID"
+    description: "Update SubnetGroup SubnetIds"
+    patch:
+      spec:
+        subnetIDs:
+          - $SUBNET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "UPDATE_SUBNET_INVALID"
+    description: "Update SubnetGroup SubnetIds with invalid values"
+    patch:
+      spec:
+        subnetIDs:
+          - InvalidSubnet
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_SUBNET"
+    description: "Delete subnet group"
+    delete: subnet$RANDOM_SUFFIX

@@ -472,7 +472,8 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"ParameterGroupAlreadyExistsFault",
 		"InvalidParameterGroupStateFault",
 		"InvalidParameterValueException",
-		"InvalidParameterCombinationException":
+		"InvalidParameterCombinationException",
+		"TagQuotaPerResourceExceeded":
 		return true
 	default:
 		return false

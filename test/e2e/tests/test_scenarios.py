@@ -25,9 +25,10 @@ import boto3
 import logging
 
 from e2e import service_marker, scenarios_directory, resource_directory, CRD_VERSION, CRD_GROUP, SERVICE_NAME
-from e2e.bootstrap_resources import get_bootstrap_resources
 
 from acktest.k8s import resource as k8s
+
+from e2e.replacement_values import REPLACEMENT_VALUES
 
 
 @helper.register_resource_helper(resource_kind="ParameterGroup", resource_plural="ParameterGroups")
@@ -41,12 +42,45 @@ class ParameterGroupHelper(helper.ResourceHelper):
         logging.debug(f"ParameterGroup - wait_for_delete()")
 
 
+@helper.register_resource_helper(resource_kind="User", resource_plural="Users")
+class UserHelper(helper.ResourceHelper):
+    """
+    Helper for user scenarios.
+    Overrides methods as required for custom resources.
+    """
+
+    def wait_for_delete(self, reference: k8s.CustomResourceReference):
+        logging.debug(f"User - wait_for_delete()")
+
+
+@helper.register_resource_helper(resource_kind="SubnetGroup", resource_plural="SubnetGroups")
+class SubnetGroupHelper(helper.ResourceHelper):
+    """
+    Helper for subnet group scenarios.
+    Overrides methods as required for custom resources.
+    """
+
+    def wait_for_delete(self, reference: k8s.CustomResourceReference):
+        logging.debug(f"SubnetGroup - wait_for_delete()")
+
+
+@helper.register_resource_helper(resource_kind="ACL", resource_plural="ACLs")
+class ACLHelper(helper.ResourceHelper):
+    """
+    Helper for ACL scenarios.
+    Overrides methods as required for custom resources.
+    """
+
+    def wait_for_delete(self, reference: k8s.CustomResourceReference):
+        logging.debug(f"ACL - wait_for_delete()")
+
+
 @pytest.fixture(scope="session")
 def input_replacements():
     """
     provides input replacements for test scenarios.
     """
-    resource_replacements = get_bootstrap_resources().replacement_dict()
+    resource_replacements = REPLACEMENT_VALUES
     replacements = {
         "CRD_VERSION": CRD_VERSION,
         "CRD_GROUP": CRD_GROUP,

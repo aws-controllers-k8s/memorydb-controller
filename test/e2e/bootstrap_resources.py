@@ -18,12 +18,15 @@ for them.
 from dataclasses import dataclass
 from acktest.bootstrapping import Resources
 from e2e import bootstrap_directory
+from e2e.bootstrappable.subnets import Subnets
+from e2e.bootstrappable.secrets import Secret
+
 
 @dataclass
 class BootstrapResources(Resources):
-
-    def replacement_dict(self):
-        return {}
+    Secret1: Secret
+    Secret2: Secret
+    Subnets: Subnets
 
 
 _bootstrap_resources = None

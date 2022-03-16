@@ -1,11 +1,126 @@
 ignore:
   resource_names:
     - Snapshot
-    - User
-    - ACL
     - Cluster
-    - SubnetGroup
 resources:
+  SubnetGroup:
+    exceptions:
+      errors:
+        404:
+          code: SubnetGroupNotFoundFault
+      terminal_codes:
+        - SubnetGroupAlreadyExistsFault
+        - SubnetGroupQuotaExceededFault
+        - SubnetQuotaExceededFault
+        - InvalidSubnet
+        - SubnetNotAllowedFault
+        - TagQuotaPerResourceExceeded
+        - SubnetInUse
+        - InvalidParameterValueException
+    hooks:
+      sdk_read_many_pre_set_output:
+        template_path: hooks/subnetgroup/sdk_read_many_pre_set_output.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/subnetgroup/sdk_create_post_set_output.go.tpl
+      sdk_update_post_set_output:
+        template_path: hooks/subnetgroup/sdk_create_post_set_output.go.tpl
+    renames:
+      operations:
+        CreateSubnetGroup:
+          input_fields:
+            SubnetGroupName: Name
+        UpdateSubnetGroup:
+          input_fields:
+            SubnetGroupName: Name
+        DeleteSubnetGroup:
+          input_fields:
+            SubnetGroupName: Name
+        DescribeSubnetGroups:
+          input_fields:
+            SubnetGroupName: Name
+  ACL:
+    exceptions:
+      errors:
+        404:
+          code: ACLNotFoundFault
+      terminal_codes:
+        - ACLAlreadyExistsFault
+        - DefaultUserRequired
+        - UserNotFoundFault
+        - DuplicateUserNameFault
+        - ACLQuotaExceededFault
+        - InvalidParameterValueException
+        - InvalidParameterCombinationException
+        - TagQuotaPerResourceExceeded
+    hooks:
+      sdk_update_pre_build_request:
+        template_path: hooks/acl/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/acl/sdk_update_post_build_request.go.tpl
+      sdk_update_post_set_output:
+        code: "ko.Spec.UserNames = desired.ko.Spec.UserNames"
+    renames:
+      operations:
+        CreateACL:
+          input_fields:
+            ACLName: Name
+        UpdateACL:
+          input_fields:
+            ACLName: Name
+        DeleteACL:
+          input_fields:
+            ACLName: Name
+        DescribeACLs:
+          input_fields:
+            ACLName: Name
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - active
+  User:
+    exceptions:
+      errors:
+        404:
+          code: UserNotFoundFault
+      terminal_codes:
+        - InvalidParameterValueException
+        - UserAlreadyExistsFault
+        - UserQuotaExceededFault
+        - DuplicateUserNameFault
+        - InvalidParameterCombinationException
+        - TagQuotaPerResourceExceeded
+    fields:
+      AuthenticationMode.Passwords:
+        is_secret: true
+        compare:
+          is_ignored: true
+    hooks:
+      sdk_create_post_set_output:
+        code: "rm.setAnnotationsFields(desired, ko)"
+      sdk_update_post_set_output:
+        code: "rm.setAnnotationsFields(desired, ko)"
+      sdk_update_pre_build_request:
+        template_path: hooks/user/sdk_update_pre_build_request.go.tpl
+    renames:
+      operations:
+        CreateUser:
+          input_fields:
+            UserName: Name
+        UpdateUser:
+          input_fields:
+            UserName: Name
+        DeleteUser:
+          input_fields:
+            UserName: Name
+        DescribeUsers:
+          input_fields:
+            UserName: Name
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - active
   ParameterGroup:
     exceptions:
       errors:
@@ -17,6 +132,7 @@ resources:
         - InvalidParameterGroupStateFault
         - InvalidParameterValueException
         - InvalidParameterCombinationException
+        - TagQuotaPerResourceExceeded
     fields:
       Name:
         is_primary_key: true

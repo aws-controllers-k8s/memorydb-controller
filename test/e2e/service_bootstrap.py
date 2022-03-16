@@ -14,9 +14,10 @@
 """
 import logging
 
+from acktest.resources import random_suffix_name
 from acktest.bootstrapping import Resources, BootstrapFailureException
-from acktest.bootstrapping.iam import Role
-from acktest.bootstrapping.vpc import VPC
+from e2e.bootstrappable.secrets import Secret
+from e2e.bootstrappable.subnets import Subnets
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
 
@@ -24,7 +25,9 @@ from e2e.bootstrap_resources import BootstrapResources
 def service_bootstrap() -> Resources:
     logging.getLogger().setLevel(logging.INFO)
 
-    resources = BootstrapResources()
+    resources = BootstrapResources(Secret1=Secret(name=random_suffix_name("secret", 10)),
+                                   Secret2=Secret(name=random_suffix_name("secret", 10)),
+                                   Subnets=Subnets())
 
     try:
         resources.bootstrap()
