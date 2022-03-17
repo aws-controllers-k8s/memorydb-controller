@@ -1,0 +1,25 @@
+id: "SNAPSHOT_CREATE_TERMINAL_CONDITION"
+description: "In this test we try to create snapshot without specifying cluster"
+steps:
+  - id: "SNAPSHOT_INITIAL_CREATE"
+    description: "Create snapshot with no clustername "
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        description: "Create ACK snapshot"
+        name: snapshot$RANDOM_SUFFIX
+    wait: 120
+    expect:
+      status:
+        conditions:
+          ACK.Terminal: "True"
+  - id: "DELETE_SNAPSHOT"
+    description: "Delete snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX

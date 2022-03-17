@@ -154,7 +154,6 @@ class ScenarioDict(TypedDict, total=False):
     resource: ResourceDict
     steps: List[StepDict]
 
-
 class Scenario:
     """
     Represents a declarative test scenario with steps

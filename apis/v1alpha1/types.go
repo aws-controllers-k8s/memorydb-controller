@@ -74,19 +74,20 @@ type AvailabilityZone struct {
 
 // A list of cluster configuration options.
 type ClusterConfiguration struct {
-	Description            *string `json:"description,omitempty"`
-	EngineVersion          *string `json:"engineVersion,omitempty"`
-	MaintenanceWindow      *string `json:"maintenanceWindow,omitempty"`
-	Name                   *string `json:"name,omitempty"`
-	NodeType               *string `json:"nodeType,omitempty"`
-	NumShards              *int64  `json:"numShards,omitempty"`
-	ParameterGroupName     *string `json:"parameterGroupName,omitempty"`
-	Port                   *int64  `json:"port,omitempty"`
-	SnapshotRetentionLimit *int64  `json:"snapshotRetentionLimit,omitempty"`
-	SnapshotWindow         *string `json:"snapshotWindow,omitempty"`
-	SubnetGroupName        *string `json:"subnetGroupName,omitempty"`
-	TopicARN               *string `json:"topicARN,omitempty"`
-	VPCID                  *string `json:"vpcID,omitempty"`
+	Description            *string        `json:"description,omitempty"`
+	EngineVersion          *string        `json:"engineVersion,omitempty"`
+	MaintenanceWindow      *string        `json:"maintenanceWindow,omitempty"`
+	Name                   *string        `json:"name,omitempty"`
+	NodeType               *string        `json:"nodeType,omitempty"`
+	NumShards              *int64         `json:"numShards,omitempty"`
+	ParameterGroupName     *string        `json:"parameterGroupName,omitempty"`
+	Port                   *int64         `json:"port,omitempty"`
+	Shards                 []*ShardDetail `json:"shards,omitempty"`
+	SnapshotRetentionLimit *int64         `json:"snapshotRetentionLimit,omitempty"`
+	SnapshotWindow         *string        `json:"snapshotWindow,omitempty"`
+	SubnetGroupName        *string        `json:"subnetGroupName,omitempty"`
+	TopicARN               *string        `json:"topicARN,omitempty"`
+	VPCID                  *string        `json:"vpcID,omitempty"`
 }
 
 // A list of updates being applied to the cluster
@@ -261,9 +262,12 @@ type ShardConfigurationRequest struct {
 
 // Provides details of a shard in a snapshot
 type ShardDetail struct {
-	Name                 *string      `json:"name,omitempty"`
-	Size                 *string      `json:"size,omitempty"`
-	SnapshotCreationTime *metav1.Time `json:"snapshotCreationTime,omitempty"`
+	// Shard configuration options. Each shard configuration has the following:
+	// Slots and ReplicaCount.
+	Configuration        *ShardConfiguration `json:"configuration,omitempty"`
+	Name                 *string             `json:"name,omitempty"`
+	Size                 *string             `json:"size,omitempty"`
+	SnapshotCreationTime *metav1.Time        `json:"snapshotCreationTime,omitempty"`
 }
 
 // Represents the progress of an online resharding operation.
@@ -273,12 +277,14 @@ type SlotMigration struct {
 
 // Represents a copy of an entire cluster as of the time when the snapshot was
 // taken.
-type Snapshot struct {
-	ARN      *string `json:"arn,omitempty"`
-	KMSKeyID *string `json:"kmsKeyID,omitempty"`
-	Name     *string `json:"name,omitempty"`
-	Source   *string `json:"source,omitempty"`
-	Status   *string `json:"status,omitempty"`
+type Snapshot_SDK struct {
+	ARN *string `json:"arn,omitempty"`
+	// A list of cluster configuration options.
+	ClusterConfiguration *ClusterConfiguration `json:"clusterConfiguration,omitempty"`
+	KMSKeyID             *string               `json:"kmsKeyID,omitempty"`
+	Name                 *string               `json:"name,omitempty"`
+	Source               *string               `json:"source,omitempty"`
+	Status               *string               `json:"status,omitempty"`
 }
 
 // Represents the subnet associated with a cluster. This parameter refers to

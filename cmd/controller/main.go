@@ -36,6 +36,7 @@ import (
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/acl"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/cluster"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/parameter_group"
+	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/snapshot"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/subnet_group"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/user"
 )
