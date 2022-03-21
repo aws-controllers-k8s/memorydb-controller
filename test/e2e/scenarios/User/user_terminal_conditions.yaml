@@ -1,0 +1,53 @@
+id: "USER_TERMINAL_CONDITIONS"
+description: "In this test we test different terminal cases for user resource"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: User
+  metadata:
+    name: user$RANDOM_SUFFIX
+steps:
+  - id: "USER_INITIAL_CREATE"
+    description: "Create User"
+    create:
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: incorrectaccessstring
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 100
+  - id: "USER_UPDATE_ACCESS_STRING"
+    description: "Update AccessString"
+    patch:
+      spec:
+        accessString: off +get
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_UPDATE_INCORRECT_ACCESS_STRING"
+    description: "Update to incorrect access string"
+    patch:
+      spec:
+        accessString: wrongagainstring
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_USER"
+    description: "Delete User"
+    delete: user$RANDOM_SUFFIX

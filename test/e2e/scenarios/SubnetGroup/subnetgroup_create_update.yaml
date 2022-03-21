@@ -1,0 +1,65 @@
+id: "SUBNET_CREATE_UPDATE"
+description: "In this test we create SubnetGroup and update it"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: SubnetGroup
+  metadata:
+    name: subnet$RANDOM_SUFFIX
+steps:
+  - id: "SUBNET_INITIAL_CREATE"
+    description: "Subnet group initial create"
+    create:
+      spec:
+        description: Subnet group create
+        name: subnet$RANDOM_SUFFIX
+        subnetIDs:
+          - $SUBNET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "UPDATE_DESCRIPTION"
+    description: "Update SubnetGroup Description"
+    patch:
+      spec:
+        description: Subnet group update
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "UPDATE_SUBNET"
+    description: "Update SubnetGroup SubnetIds"
+    patch:
+      spec:
+        subnetIDs:
+          - $SUBNET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "UPDATE_SUBNET_DESCRIPTION"
+    description: "Update SubnetGroup SubnetIds and Description"
+    patch:
+      spec:
+        description: Subnet group update description and subnets
+        subnetIDs:
+          - $SUBNET1
+          - $SUBNET2
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_SUBNET"
+    description: "Delete subnet group"
+    delete: subnet$RANDOM_SUFFIX

@@ -1,0 +1,90 @@
+id: "ACL_TERMINAL_CONDITIONS"
+description: "In this test we create User and create/update ACL to validate terminal conditions"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "USER_ONE_CREATE"
+    description: "Create User One"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: userone$RANDOM_SUFFIX
+      spec:
+        name: userone$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "ACL_CREATE"
+    description: "Create new ACL"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userNames:
+          - invaliduser
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 180
+  - id: "UPDATE_ACL"
+    description: "Update userNames"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        userNames:
+          - userone$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "UPDATE_ACL"
+    description: "Update userNames to invalid"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        userNames:
+          - invalidusername
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 180
+  - id: "ACL_DELETE"
+    description: "Delete ACL"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+  - id: "USER_DELETE_ONE"
+    description: "Delete User one"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: userone$RANDOM_SUFFIX

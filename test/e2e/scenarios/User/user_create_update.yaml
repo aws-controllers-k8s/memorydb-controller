@@ -1,0 +1,89 @@
+id: "USER_CREATE_UPDATE"
+description: "In this test we create User and Update"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: User
+  metadata:
+    name: user$RANDOM_SUFFIX
+steps:
+  - id: "USER_INITIAL_CREATE"
+    description: "Create User"
+    create:
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_UPDATE_ACCESS_STRING"
+    description: "Update AccessString"
+    patch:
+      spec:
+        accessString: off +get
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_UPDATE_PASSWORD"
+    description: "Update Password"
+    patch:
+      spec:
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET2
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_UPDATE_ACCESS_STRING_AND_SECRET"
+    description: "Update Secret and AccessString"
+    patch:
+      spec:
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "REAPPLY_SPEC"
+    description: "Update Secret and AccessString we should not see any errors"
+    patch:
+      spec:
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_USER"
+    description: "Delete User"
+    delete: user$RANDOM_SUFFIX

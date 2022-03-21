@@ -29,6 +29,34 @@ rules:
   - list
   - watch
 - apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - acls
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - acls/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - memorydb.services.k8s.aws
   resources:
   - parametergroups
@@ -44,6 +72,46 @@ rules:
   - memorydb.services.k8s.aws
   resources:
   - parametergroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - subnetgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - subnetgroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - users
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - users/status
   verbs:
   - get
   - patch
