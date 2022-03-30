@@ -1,0 +1,1 @@
+	input = rm.newMemoryDBClusterUploadPayload(desired, latest, delta)

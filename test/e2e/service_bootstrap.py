@@ -16,10 +16,13 @@ import logging
 
 from acktest.resources import random_suffix_name
 from acktest.bootstrapping import Resources, BootstrapFailureException
+
+from e2e.bootstrappable.kms import KMS
 from e2e.bootstrappable.secrets import Secret
 from e2e.bootstrappable.subnets import Subnets
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
+from e2e.bootstrappable.topics import Topics
 
 
 def service_bootstrap() -> Resources:
@@ -27,7 +30,9 @@ def service_bootstrap() -> Resources:
 
     resources = BootstrapResources(Secret1=Secret(name=random_suffix_name("secret", 10)),
                                    Secret2=Secret(name=random_suffix_name("secret", 10)),
-                                   Subnets=Subnets())
+                                   Subnets=Subnets(),
+                                   Topics=Topics(),
+                                   KMSKey=KMS())
 
     try:
         resources.bootstrap()

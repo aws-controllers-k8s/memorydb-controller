@@ -1,0 +1,81 @@
+id: "CLUSTER_TERMINAL_CONDITION"
+description: "In this test we validate terminal conditions"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "CREATE_CLUSTER"
+    description: "Create a Cluster invalid instance"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: cache.t4g.medium
+        aclName: open-access
+        numShards: 2
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 600
+
+  - id: "FIX_NODE_TYPE"
+    description: "Create a Cluster"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.t4g.small
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 3600
+
+  - id: "INVALID_NUM_SHARD"
+    description: "INVALID_NUM_SHARD"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.t4g.medium
+        numShards: -1
+    wait:
+      status:
+        conditions:
+          ACK.Terminal:
+            status: "True"
+            timeout: 1800
+
+  - id: "FIX_TERMINAL_CONDITIONS"
+    description: "Fix errors"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.t4g.medium
+        numShards: 2
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 3600
+
+  - id: "DELETE_CLUSTER"
+    description: "Delete the cluster"
+    apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX

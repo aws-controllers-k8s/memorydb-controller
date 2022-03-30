@@ -1,8 +1,74 @@
 ignore:
   resource_names:
     - Snapshot
-    - Cluster
 resources:
+  Cluster:
+    exceptions:
+      errors:
+        404:
+          code: ClusterNotFoundFault
+      terminal_codes:
+        - ClusterAlreadyExistsFault
+        - ClusterQuotaForCustomerExceededFault
+        - NodeQuotaForClusterExceededFault
+        - NodeQuotaForCustomerExceededFault
+        - InsufficientClusterCapacityFault
+        - InvalidVPCNetworkStateFault
+        - ShardsPerClusterQuotaExceededFault
+        - InvalidParameterValueException
+        - InvalidParameterCombinationException
+        - InvalidCredentialsException
+        - TagQuotaPerResourceExceeded
+        - InvalidACLStateFault
+        - InvalidNodeStateFault
+        - InvalidKMSKeyFault
+        - NoOperationFault
+    renames:
+      operations:
+        CreateCluster:
+          input_fields:
+            ClusterName: Name
+        UpdateCluster:
+          input_fields:
+            ClusterName: Name
+        DeleteCluster:
+          input_fields:
+            ClusterName: Name
+        DescribeClusters:
+          input_fields:
+            ClusterName: Name
+    fields:
+      AllowedScaleUpNodeTypes:
+        is_read_only: true
+        from:
+          operation: ListAllowedNodeTypeUpdates
+          path: ScaleUpNodeTypes
+      AllowedScaleDownNodeTypes:
+        is_read_only: true
+        from:
+          operation: ListAllowedNodeTypeUpdates
+          path: ScaleDownNodeTypes
+    hooks:
+      sdk_read_many_post_set_output:
+        template_path: hooks/cluster/sdk_read_many_post_set_output.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/cluster/sdk_create_many_post_set_output.go.tpl
+      sdk_update_post_set_output:
+        template_path: hooks/cluster/sdk_update_many_post_set_output.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/cluster/sdk_update_post_build_request.go.tpl
+      sdk_update_pre_build_request:
+        template_path: hooks/cluster/sdk_update_pre_build_request.go.tpl
+      sdk_delete_post_request:
+        template_path: hooks/cluster/sdk_delete_post_request.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/cluster/sdk_delete_pre_build_request.go.tpl
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - available
+            - create-failed
   SubnetGroup:
     exceptions:
       errors:
@@ -172,3 +238,7 @@ resources:
         DescribeParameterGroups:
           input_fields:
             ParameterGroupName: Name
+operations:
+  DescribeClusters:
+    override_values:
+      ShowShardDetails: true

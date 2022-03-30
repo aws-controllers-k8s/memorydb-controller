@@ -55,6 +55,26 @@ rules:
 - apiGroups:
   - memorydb.services.k8s.aws
   resources:
+  - clusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - clusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
   - parametergroups
   verbs:
   - create

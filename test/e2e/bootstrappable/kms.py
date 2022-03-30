@@ -12,26 +12,30 @@
 # permissions and limitations under the License.
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from acktest.bootstrapping import Bootstrappable
-from acktest.resources import random_suffix_name
-from acktest.k8s import resource as k8s
+import boto3
 
 
 @dataclass
-class Secret(Bootstrappable):
-    # Inputs
-    name: str
+class KMS(Bootstrappable):
+    # Output
+    key: str = field(init=False)
 
     def bootstrap(self):
-        """Create a new secret.
+        """Create a KMS key.
         """
         super().bootstrap()
-        k8s.create_opaque_secret("default", self.name, "password", random_suffix_name("password", 32))
+        kms = boto3.client("kms")
+
+        response = kms.create_key(Description="Key for ACK MemoryDB tests")
+        self.key = response['KeyMetadata']['KeyId']
 
     def cleanup(self):
-        """Delete the secret.
+        """Delete KMS key.
+        KMS does not allow immediate key deletion; 7 days is the shortest deletion window
         """
         super().cleanup()
-        k8s.delete_secret("default", self.name)
+        kms = boto3.client("kms")
+        kms.schedule_key_deletion(KeyId=self.key, PendingWindowInDays=7)

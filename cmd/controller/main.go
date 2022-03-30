@@ -34,6 +34,7 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/acl"
+	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/cluster"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/parameter_group"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/subnet_group"
 	_ "github.com/aws-controllers-k8s/memorydb-controller/pkg/resource/user"

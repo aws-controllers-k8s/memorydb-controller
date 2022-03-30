@@ -72,28 +72,6 @@ type AvailabilityZone struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// Contains all of the attributes of a specific cluster.
-type Cluster struct {
-	ACLName                *string `json:"aclName,omitempty"`
-	ARN                    *string `json:"arn,omitempty"`
-	Description            *string `json:"description,omitempty"`
-	EnginePatchVersion     *string `json:"enginePatchVersion,omitempty"`
-	EngineVersion          *string `json:"engineVersion,omitempty"`
-	KMSKeyID               *string `json:"kmsKeyID,omitempty"`
-	MaintenanceWindow      *string `json:"maintenanceWindow,omitempty"`
-	Name                   *string `json:"name,omitempty"`
-	NodeType               *string `json:"nodeType,omitempty"`
-	NumberOfShards         *int64  `json:"numberOfShards,omitempty"`
-	ParameterGroupName     *string `json:"parameterGroupName,omitempty"`
-	ParameterGroupStatus   *string `json:"parameterGroupStatus,omitempty"`
-	SnapshotRetentionLimit *int64  `json:"snapshotRetentionLimit,omitempty"`
-	SnapshotWindow         *string `json:"snapshotWindow,omitempty"`
-	SnsTopicARN            *string `json:"snsTopicARN,omitempty"`
-	SnsTopicStatus         *string `json:"snsTopicStatus,omitempty"`
-	Status                 *string `json:"status,omitempty"`
-	SubnetGroupName        *string `json:"subnetGroupName,omitempty"`
-}
-
 // A list of cluster configuration options.
 type ClusterConfiguration struct {
 	Description            *string `json:"description,omitempty"`
@@ -111,10 +89,52 @@ type ClusterConfiguration struct {
 	VPCID                  *string `json:"vpcID,omitempty"`
 }
 
+// A list of updates being applied to the cluster
+type ClusterPendingUpdates struct {
+	// The status of the ACL update
+	ACLs *ACLsUpdateStatus `json:"acls,omitempty"`
+	// The status of the online resharding
+	Resharding     *ReshardingStatus               `json:"resharding,omitempty"`
+	ServiceUpdates []*PendingModifiedServiceUpdate `json:"serviceUpdates,omitempty"`
+}
+
+// Contains all of the attributes of a specific cluster.
+type Cluster_SDK struct {
+	ACLName                 *string `json:"aclName,omitempty"`
+	ARN                     *string `json:"arn,omitempty"`
+	AutoMinorVersionUpgrade *bool   `json:"autoMinorVersionUpgrade,omitempty"`
+	AvailabilityMode        *string `json:"availabilityMode,omitempty"`
+	// Represents the information required for client programs to connect to the
+	// cluster and its nodes.
+	ClusterEndpoint      *Endpoint `json:"clusterEndpoint,omitempty"`
+	Description          *string   `json:"description,omitempty"`
+	EnginePatchVersion   *string   `json:"enginePatchVersion,omitempty"`
+	EngineVersion        *string   `json:"engineVersion,omitempty"`
+	KMSKeyID             *string   `json:"kmsKeyID,omitempty"`
+	MaintenanceWindow    *string   `json:"maintenanceWindow,omitempty"`
+	Name                 *string   `json:"name,omitempty"`
+	NodeType             *string   `json:"nodeType,omitempty"`
+	NumberOfShards       *int64    `json:"numberOfShards,omitempty"`
+	ParameterGroupName   *string   `json:"parameterGroupName,omitempty"`
+	ParameterGroupStatus *string   `json:"parameterGroupStatus,omitempty"`
+	// A list of updates being applied to the cluster
+	PendingUpdates         *ClusterPendingUpdates     `json:"pendingUpdates,omitempty"`
+	SecurityGroups         []*SecurityGroupMembership `json:"securityGroups,omitempty"`
+	Shards                 []*Shard                   `json:"shards,omitempty"`
+	SnapshotRetentionLimit *int64                     `json:"snapshotRetentionLimit,omitempty"`
+	SnapshotWindow         *string                    `json:"snapshotWindow,omitempty"`
+	SnsTopicARN            *string                    `json:"snsTopicARN,omitempty"`
+	SnsTopicStatus         *string                    `json:"snsTopicStatus,omitempty"`
+	Status                 *string                    `json:"status,omitempty"`
+	SubnetGroupName        *string                    `json:"subnetGroupName,omitempty"`
+	TLSEnabled             *bool                      `json:"tlsEnabled,omitempty"`
+}
+
 // Represents the information required for client programs to connect to the
 // cluster and its nodes.
 type Endpoint struct {
 	Address *string `json:"address,omitempty"`
+	Port    *int64  `json:"port,omitempty"`
 }
 
 // Provides details of the Redis engine version
@@ -127,8 +147,9 @@ type EngineVersionInfo struct {
 // Represents a single occurrence of something interesting within the system.
 // Some examples of events are creating a cluster or adding or removing a node.
 type Event struct {
-	Message    *string `json:"message,omitempty"`
-	SourceName *string `json:"sourceName,omitempty"`
+	Date       *metav1.Time `json:"date,omitempty"`
+	Message    *string      `json:"message,omitempty"`
+	SourceName *string      `json:"sourceName,omitempty"`
 }
 
 // Used to streamline results of a search based on the property being filtered.
@@ -140,9 +161,13 @@ type Filter struct {
 // Represents an individual node within a cluster. Each node runs its own instance
 // of the cluster's protocol-compliant caching software.
 type Node struct {
-	AvailabilityZone *string `json:"availabilityZone,omitempty"`
-	Name             *string `json:"name,omitempty"`
-	Status           *string `json:"status,omitempty"`
+	AvailabilityZone *string      `json:"availabilityZone,omitempty"`
+	CreateTime       *metav1.Time `json:"createTime,omitempty"`
+	// Represents the information required for client programs to connect to the
+	// cluster and its nodes.
+	Endpoint *Endpoint `json:"endpoint,omitempty"`
+	Name     *string   `json:"name,omitempty"`
+	Status   *string   `json:"status,omitempty"`
 }
 
 // Describes an individual setting that controls some aspect of MemoryDB behavior.
@@ -175,6 +200,18 @@ type ParameterNameValue struct {
 // request
 type PendingModifiedServiceUpdate struct {
 	ServiceUpdateName *string `json:"serviceUpdateName,omitempty"`
+	Status            *string `json:"status,omitempty"`
+}
+
+// A request to configure the number of replicas in a shard
+type ReplicaConfigurationRequest struct {
+	ReplicaCount *int64 `json:"replicaCount,omitempty"`
+}
+
+// The status of the online resharding
+type ReshardingStatus struct {
+	// Represents the progress of an online resharding operation.
+	SlotMigration *SlotMigration `json:"slotMigration,omitempty"`
 }
 
 // Represents a single security group and its status.
@@ -185,10 +222,13 @@ type SecurityGroupMembership struct {
 
 // An update that you can apply to your MemoryDB clusters.
 type ServiceUpdate struct {
-	ClusterName       *string `json:"clusterName,omitempty"`
-	Description       *string `json:"description,omitempty"`
-	NodesUpdated      *string `json:"nodesUpdated,omitempty"`
-	ServiceUpdateName *string `json:"serviceUpdateName,omitempty"`
+	AutoUpdateStartDate *metav1.Time `json:"autoUpdateStartDate,omitempty"`
+	ClusterName         *string      `json:"clusterName,omitempty"`
+	Description         *string      `json:"description,omitempty"`
+	NodesUpdated        *string      `json:"nodesUpdated,omitempty"`
+	ReleaseDate         *metav1.Time `json:"releaseDate,omitempty"`
+	ServiceUpdateName   *string      `json:"serviceUpdateName,omitempty"`
+	Status              *string      `json:"status,omitempty"`
 }
 
 // A request to apply a service update
@@ -201,6 +241,7 @@ type ServiceUpdateRequest struct {
 // nodes.
 type Shard struct {
 	Name          *string `json:"name,omitempty"`
+	Nodes         []*Node `json:"nodes,omitempty"`
 	NumberOfNodes *int64  `json:"numberOfNodes,omitempty"`
 	Slots         *string `json:"slots,omitempty"`
 	Status        *string `json:"status,omitempty"`
@@ -213,10 +254,21 @@ type ShardConfiguration struct {
 	Slots        *string `json:"slots,omitempty"`
 }
 
+// A request to configure the sharding properties of a cluster
+type ShardConfigurationRequest struct {
+	ShardCount *int64 `json:"shardCount,omitempty"`
+}
+
 // Provides details of a shard in a snapshot
 type ShardDetail struct {
-	Name *string `json:"name,omitempty"`
-	Size *string `json:"size,omitempty"`
+	Name                 *string      `json:"name,omitempty"`
+	Size                 *string      `json:"size,omitempty"`
+	SnapshotCreationTime *metav1.Time `json:"snapshotCreationTime,omitempty"`
+}
+
+// Represents the progress of an online resharding operation.
+type SlotMigration struct {
+	ProgressPercentage *float64 `json:"progressPercentage,omitempty"`
 }
 
 // Represents a copy of an entire cluster as of the time when the snapshot was

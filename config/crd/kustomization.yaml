@@ -4,6 +4,7 @@ bases:
   - common
 resources:
   - bases/memorydb.services.k8s.aws_acls.yaml
+  - bases/memorydb.services.k8s.aws_clusters.yaml
   - bases/memorydb.services.k8s.aws_parametergroups.yaml
   - bases/memorydb.services.k8s.aws_subnetgroups.yaml
   - bases/memorydb.services.k8s.aws_users.yaml
