@@ -51,6 +51,9 @@ func newResourceDelta(
 	if ackcompare.HasNilDifference(a.ko.Spec.AuthenticationMode, b.ko.Spec.AuthenticationMode) {
 		delta.Add("Spec.AuthenticationMode", a.ko.Spec.AuthenticationMode, b.ko.Spec.AuthenticationMode)
 	} else if a.ko.Spec.AuthenticationMode != nil && b.ko.Spec.AuthenticationMode != nil {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.AuthenticationMode.Passwords, b.ko.Spec.AuthenticationMode.Passwords) {
+			delta.Add("Spec.AuthenticationMode.Passwords", a.ko.Spec.AuthenticationMode.Passwords, b.ko.Spec.AuthenticationMode.Passwords)
+		}
 		if ackcompare.HasNilDifference(a.ko.Spec.AuthenticationMode.Type, b.ko.Spec.AuthenticationMode.Type) {
 			delta.Add("Spec.AuthenticationMode.Type", a.ko.Spec.AuthenticationMode.Type, b.ko.Spec.AuthenticationMode.Type)
 		} else if a.ko.Spec.AuthenticationMode.Type != nil && b.ko.Spec.AuthenticationMode.Type != nil {
