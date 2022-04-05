@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	condMsgCurrentlyDeleting     string = "cluster currently being deleted."
-	condMsgNoDeleteWhileUpdating string = "cluster is being updated. cannot delete."
+	condMsgCurrentlyDeleting     = "cluster currently being deleted"
+	condMsgNoDeleteWhileUpdating = "cluster is being updated. cannot delete"
 )
 
 var (
@@ -35,13 +35,20 @@ var (
 	)
 )
 
+const (
+	available    = "available"
+	deleting     = "deleting"
+	updating     = "updating"
+	createFailed = "create-failed"
+)
+
 // isDeleting returns true if supplied cluster resource state is 'deleting'
 func isDeleting(r *resource) bool {
 	if r == nil || r.ko.Status.Status == nil {
 		return false
 	}
 	status := *r.ko.Status.Status
-	return status == "deleting"
+	return status == deleting
 }
 
 // isUpdating returns true if supplied cluster resource state is 'modifying'
@@ -50,5 +57,5 @@ func isUpdating(r *resource) bool {
 		return false
 	}
 	status := *r.ko.Status.Status
-	return status == "updating"
+	return status == updating
 }

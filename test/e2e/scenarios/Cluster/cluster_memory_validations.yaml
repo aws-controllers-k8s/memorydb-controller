@@ -22,7 +22,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 3600
+            timeout: 7200
 
   - id: "PERFORM_SCALE_DOWN"
     description: "Perform scale down"
@@ -38,10 +38,10 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
-  - id: "PERFORM_SCALE_DOWN"
-    description: "Perform scale down"
+  - id: "PERFORM_SCALE_IN"
+    description: "Perform scale in"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Cluster
@@ -89,11 +89,12 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
-    apiVersion: $CRD_GROUP/$CRD_VERSION
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Cluster
       metadata:
         name: cluster$RANDOM_SUFFIX

@@ -13,15 +13,10 @@ resources:
         - NodeQuotaForClusterExceededFault
         - NodeQuotaForCustomerExceededFault
         - InsufficientClusterCapacityFault
-        - InvalidVPCNetworkStateFault
         - ShardsPerClusterQuotaExceededFault
         - InvalidParameterValueException
         - InvalidParameterCombinationException
-        - InvalidCredentialsException
         - TagQuotaPerResourceExceeded
-        - InvalidACLStateFault
-        - InvalidNodeStateFault
-        - InvalidKMSKeyFault
         - NoOperationFault
     renames:
       operations:

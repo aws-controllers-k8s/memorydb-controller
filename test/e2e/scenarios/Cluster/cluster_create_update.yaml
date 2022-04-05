@@ -1,4 +1,4 @@
-id: "ACL_CREATE_UPDATE"
+id: "CREATE_UPDATE"
 description: "In this test we create Cluster and update it"
 #marks:
 #  - slow
@@ -28,7 +28,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 3600
+            timeout: 7200
   - id: "UPDATE_CLUSTER_DESCRIPTION_SNS_TOPIC_MAINTENANCE_WINDOW"
     description: "Update description, sns topic, maintenance window"
     patch:
@@ -46,57 +46,22 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 600
-  - id: "UPDATE_SHARD_COUNT_SCALE_DOWN_DECREASE_REPLICA"
-      description: "Update scale out, scale down and decrease replica"
-      patch:
-        apiVersion: $CRD_GROUP/$CRD_VERSION
-        kind: Cluster
-        metadata:
-          name: cluster$RANDOM_SUFFIX
-        spec:
-          nodeType: db.t4g.small
-          numShards: 2
-          numReplicasPerShard: 0
-      wait:
-        status:
-          conditions:
-            ACK.ResourceSynced:
-              status: "True"
-              timeout: 1800
-  - id: "UPDATE_SHARD_COUNT_SCALE_UP_INCREASE_REPLICA"
-      description: "Update scale in, scale up and increase replica"
-      patch:
-        apiVersion: $CRD_GROUP/$CRD_VERSION
-        kind: Cluster
-        metadata:
-          name: cluster$RANDOM_SUFFIX
-        spec:
-          nodeType: db.t4g.medium
-          numShards: 1
-          numReplicasPerShard: 1
-      wait:
-        status:
-          conditions:
-            ACK.ResourceSynced:
-              status: "True"
-              timeout: 1800
-
   - id: "UPDATE_SNAPSHOT_WINDOW_RETENTION_LIMIT"
-      description: "Update snapshot window and retention limit"
-      patch:
-        apiVersion: $CRD_GROUP/$CRD_VERSION
-        kind: Cluster
-        metadata:
-          name: cluster$RANDOM_SUFFIX
-        spec:
-          snapshotWindow: 08:00-09:00
-          snapshotRetentionLimit: 10
-      wait:
-        status:
-          conditions:
-            ACK.ResourceSynced:
-              status: "True"
-              timeout: 1800
+    description: "Update snapshot window and retention limit"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        snapshotWindow: 08:00-09:00
+        snapshotRetentionLimit: 10
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
 
   - id: "USER_ONE_CREATE"
     description: "Create User ONE"
@@ -151,7 +116,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
   - id: "PG_INITIAL_CREATE"
     description: "PG with activerehashing as no"
@@ -182,17 +147,18 @@ steps:
       metadata:
         name: cluster$RANDOM_SUFFIX
       spec:
-        aclName: pg$RANDOM_SUFFIX
+        parameterGroupName: pg$RANDOM_SUFFIX
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
-    apiVersion: $CRD_GROUP/$CRD_VERSION
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Cluster
       metadata:
         name: cluster$RANDOM_SUFFIX

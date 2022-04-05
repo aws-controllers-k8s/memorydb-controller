@@ -42,7 +42,7 @@ func (rm *resourceManager) setAllowedNodeTypeUpdates(
 	ctx context.Context,
 	ko *svcapitypes.Cluster,
 ) {
-	if *ko.Status.Status != "available" {
+	if *ko.Status.Status != available {
 		return
 	}
 

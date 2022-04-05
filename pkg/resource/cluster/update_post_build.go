@@ -25,7 +25,7 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 ) *svcsdk.UpdateClusterInput {
 	res := &svcsdk.UpdateClusterInput{}
 
-	if delta.DifferentAt("Spec.AclName") && desired.ko.Spec.ACLName != nil {
+	if delta.DifferentAt("Spec.ACLName") && desired.ko.Spec.ACLName != nil {
 		res.SetACLName(*desired.ko.Spec.ACLName)
 	}
 	if desired.ko.Spec.Name != nil {

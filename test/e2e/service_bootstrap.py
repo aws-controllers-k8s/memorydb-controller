@@ -22,7 +22,7 @@ from e2e.bootstrappable.secrets import Secret
 from e2e.bootstrappable.subnets import Subnets
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
-from e2e.bootstrappable.topics import Topics
+from e2e.bootstrappable.topic import Topic
 
 
 def service_bootstrap() -> Resources:
@@ -31,7 +31,8 @@ def service_bootstrap() -> Resources:
     resources = BootstrapResources(Secret1=Secret(name=random_suffix_name("secret", 10)),
                                    Secret2=Secret(name=random_suffix_name("secret", 10)),
                                    Subnets=Subnets(),
-                                   Topics=Topics(),
+                                   Topic1=Topic(),
+                                   Topic2=Topic(),
                                    KMSKey=KMS())
 
     try:

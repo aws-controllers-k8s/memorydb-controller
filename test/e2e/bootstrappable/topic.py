@@ -20,25 +20,21 @@ import boto3
 
 
 @dataclass
-class Topics(Bootstrappable):
+class Topic(Bootstrappable):
     # Output
-    topic1: str = field(init=False)
-    topic2: str = field(init=False)
+    topic_arn: str = field(init=False)
 
     def bootstrap(self):
         """Create a two SNS topic.
         """
         super().bootstrap()
         topic_name1 = random_suffix_name("ack-sns-topic", 32)
-        topic_name2 = random_suffix_name("ack-sns-topic", 32)
         sns = boto3.client("sns")
-        self.topic1 = sns.create_topic(Name=topic_name1)['TopicArn']
-        self.topic2 = sns.create_topic(Name=topic_name2)['TopicArn']
+        self.topic_arn = sns.create_topic(Name=topic_name1)['TopicArn']
 
     def cleanup(self):
         """Delete SNS topics.
         """
         super().cleanup()
         sns = boto3.client("sns")
-        sns.delete_topic(TopicArn=self.topic1)
-        sns.delete_topic(TopicArn=self.topic2)
+        sns.delete_topic(TopicArn=self.topic_arn)

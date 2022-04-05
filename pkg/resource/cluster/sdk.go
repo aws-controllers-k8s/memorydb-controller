@@ -17,6 +17,7 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -314,22 +315,23 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-	if resp.Clusters[0].NumberOfShards != nil {
-		ko.Spec.NumShards = resp.Clusters[0].NumberOfShards
+	cluster := resp.Clusters[0]
+	if cluster.NumberOfShards != nil {
+		ko.Spec.NumShards = cluster.NumberOfShards
 	} else {
 		ko.Spec.NumShards = nil
 	}
 
-	if resp.Clusters[0].Shards != nil && resp.Clusters[0].Shards[0].NumberOfNodes != nil {
-		replicas := *resp.Clusters[0].Shards[0].NumberOfNodes - 1
+	if cluster.Shards != nil && cluster.Shards[0].NumberOfNodes != nil {
+		replicas := *cluster.Shards[0].NumberOfNodes - 1
 		ko.Spec.NumReplicasPerShard = &replicas
 	} else {
 		ko.Spec.NumReplicasPerShard = nil
 	}
 
-	if resp.Clusters[0].SecurityGroups != nil {
+	if cluster.SecurityGroups != nil {
 		var securityGroupIds []*string
-		for _, securityGroup := range resp.Clusters[0].SecurityGroups {
+		for _, securityGroup := range cluster.SecurityGroups {
 			if securityGroup.SecurityGroupId != nil {
 				securityGroupIds = append(securityGroupIds, securityGroup.SecurityGroupId)
 			}
@@ -629,8 +631,13 @@ func (rm *resourceManager) sdkCreate(
 
 	// Update the annotations to handle async rollback
 	rm.setNodeTypeAnnotation(input.NodeType, ko)
-	rm.setNumReplicasPerShardAnnotation(input.NumReplicasPerShard, ko)
-	rm.setNumShardAnnotation(input.NumShards, ko)
+	if input.NumReplicasPerShard != nil {
+		rm.setNumReplicasPerShardAnnotation(*input.NumReplicasPerShard, ko)
+	}
+
+	if input.NumShards != nil {
+		rm.setNumShardAnnotation(*input.NumShards, ko)
+	}
 	return &resource{ko}, nil
 }
 
@@ -1007,11 +1014,11 @@ func (rm *resourceManager) sdkUpdate(
 
 	// Update the annotations to handle async rollback
 	rm.setNodeTypeAnnotation(input.NodeType, ko)
-	if input.ReplicaConfiguration != nil {
-		rm.setNumReplicasPerShardAnnotation(input.ReplicaConfiguration.ReplicaCount, ko)
+	if input.ReplicaConfiguration != nil && input.ReplicaConfiguration.ReplicaCount != nil {
+		rm.setNumReplicasPerShardAnnotation(*input.ReplicaConfiguration.ReplicaCount, ko)
 	}
-	if input.ShardConfiguration != nil {
-		rm.setNumShardAnnotation(input.ShardConfiguration.ShardCount, ko)
+	if input.ShardConfiguration != nil && input.ShardConfiguration.ShardCount != nil {
+		rm.setNumShardAnnotation(*input.ShardConfiguration.ShardCount, ko)
 	}
 	return &resource{ko}, nil
 }
@@ -1162,6 +1169,9 @@ func (rm *resourceManager) setStatusDefaults(
 	if ko.Status.ACKResourceMetadata == nil {
 		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
 	}
+	if ko.Status.ACKResourceMetadata.Region == nil {
+		ko.Status.ACKResourceMetadata.Region = &rm.awsRegion
+	}
 	if ko.Status.ACKResourceMetadata.OwnerAccountID == nil {
 		ko.Status.ACKResourceMetadata.OwnerAccountID = &rm.awsAccountID
 	}
@@ -1195,8 +1205,8 @@ func (rm *resourceManager) updateConditions(
 			syncCondition = condition
 		}
 	}
-
-	if rm.terminalAWSError(err) || err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
+	var termError *ackerr.TerminalError
+	if rm.terminalAWSError(err) || err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound || errors.As(err, &termError) {
 		if terminalCondition == nil {
 			terminalCondition = &ackv1alpha1.Condition{
 				Type: ackv1alpha1.ConditionTypeTerminal,
@@ -1204,7 +1214,7 @@ func (rm *resourceManager) updateConditions(
 			ko.Status.Conditions = append(ko.Status.Conditions, terminalCondition)
 		}
 		var errorMessage = ""
-		if err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound {
+		if err == ackerr.SecretTypeNotSupported || err == ackerr.SecretNotFound || errors.As(err, &termError) {
 			errorMessage = err.Error()
 		} else {
 			awsErr, _ := ackerr.AWSError(err)
@@ -1264,15 +1274,10 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		"NodeQuotaForClusterExceededFault",
 		"NodeQuotaForCustomerExceededFault",
 		"InsufficientClusterCapacityFault",
-		"InvalidVPCNetworkStateFault",
 		"ShardsPerClusterQuotaExceededFault",
 		"InvalidParameterValueException",
 		"InvalidParameterCombinationException",
-		"InvalidCredentialsException",
 		"TagQuotaPerResourceExceeded",
-		"InvalidACLStateFault",
-		"InvalidNodeStateFault",
-		"InvalidKMSKeyFault",
 		"NoOperationFault":
 		return true
 	default:

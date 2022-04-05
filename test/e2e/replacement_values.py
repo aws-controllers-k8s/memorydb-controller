@@ -20,7 +20,7 @@ REPLACEMENT_VALUES = {
     "SECRET2": get_bootstrap_resources().Secret2.name,
     "SUBNET1": get_bootstrap_resources().Subnets.subnets[0],
     "SUBNET2": get_bootstrap_resources().Subnets.subnets[1],
-    "TOPIC1": get_bootstrap_resources().Topics.topic1,
-    "TOPIC2": get_bootstrap_resources().Topics.topic2,
+    "TOPIC1": get_bootstrap_resources().Topic1.topic_arn,
+    "TOPIC2": get_bootstrap_resources().Topic2.topic_arn,
     "KMSKEY": get_bootstrap_resources().KMSKey.key
 }

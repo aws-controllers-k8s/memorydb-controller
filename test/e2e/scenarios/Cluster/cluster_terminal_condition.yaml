@@ -75,7 +75,8 @@ steps:
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
-    apiVersion: $CRD_GROUP/$CRD_VERSION
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Cluster
       metadata:
         name: cluster$RANDOM_SUFFIX

@@ -1,19 +1,20 @@
-	if resp.Clusters[0].NumberOfShards != nil {
-		ko.Spec.NumShards = resp.Clusters[0].NumberOfShards
+	cluster := resp.Clusters[0]
+	if cluster.NumberOfShards != nil {
+		ko.Spec.NumShards = cluster.NumberOfShards
 	} else {
 		ko.Spec.NumShards = nil
 	}
 
-	if resp.Clusters[0].Shards != nil && resp.Clusters[0].Shards[0].NumberOfNodes != nil {
-		replicas := *resp.Clusters[0].Shards[0].NumberOfNodes - 1
+	if cluster.Shards != nil && cluster.Shards[0].NumberOfNodes != nil {
+		replicas := *cluster.Shards[0].NumberOfNodes - 1
 		ko.Spec.NumReplicasPerShard = &replicas
 	} else {
 		ko.Spec.NumReplicasPerShard = nil
 	}
 
-	if resp.Clusters[0].SecurityGroups != nil {
+	if cluster.SecurityGroups != nil {
 		var securityGroupIds []*string
-		for _, securityGroup := range resp.Clusters[0].SecurityGroups {
+		for _, securityGroup := range cluster.SecurityGroups {
 			if securityGroup.SecurityGroupId != nil {
 				securityGroupIds = append(securityGroupIds, securityGroup.SecurityGroupId)
 			}

@@ -13,9 +13,9 @@
 	
 	// Update the annotations to handle async rollback
 	rm.setNodeTypeAnnotation(input.NodeType, ko)
-	if input.ReplicaConfiguration != nil {
-		rm.setNumReplicasPerShardAnnotation(input.ReplicaConfiguration.ReplicaCount, ko)
+	if input.ReplicaConfiguration != nil && input.ReplicaConfiguration.ReplicaCount != nil {
+		rm.setNumReplicasPerShardAnnotation(*input.ReplicaConfiguration.ReplicaCount, ko)
 	}
-	if input.ShardConfiguration != nil {
-		rm.setNumShardAnnotation(input.ShardConfiguration.ShardCount, ko)
+	if input.ShardConfiguration != nil && input.ShardConfiguration.ShardCount != nil {
+		rm.setNumShardAnnotation(*input.ShardConfiguration.ShardCount, ko)
 	}

@@ -6,5 +6,10 @@
 	
 	// Update the annotations to handle async rollback
 	rm.setNodeTypeAnnotation(input.NodeType, ko)
-	rm.setNumReplicasPerShardAnnotation(input.NumReplicasPerShard, ko)
-	rm.setNumShardAnnotation(input.NumShards, ko)
+	if input.NumReplicasPerShard != nil {
+		rm.setNumReplicasPerShardAnnotation(*input.NumReplicasPerShard, ko)
+	}
+
+	if input.NumShards != nil {
+		rm.setNumShardAnnotation(*input.NumShards, ko)
+	}

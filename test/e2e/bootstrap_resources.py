@@ -21,7 +21,7 @@ from e2e import bootstrap_directory
 from e2e.bootstrappable.kms import KMS
 from e2e.bootstrappable.subnets import Subnets
 from e2e.bootstrappable.secrets import Secret
-from e2e.bootstrappable.topics import Topics
+from e2e.bootstrappable.topic import Topic
 
 
 @dataclass
@@ -29,7 +29,8 @@ class BootstrapResources(Resources):
     Secret1: Secret
     Secret2: Secret
     Subnets: Subnets
-    Topics: Topics
+    Topic1: Topic
+    Topic2: Topic
     KMSKey: KMS
 
 _bootstrap_resources = None
