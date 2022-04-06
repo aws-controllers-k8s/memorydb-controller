@@ -50,7 +50,6 @@ func (rm *resourceManager) setAllowedNodeTypeUpdates(
 		ClusterName: ko.Spec.Name,
 	})
 	rm.metrics.RecordAPICall("GET", "ListAllowedNodeTypeUpdates", respErr)
-	// Ignore the error since the response from this API is used for information purpose only
 	if respErr == nil {
 		ko.Status.AllowedScaleDownNodeTypes = response.ScaleDownNodeTypes
 		ko.Status.AllowedScaleUpNodeTypes = response.ScaleUpNodeTypes
