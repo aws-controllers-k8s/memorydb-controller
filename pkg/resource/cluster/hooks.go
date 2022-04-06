@@ -36,10 +36,10 @@ var (
 )
 
 const (
-	available    = "available"
-	deleting     = "deleting"
-	updating     = "updating"
-	createFailed = "create-failed"
+	StatusAvailable    = "available"
+	StatusDeleting     = "deleting"
+	StatusUpdating     = "updating"
+	StatusCreateFailed = "create-failed"
 )
 
 // isDeleting returns true if supplied cluster resource state is 'deleting'
@@ -48,7 +48,7 @@ func isDeleting(r *resource) bool {
 		return false
 	}
 	status := *r.ko.Status.Status
-	return status == deleting
+	return status == StatusDeleting
 }
 
 // isUpdating returns true if supplied cluster resource state is 'modifying'
@@ -57,5 +57,5 @@ func isUpdating(r *resource) bool {
 		return false
 	}
 	status := *r.ko.Status.Status
-	return status == updating
+	return status == StatusUpdating
 }

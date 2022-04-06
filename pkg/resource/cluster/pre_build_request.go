@@ -14,6 +14,7 @@
 package cluster
 
 import (
+	"fmt"
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	"github.com/pkg/errors"
@@ -31,15 +32,15 @@ func (rm *resourceManager) validateClusterNeedsUpdate(
 ) (*resource, error) {
 	// requeue if necessary
 	latestStatus := latest.ko.Status.Status
-	if latestStatus == nil || *latestStatus != available {
+	if latestStatus == nil || *latestStatus != StatusAvailable {
 		return nil, requeue.NeededAfter(
-			errors.New("cluster cannot be updated as its status is not 'available'"),
+			fmt.Errorf("cluster cannot be updated as its status is not '%s'", StatusAvailable),
 			requeue.DefaultRequeueAfterDuration)
 	}
 
 	// Set terminal condition when cluster is in create-failed state
-	if *latestStatus == createFailed {
-		return nil, ackerr.NewTerminalError(errors.New("cluster is in create-failed state, cannot be updated"))
+	if *latestStatus == StatusCreateFailed {
+		return nil, ackerr.NewTerminalError(fmt.Errorf("cluster is in '%s' state, cannot be updated", StatusCreateFailed))
 	}
 
 	annotations := desired.ko.ObjectMeta.GetAnnotations()

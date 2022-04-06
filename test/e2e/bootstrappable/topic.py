@@ -25,7 +25,7 @@ class Topic(Bootstrappable):
     topic_arn: str = field(init=False)
 
     def bootstrap(self):
-        """Create a two SNS topic.
+        """Create a SNS topic.
         """
         super().bootstrap()
         topic_name1 = random_suffix_name("ack-sns-topic", 32)

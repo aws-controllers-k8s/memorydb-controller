@@ -41,9 +41,9 @@ func (rm *resourceManager) setShardDetails(
 func (rm *resourceManager) setAllowedNodeTypeUpdates(
 	ctx context.Context,
 	ko *svcapitypes.Cluster,
-) {
-	if *ko.Status.Status != available {
-		return
+) error {
+	if *ko.Status.Status != StatusAvailable {
+		return nil
 	}
 
 	response, respErr := rm.sdkapi.ListAllowedNodeTypeUpdatesWithContext(ctx, &svcsdk.ListAllowedNodeTypeUpdatesInput{
@@ -55,4 +55,6 @@ func (rm *resourceManager) setAllowedNodeTypeUpdates(
 		ko.Status.AllowedScaleDownNodeTypes = response.ScaleDownNodeTypes
 		ko.Status.AllowedScaleUpNodeTypes = response.ScaleUpNodeTypes
 	}
+
+	return respErr
 }

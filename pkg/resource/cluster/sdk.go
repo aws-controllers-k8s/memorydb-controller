@@ -341,7 +341,10 @@ func (rm *resourceManager) sdkFind(
 		ko.Spec.SecurityGroupIDs = nil
 	}
 
-	rm.setAllowedNodeTypeUpdates(ctx, ko)
+	respErr := rm.setAllowedNodeTypeUpdates(ctx, ko)
+	if respErr != nil {
+		return nil, respErr
+	}
 	return &resource{ko}, nil
 }
 
