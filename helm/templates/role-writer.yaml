@@ -11,6 +11,8 @@ rules:
   resources:
   - acls
 
+  - clusters
+
   - parametergroups
 
   - subnetgroups
@@ -29,6 +31,7 @@ rules:
   - memorydb.services.k8s.aws
   resources:
   - acls
+  - clusters
   - parametergroups
   - subnetgroups
   - users

@@ -12,26 +12,29 @@
 # permissions and limitations under the License.
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from acktest.bootstrapping import Bootstrappable
 from acktest.resources import random_suffix_name
-from acktest.k8s import resource as k8s
+import boto3
 
 
 @dataclass
-class Secret(Bootstrappable):
-    # Inputs
-    name: str
+class Topic(Bootstrappable):
+    # Output
+    topic_arn: str = field(init=False)
 
     def bootstrap(self):
-        """Create a new secret.
+        """Create a SNS topic.
         """
         super().bootstrap()
-        k8s.create_opaque_secret("default", self.name, "password", random_suffix_name("password", 32))
+        topic_name1 = random_suffix_name("ack-sns-topic", 32)
+        sns = boto3.client("sns")
+        self.topic_arn = sns.create_topic(Name=topic_name1)['TopicArn']
 
     def cleanup(self):
-        """Delete the secret.
+        """Delete SNS topics.
         """
         super().cleanup()
-        k8s.delete_secret("default", self.name)
+        sns = boto3.client("sns")
+        sns.delete_topic(TopicArn=self.topic_arn)

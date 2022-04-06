@@ -75,6 +75,17 @@ class ACLHelper(helper.ResourceHelper):
         logging.debug(f"ACL - wait_for_delete()")
 
 
+@helper.register_resource_helper(resource_kind="Cluster", resource_plural="Clusters")
+class ClusterHelper(helper.ResourceHelper):
+    """
+    Helper for Cluster scenarios.
+    Overrides methods as required for custom resources.
+    """
+
+    def wait_for_delete(self, reference: k8s.CustomResourceReference):
+        logging.debug(f"Cluster - wait_for_delete()")
+
+
 @pytest.fixture(scope="session")
 def input_replacements():
     """

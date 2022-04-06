@@ -1,0 +1,55 @@
+id: "SCALE_IN_SCALE_UP_INCREASE_REPLICA"
+description: "In this test we create Cluster and update scale in, scale up and increase replica"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "CREATE_CLUSTER"
+    description: "Create a Cluster"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+        aclName: open-access
+        numShards: 2
+        description: Test create from ACK
+        kmsKeyID: $KMSKEY
+        snsTopicARN: $TOPIC1
+        numReplicasPerShard: 0
+        tlsEnabled: true
+        snapshotWindow: 05:00-06:00
+        snapshotRetentionLimit: 0
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
+  - id: "UPDATE_SHARD_COUNT_SCALE_UP_INCREASE_REPLICA"
+    description: "Update scale in, scale up and increase replica"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.t4g.medium
+        numShards: 1
+        numReplicasPerShard: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 10000
+  - id: "DELETE_CLUSTER"
+    description: "Delete the cluster"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
