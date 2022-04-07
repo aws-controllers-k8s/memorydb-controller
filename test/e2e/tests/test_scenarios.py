@@ -25,11 +25,10 @@ import boto3
 import logging
 
 from e2e import service_marker, scenarios_directory, resource_directory, CRD_VERSION, CRD_GROUP, SERVICE_NAME
-
-from acktest.k8s import resource as k8s
-
+from e2e.bootstrap_resources import get_bootstrap_resources
 from e2e.replacement_values import REPLACEMENT_VALUES
 
+from acktest.k8s import resource as k8s
 
 @helper.register_resource_helper(resource_kind="ParameterGroup", resource_plural="ParameterGroups")
 class ParameterGroupHelper(helper.ResourceHelper):
@@ -41,6 +40,15 @@ class ParameterGroupHelper(helper.ResourceHelper):
     def wait_for_delete(self, reference: k8s.CustomResourceReference):
         logging.debug(f"ParameterGroup - wait_for_delete()")
 
+@helper.register_resource_helper(resource_kind="Snapshot", resource_plural="Snapshots")
+class SnapshotHelper(helper.ResourceHelper):
+    """
+    Helper for snapshot scenarios.
+    Overrides methods as required for custom resources.
+    """
+
+    def wait_for_delete(self, reference: k8s.CustomResourceReference):
+        logging.debug(f"Snapshot - wait_for_delete()")
 
 @helper.register_resource_helper(resource_kind="User", resource_plural="Users")
 class UserHelper(helper.ResourceHelper):

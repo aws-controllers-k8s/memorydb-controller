@@ -23,6 +23,7 @@ from e2e.bootstrappable.subnets import Subnets
 from e2e import bootstrap_directory
 from e2e.bootstrap_resources import BootstrapResources
 from e2e.bootstrappable.topic import Topic
+from e2e.bootstrappable.cluster import Cluster
 
 
 def service_bootstrap() -> Resources:
@@ -33,7 +34,9 @@ def service_bootstrap() -> Resources:
                                    Subnets=Subnets(),
                                    Topic1=Topic(),
                                    Topic2=Topic(),
-                                   KMSKey=KMS())
+                                   KMSKey=KMS(),
+                                   Cluster1=Cluster(random_suffix_name("cluster", 10)),
+                                   Cluster2=Cluster(random_suffix_name("cluster", 10)))
 
     try:
         resources.bootstrap()

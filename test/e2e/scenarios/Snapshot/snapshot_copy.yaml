@@ -1,0 +1,50 @@
+id: "SNAPSHOT_COPY"
+description: "In this test we copy snapshot from another snapshot"
+steps:
+  - id: "CREATE_INITIAL_SNAPSHOT"
+    description: "Create Initial Snapshot"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+          name: snapshot$RANDOM_SUFFIX
+      spec:
+        description: "Create ACK snapshot"
+        clusterName: $SNAPSHOT_CLUSTER_NAME2
+        name: snapshot$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 1800
+  - id: "COPY_SNAPSHOT"
+    description: "Ack Copy Snapshot"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+          name: snapshotcopy$RANDOM_SUFFIX
+      spec:
+          sourceSnapshotName: snapshot$RANDOM_SUFFIX
+          name: snapshotcopy$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 1800
+  - id: "DELETE_COPY_SNAPSHOT"
+    description: "Ack Delete Copy Snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+          name: snapshotcopy$RANDOM_SUFFIX
+  - id: "DELETE_INITIAL_SNAPSHOT"
+    description: "Ack Delete Initial Snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+          name: snapshot$RANDOM_SUFFIX

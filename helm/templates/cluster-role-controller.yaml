@@ -101,6 +101,26 @@ rules:
 - apiGroups:
   - memorydb.services.k8s.aws
   resources:
+  - snapshots
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
+  - snapshots/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - memorydb.services.k8s.aws
+  resources:
   - subnetgroups
   verbs:
   - create

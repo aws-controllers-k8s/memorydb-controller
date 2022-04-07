@@ -22,5 +22,7 @@ REPLACEMENT_VALUES = {
     "SUBNET2": get_bootstrap_resources().Subnets.subnets[1],
     "TOPIC1": get_bootstrap_resources().Topic1.topic_arn,
     "TOPIC2": get_bootstrap_resources().Topic2.topic_arn,
-    "KMSKEY": get_bootstrap_resources().KMSKey.key
+    "KMSKEY": get_bootstrap_resources().KMSKey.key,
+    "SNAPSHOT_CLUSTER_NAME1": get_bootstrap_resources().Cluster1.clusterName,
+    "SNAPSHOT_CLUSTER_NAME2": get_bootstrap_resources().Cluster2.clusterName
 }

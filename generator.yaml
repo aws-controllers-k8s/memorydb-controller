@@ -1,6 +1,7 @@
 ignore:
-  resource_names:
-    - Snapshot
+  field_paths:
+    - DescribeSnapshotsInput.ClusterName
+    - DescribeSnapshotsInput.Source
 resources:
   Cluster:
     exceptions:
@@ -182,6 +183,50 @@ resources:
         - path: Status.Status
           in:
             - active
+  Snapshot:
+    exceptions:
+      errors:
+        404:
+          code: SnapshotNotFoundFault
+      terminal_codes:
+        -  InvalidParameterCombinationException
+        -  SnapshotAlreadyExistsFault
+        -  SnapshotQuotaExceededFault
+        -  TagQuotaPerResourceExceeded
+        -  InvalidParameterValueException
+        -  InvalidParameter
+    fields:
+      SourceSnapshotName:
+        from:
+          operation: CopySnapshot
+          path: SourceSnapshotName
+      ClusterName:
+        is_primary_key: false
+        from:
+          operation: CreateSnapshot
+          path: ClusterName
+    hooks:
+      sdk_create_pre_build_request:
+        template_path: hooks/snapshot/sdk_create_pre_build_request.go.tpl
+      sdk_create_post_set_output:
+        template_path: hooks/snapshot/sdk_create_post_set_output.go.tpl
+      sdk_read_many_post_set_output:
+        template_path: hooks/snapshot/sdk_read_many_post_set_output.go.tpl
+      sdk_delete_pre_build_request:
+        template_path: hooks/snapshot/sdk_delete_pre_build_request.go.tpl
+      sdk_delete_post_request:
+        template_path: hooks/snapshot/sdk_delete_post_request.go.tpl
+    renames:
+      operations:
+        CreateSnapshot:
+          input_fields:
+            SnapshotName: Name
+        DeleteSnapshot:
+          input_fields:
+            SnapshotName: Name
+        DescribeSnapshots:
+          input_fields:
+            SnapshotName: Name
   ParameterGroup:
     exceptions:
       errors:

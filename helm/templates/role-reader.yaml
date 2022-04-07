@@ -12,6 +12,7 @@ rules:
   - acls
   - clusters
   - parametergroups
+  - snapshots
   - subnetgroups
   - users
   verbs:
