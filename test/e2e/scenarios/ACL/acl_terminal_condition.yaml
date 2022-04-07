@@ -35,7 +35,7 @@ steps:
       spec:
         name: acl$RANDOM_SUFFIX
         userNames:
-          - invaliduser
+          - "invalid username"
     wait:
       status:
         conditions:
@@ -67,7 +67,7 @@ steps:
         name: acl$RANDOM_SUFFIX
       spec:
         userNames:
-          - invalidusername
+          - "invalid username"
     wait:
       status:
         conditions:
