@@ -1,0 +1,40 @@
+---
+annotations:
+  capabilityLevel: Basic Install
+  shortDescription: Amazon MemoryDB for Redis controller is a service controller for managing MemoryDB resources
+    in Kubernetes
+displayName: AWS Controllers for Kubernetes - MemoryDB
+description: |-
+  Manage Amazon MemoryDB for Redis resources in AWS from within your Kubernetes cluster.
+
+
+  **About Amazon MemoryDB for Redis**
+
+
+  MemoryDB for Redis is a durable, in-memory database service that delivers ultra-fast performance. It is purpose-built for modern applications with microservices architectures.
+  
+  MemoryDB is compatible with Redis, a popular open source data store, enabling you to quickly build applications using the same flexible and friendly Redis data structures, APIs, and commands that they already use today. With MemoryDB, all of your data is stored in memory, which enables you to achieve microsecond read and single-digit millisecond write latency and high throughput. MemoryDB also stores data durably across multiple Availability Zones (AZs) using a Multi-AZ transactional log to enable fast failover, database recovery, and node restarts.
+  
+  Delivering both in-memory performance and Multi-AZ durability, MemoryDB can be used as a high-performance primary database for your microservices applications, eliminating the need to separately manage both a cache and durable database. 
+
+
+  **About the AWS Controllers for Kubernetes**
+
+
+  This controller is a component of the [AWS Controller for Kubernetes](https://github.com/aws/aws-controllers-k8s)
+  project. This project is currently in **developer preview**.
+
+
+  **Pre-Installation Steps**
+
+
+  Please follow the following link: [Red Hat OpenShift](https://aws-controllers-k8s.github.io/community/docs/user-docs/openshift/)
+samples:
+- kind: Cluster
+  spec: '{}'
+maintainers:
+- name: "memorydb maintainer team"
+  email: "ack-maintainers@amazon.com"
+links: 
+- name: Amazon MemoryDB for Redis Developer Resources
+  url: https://docs.aws.amazon.com/memorydb/?id=docs_gateway
