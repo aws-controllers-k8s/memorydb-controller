@@ -108,7 +108,6 @@ resources:
       terminal_codes:
         - ACLAlreadyExistsFault
         - DefaultUserRequired
-        - UserNotFoundFault
         - DuplicateUserNameFault
         - ACLQuotaExceededFault
         - InvalidParameterValueException

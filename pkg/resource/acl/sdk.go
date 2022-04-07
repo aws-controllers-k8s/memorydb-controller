@@ -639,7 +639,6 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	switch awsErr.Code() {
 	case "ACLAlreadyExistsFault",
 		"DefaultUserRequired",
-		"UserNotFoundFault",
 		"DuplicateUserNameFault",
 		"ACLQuotaExceededFault",
 		"InvalidParameterValueException",
