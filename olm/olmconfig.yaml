@@ -32,6 +32,16 @@ description: |-
 samples:
 - kind: Cluster
   spec: '{}'
+- kind: ParameterGroup
+  spec: '{}'
+- kind: User
+  spec: '{}'
+- kind: ACL
+  spec: '{}'
+- kind: Snapshot
+  spec: '{}'
+- kind: SubnetGroup
+  spec: '{}'
 maintainers:
 - name: "memorydb maintainer team"
   email: "ack-maintainers@amazon.com"
