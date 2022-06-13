@@ -124,8 +124,8 @@ type Cluster_SDK struct {
 	Shards                 []*Shard                   `json:"shards,omitempty"`
 	SnapshotRetentionLimit *int64                     `json:"snapshotRetentionLimit,omitempty"`
 	SnapshotWindow         *string                    `json:"snapshotWindow,omitempty"`
-	SnsTopicARN            *string                    `json:"snsTopicARN,omitempty"`
-	SnsTopicStatus         *string                    `json:"snsTopicStatus,omitempty"`
+	SNSTopicARN            *string                    `json:"snsTopicARN,omitempty"`
+	SNSTopicStatus         *string                    `json:"snsTopicStatus,omitempty"`
 	Status                 *string                    `json:"status,omitempty"`
 	SubnetGroupName        *string                    `json:"subnetGroupName,omitempty"`
 	TLSEnabled             *bool                      `json:"tlsEnabled,omitempty"`

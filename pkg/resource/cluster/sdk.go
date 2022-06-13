@@ -283,14 +283,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.SnapshotWindow = nil
 		}
 		if elem.SnsTopicArn != nil {
-			ko.Spec.SnsTopicARN = elem.SnsTopicArn
+			ko.Spec.SNSTopicARN = elem.SnsTopicArn
 		} else {
-			ko.Spec.SnsTopicARN = nil
+			ko.Spec.SNSTopicARN = nil
 		}
 		if elem.SnsTopicStatus != nil {
-			ko.Status.SnsTopicStatus = elem.SnsTopicStatus
+			ko.Status.SNSTopicStatus = elem.SnsTopicStatus
 		} else {
-			ko.Status.SnsTopicStatus = nil
+			ko.Status.SNSTopicStatus = nil
 		}
 		if elem.Status != nil {
 			ko.Status.Status = elem.Status
@@ -600,14 +600,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.SnapshotWindow = nil
 	}
 	if resp.Cluster.SnsTopicArn != nil {
-		ko.Spec.SnsTopicARN = resp.Cluster.SnsTopicArn
+		ko.Spec.SNSTopicARN = resp.Cluster.SnsTopicArn
 	} else {
-		ko.Spec.SnsTopicARN = nil
+		ko.Spec.SNSTopicARN = nil
 	}
 	if resp.Cluster.SnsTopicStatus != nil {
-		ko.Status.SnsTopicStatus = resp.Cluster.SnsTopicStatus
+		ko.Status.SNSTopicStatus = resp.Cluster.SnsTopicStatus
 	} else {
-		ko.Status.SnsTopicStatus = nil
+		ko.Status.SNSTopicStatus = nil
 	}
 	if resp.Cluster.Status != nil {
 		ko.Status.Status = resp.Cluster.Status
@@ -715,8 +715,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.SnapshotWindow != nil {
 		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
 	}
-	if r.ko.Spec.SnsTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SnsTopicARN)
+	if r.ko.Spec.SNSTopicARN != nil {
+		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
 	}
 	if r.ko.Spec.SubnetGroupName != nil {
 		res.SetSubnetGroupName(*r.ko.Spec.SubnetGroupName)
@@ -976,14 +976,14 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.SnapshotWindow = nil
 	}
 	if resp.Cluster.SnsTopicArn != nil {
-		ko.Spec.SnsTopicARN = resp.Cluster.SnsTopicArn
+		ko.Spec.SNSTopicARN = resp.Cluster.SnsTopicArn
 	} else {
-		ko.Spec.SnsTopicARN = nil
+		ko.Spec.SNSTopicARN = nil
 	}
 	if resp.Cluster.SnsTopicStatus != nil {
-		ko.Status.SnsTopicStatus = resp.Cluster.SnsTopicStatus
+		ko.Status.SNSTopicStatus = resp.Cluster.SnsTopicStatus
 	} else {
-		ko.Status.SnsTopicStatus = nil
+		ko.Status.SNSTopicStatus = nil
 	}
 	if resp.Cluster.Status != nil {
 		ko.Status.Status = resp.Cluster.Status
@@ -1070,11 +1070,11 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.SnapshotWindow != nil {
 		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
 	}
-	if r.ko.Spec.SnsTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SnsTopicARN)
+	if r.ko.Spec.SNSTopicARN != nil {
+		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
 	}
-	if r.ko.Status.SnsTopicStatus != nil {
-		res.SetSnsTopicStatus(*r.ko.Status.SnsTopicStatus)
+	if r.ko.Status.SNSTopicStatus != nil {
+		res.SetSnsTopicStatus(*r.ko.Status.SNSTopicStatus)
 	}
 
 	return res, nil
