@@ -54,7 +54,9 @@ func (rm *resourceManager) sdkFind(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkFind")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	// If any required fields in the input shape are missing, AWS resource is
 	// not created yet. Return NotFound here to indicate to callers that the
 	// resource isn't yet created.
@@ -283,14 +285,14 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.SnapshotWindow = nil
 		}
 		if elem.SnsTopicArn != nil {
-			ko.Spec.SnsTopicARN = elem.SnsTopicArn
+			ko.Spec.SNSTopicARN = elem.SnsTopicArn
 		} else {
-			ko.Spec.SnsTopicARN = nil
+			ko.Spec.SNSTopicARN = nil
 		}
 		if elem.SnsTopicStatus != nil {
-			ko.Status.SnsTopicStatus = elem.SnsTopicStatus
+			ko.Status.SNSTopicStatus = elem.SnsTopicStatus
 		} else {
-			ko.Status.SnsTopicStatus = nil
+			ko.Status.SNSTopicStatus = nil
 		}
 		if elem.Status != nil {
 			ko.Status.Status = elem.Status
@@ -382,7 +384,9 @@ func (rm *resourceManager) sdkCreate(
 ) (created *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkCreate")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	input, err := rm.newCreateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
@@ -600,14 +604,14 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.SnapshotWindow = nil
 	}
 	if resp.Cluster.SnsTopicArn != nil {
-		ko.Spec.SnsTopicARN = resp.Cluster.SnsTopicArn
+		ko.Spec.SNSTopicARN = resp.Cluster.SnsTopicArn
 	} else {
-		ko.Spec.SnsTopicARN = nil
+		ko.Spec.SNSTopicARN = nil
 	}
 	if resp.Cluster.SnsTopicStatus != nil {
-		ko.Status.SnsTopicStatus = resp.Cluster.SnsTopicStatus
+		ko.Status.SNSTopicStatus = resp.Cluster.SnsTopicStatus
 	} else {
-		ko.Status.SnsTopicStatus = nil
+		ko.Status.SNSTopicStatus = nil
 	}
 	if resp.Cluster.Status != nil {
 		ko.Status.Status = resp.Cluster.Status
@@ -715,8 +719,8 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.SnapshotWindow != nil {
 		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
 	}
-	if r.ko.Spec.SnsTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SnsTopicARN)
+	if r.ko.Spec.SNSTopicARN != nil {
+		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
 	}
 	if r.ko.Spec.SubnetGroupName != nil {
 		res.SetSubnetGroupName(*r.ko.Spec.SubnetGroupName)
@@ -752,7 +756,9 @@ func (rm *resourceManager) sdkUpdate(
 ) (updated *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkUpdate")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	res, err := rm.validateClusterNeedsUpdate(desired, latest, delta)
 
 	if err != nil || res != nil {
@@ -976,14 +982,14 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.SnapshotWindow = nil
 	}
 	if resp.Cluster.SnsTopicArn != nil {
-		ko.Spec.SnsTopicARN = resp.Cluster.SnsTopicArn
+		ko.Spec.SNSTopicARN = resp.Cluster.SnsTopicArn
 	} else {
-		ko.Spec.SnsTopicARN = nil
+		ko.Spec.SNSTopicARN = nil
 	}
 	if resp.Cluster.SnsTopicStatus != nil {
-		ko.Status.SnsTopicStatus = resp.Cluster.SnsTopicStatus
+		ko.Status.SNSTopicStatus = resp.Cluster.SnsTopicStatus
 	} else {
-		ko.Status.SnsTopicStatus = nil
+		ko.Status.SNSTopicStatus = nil
 	}
 	if resp.Cluster.Status != nil {
 		ko.Status.Status = resp.Cluster.Status
@@ -1070,11 +1076,11 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	if r.ko.Spec.SnapshotWindow != nil {
 		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
 	}
-	if r.ko.Spec.SnsTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SnsTopicARN)
+	if r.ko.Spec.SNSTopicARN != nil {
+		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
 	}
-	if r.ko.Status.SnsTopicStatus != nil {
-		res.SetSnsTopicStatus(*r.ko.Status.SnsTopicStatus)
+	if r.ko.Status.SNSTopicStatus != nil {
+		res.SetSnsTopicStatus(*r.ko.Status.SNSTopicStatus)
 	}
 
 	return res, nil
@@ -1087,7 +1093,9 @@ func (rm *resourceManager) sdkDelete(
 ) (latest *resource, err error) {
 	rlog := ackrtlog.FromContext(ctx)
 	exit := rlog.Trace("rm.sdkDelete")
-	defer exit(err)
+	defer func() {
+		exit(err)
+	}()
 	if isDeleting(r) {
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource.

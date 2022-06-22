@@ -79,7 +79,7 @@ type ClusterSpec struct {
 	SnapshotWindow *string `json:"snapshotWindow,omitempty"`
 	// The Amazon Resource Name (ARN) of the Amazon Simple Notification Service
 	// (SNS) topic to which notifications are sent.
-	SnsTopicARN *string `json:"snsTopicARN,omitempty"`
+	SNSTopicARN *string `json:"snsTopicARN,omitempty"`
 	// The name of the subnet group to be used for the cluster.
 	SubnetGroupName *string `json:"subnetGroupName,omitempty"`
 	// A flag to enable in-transit encryption on the cluster.
@@ -136,7 +136,7 @@ type ClusterStatus struct {
 	Shards []*Shard `json:"shards,omitempty"`
 	// The SNS topic must be in Active status to receive notifications
 	// +kubebuilder:validation:Optional
-	SnsTopicStatus *string `json:"snsTopicStatus,omitempty"`
+	SNSTopicStatus *string `json:"snsTopicStatus,omitempty"`
 	// The status of the cluster. For example, Available, Updating, Creating.
 	// +kubebuilder:validation:Optional
 	Status *string `json:"status,omitempty"`
