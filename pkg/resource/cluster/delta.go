@@ -152,11 +152,11 @@ func newResourceDelta(
 			delta.Add("Spec.SnapshotWindow", a.ko.Spec.SnapshotWindow, b.ko.Spec.SnapshotWindow)
 		}
 	}
-	if ackcompare.HasNilDifference(a.ko.Spec.SnsTopicARN, b.ko.Spec.SnsTopicARN) {
-		delta.Add("Spec.SnsTopicARN", a.ko.Spec.SnsTopicARN, b.ko.Spec.SnsTopicARN)
-	} else if a.ko.Spec.SnsTopicARN != nil && b.ko.Spec.SnsTopicARN != nil {
-		if *a.ko.Spec.SnsTopicARN != *b.ko.Spec.SnsTopicARN {
-			delta.Add("Spec.SnsTopicARN", a.ko.Spec.SnsTopicARN, b.ko.Spec.SnsTopicARN)
+	if ackcompare.HasNilDifference(a.ko.Spec.SNSTopicARN, b.ko.Spec.SNSTopicARN) {
+		delta.Add("Spec.SNSTopicARN", a.ko.Spec.SNSTopicARN, b.ko.Spec.SNSTopicARN)
+	} else if a.ko.Spec.SNSTopicARN != nil && b.ko.Spec.SNSTopicARN != nil {
+		if *a.ko.Spec.SNSTopicARN != *b.ko.Spec.SNSTopicARN {
+			delta.Add("Spec.SNSTopicARN", a.ko.Spec.SNSTopicARN, b.ko.Spec.SNSTopicARN)
 		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName) {
