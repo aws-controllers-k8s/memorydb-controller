@@ -664,8 +664,8 @@ func (in *ClusterSpec) DeepCopyInto(out *ClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.SnsTopicARN != nil {
-		in, out := &in.SnsTopicARN, &out.SnsTopicARN
+	if in.SNSTopicARN != nil {
+		in, out := &in.SNSTopicARN, &out.SNSTopicARN
 		*out = new(string)
 		**out = **in
 	}
@@ -795,8 +795,8 @@ func (in *ClusterStatus) DeepCopyInto(out *ClusterStatus) {
 			}
 		}
 	}
-	if in.SnsTopicStatus != nil {
-		in, out := &in.SnsTopicStatus, &out.SnsTopicStatus
+	if in.SNSTopicStatus != nil {
+		in, out := &in.SNSTopicStatus, &out.SNSTopicStatus
 		*out = new(string)
 		**out = **in
 	}
@@ -932,13 +932,13 @@ func (in *Cluster_SDK) DeepCopyInto(out *Cluster_SDK) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.SnsTopicARN != nil {
-		in, out := &in.SnsTopicARN, &out.SnsTopicARN
+	if in.SNSTopicARN != nil {
+		in, out := &in.SNSTopicARN, &out.SNSTopicARN
 		*out = new(string)
 		**out = **in
 	}
-	if in.SnsTopicStatus != nil {
-		in, out := &in.SnsTopicStatus, &out.SnsTopicStatus
+	if in.SNSTopicStatus != nil {
+		in, out := &in.SNSTopicStatus, &out.SNSTopicStatus
 		*out = new(string)
 		**out = **in
 	}
