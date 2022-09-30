@@ -22,9 +22,6 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 )
 
-// customUpdate is required to fix
-// https://github.com/aws-controllers-k8s/community/issues/869.
-//
 // We will need to update parameters in a parameter group using custom logic.
 // Until then, however, let's support updating tags for the parameter group.
 func (rm *resourceManager) customUpdate(
@@ -47,23 +44,6 @@ func (rm *resourceManager) customUpdate(
 }
 
 // syncTags keeps the resource's tags in sync
-//
-// NOTE(jaypipes): RDS' Tagging APIs differ from other AWS APIs in the
-// following ways:
-//
-//  1. The names of the tagging API operations are different. Other APIs use the
-//     Tagris `ListTagsForResource`, `TagResource` and `UntagResource` API
-//     calls. RDS uses `ListTagsForResource`, `AddTagsToResource` and
-//     `RemoveTagsFromResource`.
-//
-//  2. Even though the name of the `ListTagsForResource` API call is the same,
-//     the structure of the input and the output are different from other APIs.
-//     For the input, instead of a `ResourceArn` field, RDS names the field
-//     `ResourceName`, but actually expects an ARN, not the parameter group
-//     name.  This is the same for the `AddTagsToResource` and
-//     `RemoveTagsFromResource` input shapes. For the output shape, the field is
-//     called `TagList` instead of `Tags` but is otherwise the same struct with
-//     a `Key` and `Value` member field.
 func (rm *resourceManager) syncTags(
 	ctx context.Context,
 	desired *resource,
@@ -93,11 +73,7 @@ func (rm *resourceManager) syncTags(
 			return err
 		}
 	}
-
-	// NOTE(jaypipes): According to the RDS API documentation, adding a tag
-	// with a new value overwrites any existing tag with the same key. So, we
-	// don't need to do anything to "update" a Tag. Simply including it in the
-	// AddTagsToResource call is enough.
+	
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to parameter group", "tags", toAdd)
 		_, err = rm.sdkapi.TagResourceWithContext(
