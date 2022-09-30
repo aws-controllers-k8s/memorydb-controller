@@ -254,6 +254,8 @@ resources:
         from:
           operation: DescribeParameters
           path: Parameters
+    update_operation:
+      custom_method_name: customUpdate
     hooks:
       sdk_read_many_post_set_output:
         template_path: hooks/parametergroup/sdk_read_many_post_set_output.go.tpl
@@ -263,6 +265,8 @@ resources:
         template_path: hooks/parametergroup/sdk_read_many_post_set_output.go.tpl
       sdk_update_pre_build_request:
         template_path: hooks/parametergroup/sdk_update_pre_build_request.go.tpl
+      sdk_update_delta_pre_compare:
+        template_path: hooks/parametergroup/sdk_update_delta_pre_compare.go.tpl
     renames:
       operations:
         CreateParameterGroup:

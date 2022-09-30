@@ -112,6 +112,17 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+
+	if ko.Status.ACKResourceMetadata != nil && ko.Status.ACKResourceMetadata.ARN != nil {
+		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+		tags, err := rm.getTags(ctx, *resourceARN)
+		if err != nil {
+			return nil, err
+		}
+		ko.Spec.Tags = tags
+	}
+
+	//not sure
 	ko, err = rm.setParameters(ctx, ko)
 
 	if err != nil {
@@ -244,92 +255,94 @@ func (rm *resourceManager) sdkUpdate(
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
-) (updated *resource, err error) {
-	rlog := ackrtlog.FromContext(ctx)
-	exit := rlog.Trace("rm.sdkUpdate")
-	defer exit(err)
-	if delta.DifferentAt("Spec.ParameterNameValues") {
-		ko, err := rm.resetParameterGroup(ctx, desired, latest)
-
-		if ko != nil || err != nil {
-			return ko, err
-		}
-	}
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp *svcsdk.UpdateParameterGroupOutput
-	_ = resp
-	resp, err = rm.sdkapi.UpdateParameterGroupWithContext(ctx, input)
-	rm.metrics.RecordAPICall("UPDATE", "UpdateParameterGroup", err)
-	if err != nil {
-		return nil, err
-	}
-	// Merge in the information we read from the API call above to the copy of
-	// the original Kubernetes object we passed to the function
-	ko := desired.ko.DeepCopy()
-
-	if ko.Status.ACKResourceMetadata == nil {
-		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
-	}
-	if resp.ParameterGroup.ARN != nil {
-		arn := ackv1alpha1.AWSResourceName(*resp.ParameterGroup.ARN)
-		ko.Status.ACKResourceMetadata.ARN = &arn
-	}
-	if resp.ParameterGroup.Description != nil {
-		ko.Spec.Description = resp.ParameterGroup.Description
-	} else {
-		ko.Spec.Description = nil
-	}
-	if resp.ParameterGroup.Family != nil {
-		ko.Spec.Family = resp.ParameterGroup.Family
-	} else {
-		ko.Spec.Family = nil
-	}
-	if resp.ParameterGroup.Name != nil {
-		ko.Spec.Name = resp.ParameterGroup.Name
-	} else {
-		ko.Spec.Name = nil
-	}
-
-	rm.setStatusDefaults(ko)
-	ko, err = rm.setParameters(ctx, ko)
-
-	if err != nil {
-		return nil, err
-	}
-	return &resource{ko}, nil
-}
+) (*resource, error) {
+	return rm.customUpdate(ctx, desired, latest, delta)
+//) (updated *resource, err error) {
+//	rlog := ackrtlog.FromContext(ctx)
+//	exit := rlog.Trace("rm.sdkUpdate")
+//	defer exit(err)
+//	if delta.DifferentAt("Spec.ParameterNameValues") {
+//		ko, err := rm.resetParameterGroup(ctx, desired, latest)
+//
+//		if ko != nil || err != nil {
+//			return ko, err
+//		}
+//	}
+//	input, err := rm.newUpdateRequestPayload(ctx, desired)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	var resp *svcsdk.UpdateParameterGroupOutput
+//	_ = resp
+//	resp, err = rm.sdkapi.UpdateParameterGroupWithContext(ctx, input)
+//	rm.metrics.RecordAPICall("UPDATE", "UpdateParameterGroup", err)
+//	if err != nil {
+//		return nil, err
+//	}
+//	// Merge in the information we read from the API call above to the copy of
+//	// the original Kubernetes object we passed to the function
+//	ko := desired.ko.DeepCopy()
+//
+//	if ko.Status.ACKResourceMetadata == nil {
+//		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+//	}
+//	if resp.ParameterGroup.ARN != nil {
+//		arn := ackv1alpha1.AWSResourceName(*resp.ParameterGroup.ARN)
+//		ko.Status.ACKResourceMetadata.ARN = &arn
+//	}
+//	if resp.ParameterGroup.Description != nil {
+//		ko.Spec.Description = resp.ParameterGroup.Description
+//	} else {
+//		ko.Spec.Description = nil
+//	}
+//	if resp.ParameterGroup.Family != nil {
+//		ko.Spec.Family = resp.ParameterGroup.Family
+//	} else {
+//		ko.Spec.Family = nil
+//	}
+//	if resp.ParameterGroup.Name != nil {
+//		ko.Spec.Name = resp.ParameterGroup.Name
+//	} else {
+//		ko.Spec.Name = nil
+//	}
+//
+//	rm.setStatusDefaults(ko)
+//	ko, err = rm.setParameters(ctx, ko)
+//
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &resource{ko}, nil
+//}
 
 // newUpdateRequestPayload returns an SDK-specific struct for the HTTP request
 // payload of the Update API call for the resource
-func (rm *resourceManager) newUpdateRequestPayload(
-	ctx context.Context,
-	r *resource,
-) (*svcsdk.UpdateParameterGroupInput, error) {
-	res := &svcsdk.UpdateParameterGroupInput{}
+//func (rm *resourceManager) newUpdateRequestPayload(
+//	ctx context.Context,
+//	r *resource,
+//) (*svcsdk.UpdateParameterGroupInput, error) {
+//	res := &svcsdk.UpdateParameterGroupInput{}
+//
+//	if r.ko.Spec.Name != nil {
+//		res.SetParameterGroupName(*r.ko.Spec.Name)
+//	}
+//	if r.ko.Spec.ParameterNameValues != nil {
+//		f1 := []*svcsdk.ParameterNameValue{}
+//		for _, f1iter := range r.ko.Spec.ParameterNameValues {
+//			f1elem := &svcsdk.ParameterNameValue{}
+//			if f1iter.ParameterName != nil {
+//				f1elem.SetParameterName(*f1iter.ParameterName)
+//			}
+//			if f1iter.ParameterValue != nil {
+//				f1elem.SetParameterValue(*f1iter.ParameterValue)
+//			}
+//			f1 = append(f1, f1elem)
+//		}
+//		res.SetParameterNameValues(f1)
+//	}
 
-	if r.ko.Spec.Name != nil {
-		res.SetParameterGroupName(*r.ko.Spec.Name)
-	}
-	if r.ko.Spec.ParameterNameValues != nil {
-		f1 := []*svcsdk.ParameterNameValue{}
-		for _, f1iter := range r.ko.Spec.ParameterNameValues {
-			f1elem := &svcsdk.ParameterNameValue{}
-			if f1iter.ParameterName != nil {
-				f1elem.SetParameterName(*f1iter.ParameterName)
-			}
-			if f1iter.ParameterValue != nil {
-				f1elem.SetParameterValue(*f1iter.ParameterValue)
-			}
-			f1 = append(f1, f1elem)
-		}
-		res.SetParameterNameValues(f1)
-	}
-
-	return res, nil
+//	return res, nil
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API
