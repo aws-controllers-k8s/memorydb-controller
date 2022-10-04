@@ -73,7 +73,7 @@ func (rm *resourceManager) syncTags(
 			return err
 		}
 	}
-	
+
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to parameter group", "tags", toAdd)
 		_, err = rm.sdkapi.TagResourceWithContext(
