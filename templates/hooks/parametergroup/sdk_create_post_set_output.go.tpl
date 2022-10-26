@@ -1,5 +1,5 @@
-ko, err = rm.setParameters(ctx, ko)
+    ko, err = rm.setParameters(ctx, ko)
 
-if err != nil {
-    return nil, err
-}
+    if err != nil {
+        return nil, err
+    }

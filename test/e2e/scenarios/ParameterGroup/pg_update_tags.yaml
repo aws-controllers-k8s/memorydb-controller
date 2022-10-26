@@ -1,7 +1,6 @@
 id: "PG_UPDATE_TAGS"
 description: "In this test we create PG and update the tags"
-marks:
-  - test
+#marks:
 #  - slow
 #  - blocked
 resource:
