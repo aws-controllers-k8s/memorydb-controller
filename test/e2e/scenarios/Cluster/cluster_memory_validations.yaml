@@ -1,6 +1,7 @@
 id: "CLUSTER_CREATE_UPDATE_MEMORY_VALIDATION"
 description: "In this test we validate Memory in a cluster"
-#marks:
+marks:
+  - parameter_group_test
 #  - slow
 #  - blocked
 steps:
@@ -16,13 +17,29 @@ steps:
         nodeType: db.t4g.medium
         aclName: open-access
         numShards: 2
-        snapshotName: maxmemory
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
+
+  - id: "CREATE_SNAPSHOT"
+    description: "Create a Snapshot for Cluster"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        clusterName: cluster$RANDOM_SUFFIX
+        name: snapshot$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 1800
 
   - id: "PERFORM_SCALE_DOWN"
     description: "Perform scale down"
@@ -90,6 +107,14 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
+
+  - id: "DELETE_SNAPSHOT"
+    description: "Delete snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
