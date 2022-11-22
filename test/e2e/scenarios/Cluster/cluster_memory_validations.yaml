@@ -71,7 +71,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
   - id: "RESET_THE_CONDITION"
     description: "Reset to original state"
@@ -88,7 +88,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 7200
 
   - id: "PERFORM_SCALE_UP_AND_SCALE_IN"
     description: "Perform scale up and scale in"
