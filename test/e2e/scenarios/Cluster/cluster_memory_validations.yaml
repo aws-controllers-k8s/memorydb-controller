@@ -1,6 +1,7 @@
 id: "CLUSTER_CREATE_UPDATE_MEMORY_VALIDATION"
 description: "In this test we validate Memory in a cluster"
-#marks:
+marks:
+  - test
 #  - slow
 #  - blocked
 steps:
@@ -52,7 +53,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
+          ACK.ResourceSynced:
             status: "True"
             timeout: 7200
 
@@ -69,7 +70,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
+          ACK.ResourceSynced:
             status: "True"
             timeout: 1800
 
