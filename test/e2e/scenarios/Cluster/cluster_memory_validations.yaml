@@ -1,7 +1,6 @@
 id: "CLUSTER_CREATE_UPDATE_MEMORY_VALIDATION"
 description: "In this test we validate Memory in a cluster"
-marks:
-  - test
+#marks:
 #  - slow
 #  - blocked
 steps:
