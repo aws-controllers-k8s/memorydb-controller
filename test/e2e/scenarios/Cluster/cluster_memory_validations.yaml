@@ -64,8 +64,39 @@ steps:
       metadata:
         name: cluster$RANDOM_SUFFIX
       spec:
-        nodeType: db.t4g.medium
         numShards: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
+
+  - id: "PERFORM_SCALE_UP"
+    description: "Perform scale up"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.r6g.large
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
+
+  - id: "PERFORM_SCALE_OUT"
+    description: "Perform scale out"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        numShards: 2
     wait:
       status:
         conditions:
@@ -82,24 +113,6 @@ steps:
         name: cluster$RANDOM_SUFFIX
       spec:
         nodeType: db.t4g.medium
-        numShards: 2
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 7200
-
-  - id: "PERFORM_SCALE_UP_AND_SCALE_IN"
-    description: "Perform scale up and scale in"
-    patch:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        nodeType: db.r6g.large
-        numShards: 1
     wait:
       status:
         conditions:
