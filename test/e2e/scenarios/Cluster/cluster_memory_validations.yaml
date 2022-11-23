@@ -74,22 +74,22 @@ steps:
             status: "True"
             timeout: 3600
 
-  - id: "PERFORM_SCALE_UP_AND_SCALE_IN"
-    description: "Perform scale up and scale in"
-    patch:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        nodeType: db.r6g.large
-        numShards: 1
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 14400
+#  - id: "PERFORM_SCALE_UP_AND_SCALE_IN"
+#    description: "Perform scale up and scale in"
+#    patch:
+#      apiVersion: $CRD_GROUP/$CRD_VERSION
+#      kind: Cluster
+#      metadata:
+#        name: cluster$RANDOM_SUFFIX
+#      spec:
+#        nodeType: db.r6g.large
+#        numShards: 1
+#    wait:
+#      status:
+#        conditions:
+#          ACK.ResourceSynced:
+#            status: "True"
+#            timeout: 14400
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
