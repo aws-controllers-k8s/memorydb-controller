@@ -16,29 +16,13 @@ steps:
         nodeType: db.t4g.medium
         aclName: open-access
         numShards: 2
+        snapshotName: maxmemory
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
-
-  - id: "CREATE_SNAPSHOT"
-    description: "Create a Snapshot for Cluster"
-    create:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Snapshot
-      metadata:
-        name: snapshot$RANDOM_SUFFIX
-      spec:
-        clusterName: cluster$RANDOM_SUFFIX
-        name: snapshot$RANDOM_SUFFIX
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 1800
 
   - id: "PERFORM_SCALE_DOWN"
     description: "Perform scale down"
@@ -52,7 +36,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          ACK.Terminal:
             status: "True"
             timeout: 7200
 
@@ -64,45 +48,14 @@ steps:
       metadata:
         name: cluster$RANDOM_SUFFIX
       spec:
+        nodeType: db.t4g.medium
         numShards: 1
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          ACK.Terminal:
             status: "True"
-            timeout: 7200
-
-  - id: "PERFORM_SCALE_UP"
-    description: "Perform scale up"
-    patch:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        nodeType: db.r6g.large
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 7200
-
-  - id: "PERFORM_SCALE_OUT"
-    description: "Perform scale out"
-    patch:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        numShards: 2
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 7200
+            timeout: 3600
 
   - id: "RESET_THE_CONDITION"
     description: "Reset to original state"
@@ -113,20 +66,30 @@ steps:
         name: cluster$RANDOM_SUFFIX
       spec:
         nodeType: db.t4g.medium
+        numShards: 2
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
+            timeout: 3600
 
-  - id: "DELETE_SNAPSHOT"
-    description: "Delete snapshot"
-    delete:
+  - id: "PERFORM_SCALE_UP_AND_SCALE_IN"
+    description: "Perform scale up and scale in"
+    patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Snapshot
+      kind: Cluster
       metadata:
-        name: snapshot$RANDOM_SUFFIX
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        nodeType: db.r6g.large
+        numShards: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 14400
 
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
