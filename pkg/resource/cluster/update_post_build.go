@@ -55,11 +55,11 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	if delta.DifferentAt("Spec.SnapshotWindow") && desired.ko.Spec.SnapshotWindow != nil {
 		res.SetSnapshotWindow(*desired.ko.Spec.SnapshotWindow)
 	}
-	if delta.DifferentAt("Spec.SnsTopicARN") && desired.ko.Spec.SnsTopicARN != nil {
-		res.SetSnsTopicArn(*desired.ko.Spec.SnsTopicARN)
+	if delta.DifferentAt("Spec.SNSTopicARN") && desired.ko.Spec.SNSTopicARN != nil {
+		res.SetSnsTopicArn(*desired.ko.Spec.SNSTopicARN)
 	}
-	if delta.DifferentAt("Spec.SnsTopicStatus") && desired.ko.Status.SnsTopicStatus != nil {
-		res.SetSnsTopicStatus(*desired.ko.Status.SnsTopicStatus)
+	if delta.DifferentAt("Spec.SNSTopicStatus") && desired.ko.Status.SNSTopicStatus != nil {
+		res.SetSnsTopicStatus(*desired.ko.Status.SNSTopicStatus)
 	}
 
 	if delta.DifferentAt("Spec.EngineVersion") && desired.ko.Spec.EngineVersion != nil {
