@@ -60,6 +60,30 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+  - id: "ADD_SUBNET_TAGS"
+    description: "Add SubnetGroup Tags"
+    patch:
+      spec:
+        Tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_SUBNET_TAGS"
+    description: "Add SubnetGroup Tags"
+    patch:
+      spec:
+        Tags:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
   - id: "DELETE_SUBNET"
     description: "Delete subnet group"
     delete: subnet$RANDOM_SUFFIX
