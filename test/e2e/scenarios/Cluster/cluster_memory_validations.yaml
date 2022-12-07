@@ -22,7 +22,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
+            timeout: 14400
 
   - id: "PERFORM_SCALE_DOWN"
     description: "Perform scale down"
