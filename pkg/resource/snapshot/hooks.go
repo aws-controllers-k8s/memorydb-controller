@@ -16,12 +16,80 @@ package snapshot
 import (
 	"context"
 	"errors"
+
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	"github.com/aws/aws-sdk-go/service/memorydb"
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func (rm *resourceManager) customDescribeSnapshotSetOutput(
+	resp *memorydb.DescribeSnapshotsOutput,
+	ko *svcapitypes.Snapshot,
+) (*svcapitypes.Snapshot, error) {
+	if len(resp.Snapshots) == 0 {
+		return ko, nil
+	}
+	elem := resp.Snapshots[0]
+	rm.customSetOutput(elem, ko)
+	return ko, nil
+}
+
+func (rm *resourceManager) customCreateSnapshotSetOutput(
+	resp *memorydb.CreateSnapshotOutput,
+	ko *svcapitypes.Snapshot,
+) (*svcapitypes.Snapshot, error) {
+	rm.customSetOutput(resp.Snapshot, ko)
+	return ko, nil
+}
+
+func (rm *resourceManager) customCopySnapshotSetOutput(
+	resp *memorydb.CopySnapshotOutput,
+	ko *svcapitypes.Snapshot,
+) *svcapitypes.Snapshot {
+	rm.customSetOutput(resp.Snapshot, ko)
+	return ko
+}
+
+func (rm *resourceManager) customSetOutput(
+	respSnapshot *memorydb.Snapshot,
+	ko *svcapitypes.Snapshot,
+) {
+	if ko.Status.Conditions == nil {
+		ko.Status.Conditions = []*ackv1alpha1.Condition{}
+	}
+	snapshotStatus := respSnapshot.Status
+	syncConditionStatus := corev1.ConditionUnknown
+	if snapshotStatus != nil {
+		if *snapshotStatus == "available" ||
+			*snapshotStatus == "failed" {
+			syncConditionStatus = corev1.ConditionTrue
+		} else {
+			// resource in "creating", "restoring","exporting"
+			syncConditionStatus = corev1.ConditionFalse
+		}
+	}
+	var resourceSyncedCondition *ackv1alpha1.Condition = nil
+	for _, condition := range ko.Status.Conditions {
+		if condition.Type == ackv1alpha1.ConditionTypeResourceSynced {
+			resourceSyncedCondition = condition
+			break
+		}
+	}
+	if resourceSyncedCondition == nil {
+		resourceSyncedCondition = &ackv1alpha1.Condition{
+			Type:   ackv1alpha1.ConditionTypeResourceSynced,
+			Status: syncConditionStatus,
+		}
+		ko.Status.Conditions = append(ko.Status.Conditions, resourceSyncedCondition)
+	} else {
+		resourceSyncedCondition.Status = syncConditionStatus
+	}
+}
 
 func (rm *resourceManager) customTryCopySnapshot(
 	ctx context.Context,
