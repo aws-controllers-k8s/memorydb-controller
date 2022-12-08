@@ -1,0 +1,68 @@
+id: "PG_UPDATE_TAGS"
+description: "In this test we create PG and update the tags"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: ParameterGroup
+  metadata:
+    name: pg$RANDOM_SUFFIX
+steps:
+  - id: "PG_INITIAL_CREATE"
+    description: "Create PG with no tags"
+    create:
+      spec:
+        description: PG with no tags while creating
+        family: memorydb_redis6
+        name: pg$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "PG_ADD_TAGS"
+    description: "Add tags in PG"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+          - key:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "PG_DELETE_TAGS"
+    description: "Delete tags in PG"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "PG_ADD_AND_DELETE_TAGS"
+    description: "Add some tags and delete tags in PG"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_2"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_PG"
+    description: "Delete parameter group"
+    delete: pg$RANDOM_SUFFIX
