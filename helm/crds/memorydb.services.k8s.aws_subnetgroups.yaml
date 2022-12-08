@@ -34,8 +34,8 @@ spec:
             type: object
           spec:
             description: "SubnetGroupSpec defines the desired state of SubnetGroup.
-              \n Represents the output of one of the following operations: \n * CreateSubnetGroup
-              \n * UpdateSubnetGroup \n A subnet group is a collection of subnets
+              \n Represents the output of one of the following operations: \n - CreateSubnetGroup
+              \n - UpdateSubnetGroup \n A subnet group is a collection of subnets
               (typically private) that you can designate for your clusters running
               in an Amazon Virtual Private Cloud (VPC) environment."
             properties:
