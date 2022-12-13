@@ -118,6 +118,13 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
+	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+	tags, err := rm.getTags(ctx, *resourceARN)
+	if err != nil {
+		return nil, err
+	}
+	ko.Spec.Tags = tags
+
 	ko, err = rm.setParameters(ctx, ko)
 
 	if err != nil {
@@ -207,6 +214,7 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+
 	return &resource{ko}, nil
 }
 
@@ -258,6 +266,13 @@ func (rm *resourceManager) sdkUpdate(
 	defer func() {
 		exit(err)
 	}()
+	if delta.DifferentAt("Spec.Tags") {
+		err = rm.updateTags(ctx, desired, latest)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if delta.DifferentAt("Spec.ParameterNameValues") {
 		ko, err := rm.resetParameterGroup(ctx, desired, latest)
 
@@ -265,6 +280,11 @@ func (rm *resourceManager) sdkUpdate(
 			return ko, err
 		}
 	}
+
+	if !delta.DifferentExcept("Spec.Tags", "Spec.ParameterNameValues") {
+		return desired, nil
+	}
+
 	input, err := rm.newUpdateRequestPayload(ctx, desired)
 	if err != nil {
 		return nil, err
