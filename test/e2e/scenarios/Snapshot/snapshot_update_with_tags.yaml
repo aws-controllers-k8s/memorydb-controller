@@ -1,0 +1,107 @@
+id: "SNAPSHOT_UPDATE_WITH_TAGS"
+description: "In this test we create snapshot and update tags"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "CLUSTER_INITIAL_CREATE"
+    description: "Create cluster"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+        aclName: open-access
+        numShards: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
+  - id: "SNAPSHOT_INITIAL_CREATE"
+    description: "Create snapshot with no tags"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        clusterName: cluster$RANDOM_SUFFIX
+        name: snapshot$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 1800
+  - id: "SNAPSHOT_ADD_TAGS"
+    description: "Add tags in snapshot"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+          - key:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "SNAPSHOT_DELETE_TAGS"
+    description: "Delete tags in snapshot"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "SNAPSHOT_ADD_AND_DELETE_TAGS"
+    description: "Add some tags and delete tags in snapshot"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_2"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_SNAPSHOT"
+    description: "Delete snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+  - id: "DELETE_CLUSTER"
+    description: "Delete cluster"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX

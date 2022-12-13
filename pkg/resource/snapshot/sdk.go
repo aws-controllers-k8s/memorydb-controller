@@ -200,6 +200,13 @@ func (rm *resourceManager) sdkFind(
 	if err != nil {
 		return nil, err
 	}
+
+	resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
+	tags, err := rm.getTags(ctx, *resourceARN)
+	if err != nil {
+		return nil, err
+	}
+	ko.Spec.Tags = tags
 	return &resource{ko}, nil
 }
 
@@ -411,8 +418,7 @@ func (rm *resourceManager) sdkUpdate(
 	latest *resource,
 	delta *ackcompare.Delta,
 ) (*resource, error) {
-	// TODO(jaypipes): Figure this out...
-	return nil, ackerr.NotImplemented
+	return rm.customUpdate(ctx, desired, latest, delta)
 }
 
 // sdkDelete deletes the supplied resource in the backend AWS service API

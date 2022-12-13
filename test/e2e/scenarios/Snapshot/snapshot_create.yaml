@@ -1,5 +1,8 @@
 id: "SNAPSHOT_CREATE"
 description: "In this test we create Snapshot"
+#marks:
+#  - slow
+#  - blocked
 steps:
   - id: "CREATE_SNAPSHOT"
     description: "ACK Snapshot"
@@ -9,7 +12,6 @@ steps:
       metadata:
         name: snapshot$RANDOM_SUFFIX
       spec:
-        description: "Create ACK snapshot"
         clusterName: $SNAPSHOT_CLUSTER_NAME1
         name: snapshot$RANDOM_SUFFIX
     wait:
