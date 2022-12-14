@@ -1,5 +1,16 @@
-validationErr := rm.validateACLNeedsUpdate(latest)
+    validationErr := rm.validateACLNeedsUpdate(latest)
 
-if validationErr != nil {
-	return nil, err
-}
+    if validationErr != nil {
+	    return nil, err
+    }
+
+    if delta.DifferentAt("Spec.Tags") {
+        err = rm.updateTags(ctx, desired, latest)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    if !delta.DifferentExcept("Spec.Tags") {
+    	return desired, nil
+    }
