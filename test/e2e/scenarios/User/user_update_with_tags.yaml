@@ -1,0 +1,72 @@
+id: "USER_UPDATE_WITH_TAGS"
+description: "In this test we create User and update its tags"
+#marks:
+#  - slow
+#  - blocked
+resource:
+  apiVersion: $CRD_GROUP/$CRD_VERSION
+  kind: User
+  metadata:
+    name: user$RANDOM_SUFFIX
+steps:
+  - id: "USER_INITIAL_CREATE"
+    description: "Create User"
+    create:
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_ADD_TAGS"
+    description: "Add tags in User"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+          - key:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "USER_DELETE_TAGS"
+    description: "Delete tags in User"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "SG_ADD_AND_DELETE_TAGS"
+    description: "Add some tags and delete some tags in User"
+    patch:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_2"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_USER"
+    description: "Delete User"
+    delete: user$RANDOM_SUFFIX
