@@ -1,0 +1,84 @@
+id: "CLUSTER_UPDATE_WITH_TAGS"
+description: "In this test we create cluster and update cluster with tags"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "CLUSTER_INITIAL_CREATE"
+    description: "Create Cluster with no tags"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+        aclName: open-access
+        numShards: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 7200
+  - id: "CLUSTER_ADD_TAGS"
+    description: "Add tags in Cluster"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+          - key:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "CLUSTER_DELETE_TAGS"
+    description: "Delete tags in Cluster"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "Cluster_ADD_AND_DELETE_TAGS"
+    description: "Add some tags and delete some tags in Cluster"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_2"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "DELETE_CLUSTER"
+    description: "Delete the cluster"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
