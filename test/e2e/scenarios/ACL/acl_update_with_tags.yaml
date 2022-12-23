@@ -1,0 +1,111 @@
+id: "ACL_UPDATE_WITH_TAGS"
+description: "In this test we create User and ACL, and then update ACL with tags"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "USER_CREATE"
+    description: "Create User"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: user$RANDOM_SUFFIX
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "ACL_CREATE"
+    description: "Create ACL"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userNames:
+          - user$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "ACL_ADD_TAGS"
+    description: "Add tags in ACL"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+          - key:
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "ACL_DELETE_TAGS"
+    description: "Delete tags in ACL"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "ACL_ADD_AND_DELETE_TAGS"
+    description: "Add some tags and delete some tags in ACL"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_2"
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+  - id: "ACL_DELETE"
+    description: "Delete ACL"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+  - id: "USER_DELETE"
+    description: "Delete User"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: user$RANDOM_SUFFIX
