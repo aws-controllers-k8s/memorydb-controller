@@ -26,6 +26,7 @@ import (
 // represents a combination of specific values for the parameters that are passed
 // to the engine software during startup.
 type ParameterGroupSpec struct {
+
 	// An optional description of the parameter group.
 	Description *string `json:"description,omitempty"`
 	// The name of the parameter group family that the parameter group can be used

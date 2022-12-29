@@ -25,6 +25,7 @@ import (
 // Represents a copy of an entire cluster as of the time when the snapshot was
 // taken.
 type SnapshotSpec struct {
+
 	// The snapshot is created from this cluster.
 	ClusterName *string `json:"clusterName,omitempty"`
 	// The ID of the KMS key used to encrypt the snapshot.

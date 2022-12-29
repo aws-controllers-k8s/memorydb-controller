@@ -32,6 +32,7 @@ import (
 // designate for your clusters running in an Amazon Virtual Private Cloud (VPC)
 // environment.
 type SubnetGroupSpec struct {
+
 	// A description for the subnet group.
 	Description *string `json:"description,omitempty"`
 	// The name of the subnet group.

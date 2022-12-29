@@ -27,6 +27,7 @@ import (
 // role (administrators, human resources) that are then deployed to one or more
 // MemoryDB clusters.
 type UserSpec struct {
+
 	// Access permissions string used for this user.
 	// +kubebuilder:validation:Required
 	AccessString *string `json:"accessString"`
