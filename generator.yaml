@@ -212,6 +212,8 @@ resources:
         from:
           operation: CreateSnapshot
           path: ClusterName
+    update_operation:
+      custom_method_name: customUpdate
     hooks:
       sdk_create_pre_build_request:
         template_path: hooks/snapshot/sdk_create_pre_build_request.go.tpl

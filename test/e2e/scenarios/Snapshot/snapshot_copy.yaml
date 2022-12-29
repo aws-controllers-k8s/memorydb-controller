@@ -1,5 +1,8 @@
 id: "SNAPSHOT_COPY"
 description: "In this test we copy snapshot from another snapshot"
+#marks:
+#  - slow
+#  - blocked
 steps:
   - id: "CREATE_INITIAL_SNAPSHOT"
     description: "Create Initial Snapshot"
@@ -7,9 +10,8 @@ steps:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Snapshot
       metadata:
-          name: snapshot$RANDOM_SUFFIX
+        name: snapshot$RANDOM_SUFFIX
       spec:
-        description: "Create ACK snapshot"
         clusterName: $SNAPSHOT_CLUSTER_NAME2
         name: snapshot$RANDOM_SUFFIX
     wait:

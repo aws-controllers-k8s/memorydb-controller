@@ -1,5 +1,8 @@
 id: "SNAPSHOT_CREATE_TERMINAL_CONDITION"
 description: "In this test we try to create snapshot without specifying cluster"
+#marks:
+#  - slow
+#  - blocked
 steps:
   - id: "SNAPSHOT_INITIAL_CREATE"
     description: "Create snapshot with no clustername "
@@ -9,7 +12,6 @@ steps:
       metadata:
         name: snapshot$RANDOM_SUFFIX
       spec:
-        description: "Create ACK snapshot"
         name: snapshot$RANDOM_SUFFIX
     wait: 120
     expect:
