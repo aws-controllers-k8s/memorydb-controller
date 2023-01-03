@@ -24,6 +24,7 @@ import (
 //
 // Contains all of the attributes of a specific cluster.
 type ClusterSpec struct {
+
 	// The name of the Access Control List to associate with the cluster.
 	// +kubebuilder:validation:Required
 	ACLName *string `json:"aclName"`

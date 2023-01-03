@@ -26,6 +26,7 @@ import (
 // ACLs enable you to control cluster access by grouping users. These Access
 // control lists are designed as a way to organize access to clusters.
 type ACLSpec struct {
+
 	// The name of the Access Control List.
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
