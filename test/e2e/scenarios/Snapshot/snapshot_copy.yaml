@@ -19,7 +19,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 3600
   - id: "COPY_SNAPSHOT"
     description: "Ack Copy Snapshot"
     create:
@@ -35,7 +35,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 3600
   - id: "DELETE_COPY_SNAPSHOT"
     description: "Ack Delete Copy Snapshot"
     delete:
