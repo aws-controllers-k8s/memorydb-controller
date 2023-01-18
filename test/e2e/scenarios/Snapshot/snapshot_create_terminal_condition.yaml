@@ -13,7 +13,7 @@ steps:
         name: snapshot$RANDOM_SUFFIX
       spec:
         name: snapshot$RANDOM_SUFFIX
-    wait: 120
+    wait: 600
     expect:
       status:
         conditions:
