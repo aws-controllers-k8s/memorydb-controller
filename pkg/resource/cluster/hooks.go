@@ -26,6 +26,7 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
+	svcutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
 )
 
 var (
@@ -264,6 +265,21 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	return res
 }
 
+// getEvents gets events from Cluster in service.
+func (rm *resourceManager) getEvents(
+	ctx context.Context,
+	r *resource,
+) ([]*svcapitypes.Event, error) {
+	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdk.SourceTypeCluster, svcutil.MaxEvents)
+	resp, err := rm.sdkapi.DescribeEventsWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_MANY", "DescribeEvents", err)
+	if err != nil {
+		rm.log.V(1).Info("Error during DescribeEvents-Cluster", "error", err)
+		return nil, err
+	}
+	return svcutil.EventsFromDescribe(resp), nil
+}
+
 // isClusterAvailable returns true when the status of the given Cluster is set to `available`
 func (rm *resourceManager) isClusterAvailable(
 	latest *resource,
@@ -272,7 +288,7 @@ func (rm *resourceManager) isClusterAvailable(
 	return latestStatus != nil && *latestStatus == resourceStatusAvailable
 }
 
-// getTags gets tags from given ParameterGroup.
+// getTags gets tags from given Cluster.
 func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
@@ -291,7 +307,7 @@ func (rm *resourceManager) getTags(
 	return tags, nil
 }
 
-// updateTags updates tags of given ParameterGroup to desired tags.
+// updateTags updates tags of given Cluster to desired tags.
 func (rm *resourceManager) updateTags(
 	ctx context.Context,
 	desired *resource,

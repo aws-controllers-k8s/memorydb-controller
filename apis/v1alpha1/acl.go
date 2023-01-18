@@ -54,6 +54,10 @@ type ACLStatus struct {
 	// A list of clusters associated with the ACL.
 	// +kubebuilder:validation:Optional
 	Clusters []*string `json:"clusters,omitempty"`
+	// A list of events. Each element in the list contains detailed information
+	// about one event.
+	// +kubebuilder:validation:Optional
+	Events []*Event `json:"events,omitempty"`
 	// The minimum engine version supported for the ACL
 	// +kubebuilder:validation:Optional
 	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`

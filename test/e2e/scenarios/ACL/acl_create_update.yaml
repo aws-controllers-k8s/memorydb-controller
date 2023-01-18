@@ -85,8 +85,8 @@ steps:
       UserNames:
         - userone$RANDOM_SUFFIX
         - usertwo$RANDOM_SUFFIX
-  - id: "UPDATE_ACL_WITH_USERNAMES_AND_TAGS"
-    description: "Update userNames and tags"
+  - id: "UPDATE_ACL_USERNAMES_AND_TAGS_AND_VALIDATE_EVENTS"
+    description: "Update userNames and tags, and validate events"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: ACL
@@ -105,6 +105,8 @@ steps:
             status: "True"
             timeout: 180
     expect_k8s:
+      status:
+        events:
       spec:
         userNames:
           - userone$RANDOM_SUFFIX

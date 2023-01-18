@@ -42,6 +42,11 @@ resources:
         from:
           operation: ListAllowedNodeTypeUpdates
           path: ScaleDownNodeTypes
+      Events:
+        is_read_only: true
+        from:
+          operation: DescribeEvents
+          path: Events
       ParameterGroupName:
         references:
           resource: ParameterGroup
@@ -138,6 +143,11 @@ resources:
         - InvalidParameterValueException
         - InvalidParameterCombinationException
     fields:
+      Events:
+        is_read_only: true
+        from:
+          operation: DescribeEvents
+          path: Events
       UserNames:
         references:
           resource: User
@@ -185,6 +195,11 @@ resources:
         is_secret: true
         compare:
           is_ignored: true
+      Events:
+        is_read_only: true
+        from:
+          operation: DescribeEvents
+          path: Events
     hooks:
       sdk_create_post_set_output:
         code: "rm.setAnnotationsFields(desired, ko)"

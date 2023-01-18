@@ -63,6 +63,10 @@ type UserStatus struct {
 	// Denotes whether the user requires a password to authenticate.
 	// +kubebuilder:validation:Optional
 	Authentication *Authentication `json:"authentication,omitempty"`
+	// A list of events. Each element in the list contains detailed information
+	// about one event.
+	// +kubebuilder:validation:Optional
+	Events []*Event `json:"events,omitempty"`
 	// The minimum engine version supported for the user
 	// +kubebuilder:validation:Optional
 	MinimumEngineVersion *string `json:"minimumEngineVersion,omitempty"`

@@ -179,8 +179,8 @@ steps:
         name: pg$RANDOM_SUFFIX
     expect_aws:
       Name: pg$RANDOM_SUFFIX
-  - id: "UPDATE_PG"
-    description: "Update PG"
+  - id: "UPDATE_PG_AND_VALIDATE_EVENTS"
+    description: "Update PG and validate events"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: Cluster
@@ -195,6 +195,8 @@ steps:
             status: "True"
             timeout: 180
     expect_k8s:
+      status:
+        events:
       spec:
         parameterGroupName: pg$RANDOM_SUFFIX
     expect_aws:

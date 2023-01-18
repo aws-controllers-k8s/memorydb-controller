@@ -23,6 +23,7 @@ import (
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
+	svcutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
 )
 
 var (
@@ -58,6 +59,21 @@ func (rm *resourceManager) validateUserNeedsUpdate(
 	return nil, nil
 }
 
+// getEvents gets events from User in service.
+func (rm *resourceManager) getEvents(
+	ctx context.Context,
+	r *resource,
+) ([]*svcapitypes.Event, error) {
+	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdk.SourceTypeUser, svcutil.MaxEvents)
+	resp, err := rm.sdkapi.DescribeEventsWithContext(ctx, input)
+	rm.metrics.RecordAPICall("READ_MANY", "DescribeEvents", err)
+	if err != nil {
+		rm.log.V(1).Info("Error during DescribeEvents-User", "error", err)
+		return nil, err
+	}
+	return svcutil.EventsFromDescribe(resp), nil
+}
+
 // isUserActive returns true when the status of the given User is set to `active`
 func (rm *resourceManager) isUserActive(
 	latest *resource,
@@ -66,7 +82,7 @@ func (rm *resourceManager) isUserActive(
 	return latestStatus != nil && *latestStatus == resourceStatusActive
 }
 
-// getTags gets tags from given ParameterGroup.
+// getTags gets tags from given User.
 func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
@@ -91,7 +107,7 @@ func (rm *resourceManager) getTags(
 	return tags, nil
 }
 
-// updateTags updates tags of given ParameterGroup to desired tags.
+// updateTags updates tags of given User to desired tags.
 func (rm *resourceManager) updateTags(
 	ctx context.Context,
 	desired *resource,

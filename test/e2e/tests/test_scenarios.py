@@ -121,6 +121,14 @@ class UserHelper(helper.ResourceHelper):
     Overrides methods as required for custom resources.
     """
 
+    def assert_extra_items_k8s(self, expected_name, expected_value, k8s_resource) -> bool:
+        # events are processed by custom logic
+        # returns AssertError if events are empty in k8s resource
+        if expected_name == "events":
+            assert k8s_resource.get(expected_name) is not None
+            return True
+        return False
+
     def get_aws_resource(self, resource_name):
         users = self.mdb.describe_users(UserName=resource_name)
         user = users['Users'][0]
@@ -171,6 +179,14 @@ class ACLHelper(helper.ResourceHelper):
     Overrides methods as required for custom resources.
     """
 
+    def assert_extra_items_k8s(self, expected_name, expected_value, k8s_resource) -> bool:
+        # events are processed by custom logic
+        # returns AssertError if events are empty in k8s resource
+        if expected_name == "events":
+            assert k8s_resource.get(expected_name) is not None
+            return True
+        return False
+
     def get_aws_resource(self, resource_name):
         acls = self.mdb.describe_acls(ACLName=resource_name)
         acl = acls['ACLs'][0]
@@ -186,6 +202,14 @@ class ClusterHelper(helper.ResourceHelper):
     Helper for Cluster scenarios.
     Overrides methods as required for custom resources.
     """
+
+    def assert_extra_items_k8s(self, expected_name, expected_value, k8s_resource) -> bool:
+        # events are processed by custom logic
+        # returns AssertError if events are empty in k8s resource
+        if expected_name == "events":
+            assert k8s_resource.get(expected_name) is not None
+            return True
+        return False
 
     def get_aws_resource(self, resource_name):
         clusters = self.mdb.describe_clusters(ClusterName=resource_name)
