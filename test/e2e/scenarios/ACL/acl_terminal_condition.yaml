@@ -4,15 +4,15 @@ description: "In this test we create User and create/update ACL to validate term
 #  - slow
 #  - blocked
 steps:
-  - id: "USER_ONE_CREATE"
-    description: "Create User One"
+  - id: "USER_CREATE"
+    description: "Create User"
     create:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: User
       metadata:
-        name: userone$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX
       spec:
-        name: userone$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX
         accessString: on +get
         authenticationMode:
           type_: password
@@ -42,7 +42,7 @@ steps:
           ACK.Terminal:
             status: "True"
             timeout: 180
-  - id: "UPDATE_ACL"
+  - id: "UPDATE_ACL_VALID"
     description: "Update userNames"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
@@ -51,14 +51,14 @@ steps:
         name: acl$RANDOM_SUFFIX
       spec:
         userNames:
-          - userone$RANDOM_SUFFIX
+          - user$RANDOM_SUFFIX
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
-  - id: "UPDATE_ACL"
+  - id: "UPDATE_ACL_INVALID"
     description: "Update userNames to invalid"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
@@ -81,10 +81,10 @@ steps:
       kind: ACL
       metadata:
         name: acl$RANDOM_SUFFIX
-  - id: "USER_DELETE_ONE"
-    description: "Delete User one"
+  - id: "USER_DELETE"
+    description: "Delete User"
     delete:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: User
       metadata:
-        name: userone$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX

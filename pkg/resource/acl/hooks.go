@@ -20,9 +20,13 @@ import (
 	"github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
+	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+)
+
+var (
+	resourceStatusActive string = "active"
 )
 
 // validateACLNeedsUpdate this function's purpose is to requeue if the resource is currently unavailable
@@ -32,13 +36,21 @@ func (rm *resourceManager) validateACLNeedsUpdate(
 
 	// requeue if necessary
 	latestStatus := latest.ko.Status.Status
-	if latestStatus == nil || *latestStatus != "active" {
+	if latestStatus == nil || *latestStatus != resourceStatusActive {
 		return requeue.NeededAfter(
 			errors.New("ACL cannot be modified as its status is not 'active'."),
 			requeue.DefaultRequeueAfterDuration)
 	}
 
 	return nil
+}
+
+// aclActive returns true when the status of the given ACL is set to `active`
+func (rm *resourceManager) aclActive(
+	latest *resource,
+) bool {
+	latestStatus := latest.ko.Status.Status
+	return latestStatus != nil && *latestStatus == resourceStatusActive
 }
 
 // getTags gets tags from given ParameterGroup.
@@ -114,16 +126,22 @@ func computeTagsDelta(
 	latest []*svcapitypes.Tag,
 ) (addedOrUpdated []*svcapitypes.Tag, removed []*string) {
 	var visitedIndexes []string
+	var hasSameKey bool
 
 	for _, latestElement := range latest {
+		hasSameKey = false
 		visitedIndexes = append(visitedIndexes, *latestElement.Key)
 		for _, desiredElement := range desired {
 			if equalStrings(latestElement.Key, desiredElement.Key) {
+				hasSameKey = true
 				if !equalStrings(latestElement.Value, desiredElement.Value) {
 					addedOrUpdated = append(addedOrUpdated, desiredElement)
 				}
-				continue
+				break
 			}
+		}
+		if hasSameKey {
+			continue
 		}
 		removed = append(removed, latestElement.Key)
 	}
@@ -163,7 +181,9 @@ func resourceTagsFromSDKTags(
 
 func equalStrings(a, b *string) bool {
 	if a == nil {
-		return b == nil || *b == ""
+		return b == nil
+	} else if b == nil {
+		return false
 	}
-	return (*a == "" && b == nil) || *a == *b
+	return *a == *b
 }

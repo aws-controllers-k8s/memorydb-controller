@@ -19,10 +19,10 @@ import (
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
+	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
+	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
-
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 )
 
 func (rm *resourceManager) setParameters(
@@ -173,13 +173,7 @@ func (rm *resourceManager) getTags(
 	if err != nil {
 		return nil, err
 	}
-	tags := make([]*svcapitypes.Tag, 0, len(resp.TagList))
-	for _, tag := range resp.TagList {
-		tags = append(tags, &svcapitypes.Tag{
-			Key:   tag.Key,
-			Value: tag.Value,
-		})
-	}
+	tags := resourceTagsFromSDKTags(resp.TagList)
 	return tags, nil
 }
 
@@ -235,34 +229,33 @@ func (rm *resourceManager) updateTags(
 func computeTagsDelta(
 	desired []*svcapitypes.Tag,
 	latest []*svcapitypes.Tag,
-) (added []*svcapitypes.Tag, removed []*string) {
-	toDelete := []*string{}
-	toAdd := []*svcapitypes.Tag{}
+) (addedOrUpdated []*svcapitypes.Tag, removed []*string) {
+	var visitedIndexes []string
+	var hasSameKey bool
 
-	desiredTags := map[string]string{}
-	key := ""
-	value := ""
-	for _, tag := range desired {
-		if tag.Key != nil {
-			key = *tag.Key
-			value = ""
-			if tag.Value != nil {
-				value = *tag.Value
+	for _, latestElement := range latest {
+		hasSameKey = false
+		visitedIndexes = append(visitedIndexes, *latestElement.Key)
+		for _, desiredElement := range desired {
+			if equalStrings(latestElement.Key, desiredElement.Key) {
+				hasSameKey = true
+				if !equalStrings(latestElement.Value, desiredElement.Value) {
+					addedOrUpdated = append(addedOrUpdated, desiredElement)
+				}
+				break
 			}
-			desiredTags[key] = value
+		}
+		if hasSameKey {
+			continue
+		}
+		removed = append(removed, latestElement.Key)
+	}
+	for _, desiredElement := range desired {
+		if !ackutil.InStrings(*desiredElement.Key, visitedIndexes) {
+			addedOrUpdated = append(addedOrUpdated, desiredElement)
 		}
 	}
-
-	for _, tag := range desired {
-		toAdd = append(toAdd, tag)
-	}
-	for _, tag := range latest {
-		_, ok := desiredTags[*tag.Key]
-		if !ok {
-			toDelete = append(toDelete, tag.Key)
-		}
-	}
-	return toAdd, toDelete
+	return addedOrUpdated, removed
 }
 
 func sdkTagsFromResourceTags(
@@ -276,4 +269,26 @@ func sdkTagsFromResourceTags(
 		}
 	}
 	return tags
+}
+
+func resourceTagsFromSDKTags(
+	sdkTags []*svcsdk.Tag,
+) []*svcapitypes.Tag {
+	tags := make([]*svcapitypes.Tag, len(sdkTags))
+	for i := range sdkTags {
+		tags[i] = &svcapitypes.Tag{
+			Key:   sdkTags[i].Key,
+			Value: sdkTags[i].Value,
+		}
+	}
+	return tags
+}
+
+func equalStrings(a, b *string) bool {
+	if a == nil {
+		return b == nil
+	} else if b == nil {
+		return false
+	}
+	return *a == *b
 }

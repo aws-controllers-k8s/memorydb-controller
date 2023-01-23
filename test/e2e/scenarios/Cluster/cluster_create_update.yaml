@@ -1,4 +1,4 @@
-id: "CREATE_UPDATE"
+id: "CLUSTER_CREATE_UPDATE"
 description: "In this test we create Cluster and update it"
 #marks:
 #  - slow
@@ -61,17 +61,16 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
-
-  - id: "USER_ONE_CREATE"
-    description: "Create User ONE"
+            timeout: 3600
+  - id: "USER_CREATE"
+    description: "Create User"
     create:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: User
       metadata:
-        name: userone$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX
       spec:
-        name: userone$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX
         accessString: on +get
         authenticationMode:
           type_: password
@@ -94,14 +93,13 @@ steps:
       spec:
         name: acl$RANDOM_SUFFIX
         userNames:
-          - userone$RANDOM_SUFFIX
+          - user$RANDOM_SUFFIX
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
-
   - id: "UPDATE_ACL"
     description: "Update ACL"
     patch:
@@ -116,8 +114,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
-
+            timeout: 3600
   - id: "PG_INITIAL_CREATE"
     description: "PG with activerehashing as no"
     create:
@@ -138,7 +135,6 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
-
   - id: "UPDATE_PG"
     description: "Update PG"
     patch:
@@ -153,8 +149,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
-
+            timeout: 180
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:
@@ -162,7 +157,6 @@ steps:
       kind: Cluster
       metadata:
         name: cluster$RANDOM_SUFFIX
-
   - id: "DELETE_PG"
     description: "Delete parameter group"
     delete:
@@ -177,17 +171,10 @@ steps:
       kind: ACL
       metadata:
         name: acl$RANDOM_SUFFIX
-  - id: "USER_DELETE_ONE"
-    description: "Delete User one"
+  - id: "USER_DELETE"
+    description: "Delete User"
     delete:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: User
       metadata:
-        name: userone$RANDOM_SUFFIX
-  - id: "USER_DELETE_TWO"
-    description: "Delete User two"
-    delete:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: User
-      metadata:
-        name: usertwo$RANDOM_SUFFIX
+        name: user$RANDOM_SUFFIX

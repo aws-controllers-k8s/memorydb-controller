@@ -13,11 +13,12 @@ steps:
         name: snapshot$RANDOM_SUFFIX
       spec:
         name: snapshot$RANDOM_SUFFIX
-    wait: 600
-    expect:
+    wait:
       status:
         conditions:
-          ACK.Terminal: "True"
+          ACK.Terminal:
+            status: "True"
+            timeout: 600
   - id: "DELETE_SNAPSHOT"
     description: "Delete snapshot"
     delete:
