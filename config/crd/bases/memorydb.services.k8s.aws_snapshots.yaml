@@ -68,6 +68,7 @@ spec:
                   type: object
                 type: array
             required:
+            - clusterName
             - name
             type: object
           status:

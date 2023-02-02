@@ -27,7 +27,8 @@ import (
 type SnapshotSpec struct {
 
 	// The snapshot is created from this cluster.
-	ClusterName *string `json:"clusterName,omitempty"`
+	// +kubebuilder:validation:Required
+	ClusterName *string `json:"clusterName"`
 	// The ID of the KMS key used to encrypt the snapshot.
 	KMSKeyID *string `json:"kmsKeyID,omitempty"`
 	// A name for the snapshot being created.
