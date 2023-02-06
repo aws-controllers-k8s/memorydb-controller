@@ -39,8 +39,8 @@ type SubnetGroupSpec struct {
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// A list of VPC subnet IDs for the subnet group.
-	// +kubebuilder:validation:Required
-	SubnetIDs []*string `json:"subnetIDs"`
+	SubnetIDs  []*string                                  `json:"subnetIDs,omitempty"`
+	SubnetRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"subnetRefs,omitempty"`
 	// A list of tags to be added to this resource. A tag is a key-value pair. A
 	// tag key must be accompanied by a tag value, although null is accepted.
 	Tags []*Tag `json:"tags,omitempty"`

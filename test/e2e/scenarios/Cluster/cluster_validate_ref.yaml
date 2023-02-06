@@ -1,0 +1,164 @@
+id: "CLUSTER_VALIDATE_REF"
+description: "In this test we validate that we can create a cluster using resources linked entirely by references"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "USER_CREATE"
+    description: "Create User"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: user$RANDOM_SUFFIX
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
+  - id: "ACL_CREATE"
+    description: "Create new ACL"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userRefs:
+          - from:
+              name: user$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+    expect_aws:
+      Name: acl$RANDOM_SUFFIX
+  - id: "PG_INITIAL_CREATE"
+    description: "PG initial create"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ParameterGroup
+      metadata:
+        name: pg$RANDOM_SUFFIX
+      spec:
+        description: PG initial create
+        family: memorydb_redis6
+        name: pg$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+    expect_aws:
+      Name: pg$RANDOM_SUFFIX
+  - id: "SUBNET_INITIAL_CREATE"
+    description: "Subnet group initial create"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: SubnetGroup
+      metadata:
+        name: subnet$RANDOM_SUFFIX
+      spec:
+        description: Subnet group create
+        name: subnet$RANDOM_SUFFIX
+        subnetIDs:
+          - $SUBNET1
+          - $SUBNET2
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+    expect_aws:
+      Name: subnet$RANDOM_SUFFIX
+  - id: "CREATE_CLUSTER_VALIDATE_REF"
+    description: "Create a Cluster and validate ref"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.medium
+        numShards: 1
+        description: Test create from ACK
+        kmsKeyID: $KMSKEY
+        snsTopicARN: $TOPIC1
+        numReplicasPerShard: 1
+        tlsEnabled: true
+        snapshotWindow: 05:00-06:00
+        snapshotRetentionLimit: 0
+        aclRef:
+          from:
+            name: acl$RANDOM_SUFFIX
+        parameterGroupRef:
+          from:
+            name: pg$RANDOM_SUFFIX
+        subnetGroupRef:
+          from:
+            name: subnet$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 3600
+          ACK.ReferencesResolved:
+            status: "True"
+            timeout: 3600
+    expect_aws:
+      ACLName: acl$RANDOM_SUFFIX
+      ParameterGroupName: pg$RANDOM_SUFFIX
+      SubnetGroupName: subnet$RANDOM_SUFFIX
+  - id: "DELETE_CLUSTER"
+    description: "Delete the cluster"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+  - id: "DELETE_PG"
+    description: "Delete parameter group"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ParameterGroup
+      metadata:
+        name: pg$RANDOM_SUFFIX
+  - id: "DELETE_ACL"
+    description: "Delete ACL"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+  - id: "DELETE_USER"
+    description: "Delete User"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: user$RANDOM_SUFFIX
+  - id: "DELETE_SG"
+    description: "Delete subnet group"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: SubnetGroup
+      metadata:
+        name: subnet$RANDOM_SUFFIX

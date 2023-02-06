@@ -34,6 +34,10 @@ resources:
           input_fields:
             ClusterName: Name
     fields:
+      ACLName:
+        references:
+          resource: ACL
+          path: Spec.Name
       AllowedScaleUpNodeTypes:
         is_read_only: true
         from:
@@ -44,6 +48,28 @@ resources:
         from:
           operation: ListAllowedNodeTypeUpdates
           path: ScaleDownNodeTypes
+      ParameterGroupName:
+        references:
+          resource: ParameterGroup
+          path: Spec.Name
+      SecurityGroupIDs:
+        references:
+          resource: SecurityGroup
+          service_name: ec2
+          path: Status.ID
+      SnapshotName:
+        references:
+          resource: Snapshot
+          path: Spec.Name
+      SNSTopicARN:
+        references:
+          resource: Topic
+          service_name: sns
+          path: Status.ACKResourceMetadata.ARN
+      SubnetGroupName:
+        references:
+          resource: SubnetGroup
+          path: Spec.Name
     hooks:
       sdk_read_many_post_set_output:
         template_path: hooks/cluster/sdk_read_many_post_set_output.go.tpl
@@ -79,6 +105,12 @@ resources:
         - TagQuotaPerResourceExceeded
         - SubnetInUse
         - InvalidParameterValueException
+    fields:
+      SubnetIDs:
+        references:
+          service_name: ec2
+          resource: Subnet
+          path: Status.SubnetID
     hooks:
       sdk_create_post_set_output:
         template_path: hooks/subnetgroup/sdk_create_post_set_output.go.tpl
@@ -117,6 +149,11 @@ resources:
         - InvalidParameterValueException
         - InvalidParameterCombinationException
         - TagQuotaPerResourceExceeded
+    fields:
+      UserNames:
+        references:
+          resource: User
+          path: Spec.Name
     hooks:
       sdk_read_many_post_set_output:
         template_path: hooks/acl/sdk_read_many_post_set_output.go.tpl
@@ -213,6 +250,14 @@ resources:
         from:
           operation: CreateSnapshot
           path: ClusterName
+        references:
+          resource: Cluster
+          path: Spec.Name
+      KmsKeyId:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
     update_operation:
       custom_method_name: customUpdate
     hooks:

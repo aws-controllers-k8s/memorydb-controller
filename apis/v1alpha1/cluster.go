@@ -26,8 +26,8 @@ import (
 type ClusterSpec struct {
 
 	// The name of the Access Control List to associate with the cluster.
-	// +kubebuilder:validation:Required
-	ACLName *string `json:"aclName"`
+	ACLName *string                                  `json:"aclName,omitempty"`
+	ACLRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"aclRef,omitempty"`
 	// When set to true, the cluster will automatically receive minor engine version
 	// upgrades after launch.
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
@@ -54,18 +54,21 @@ type ClusterSpec struct {
 	// The number of shards the cluster will contain. The default value is 1.
 	NumShards *int64 `json:"numShards,omitempty"`
 	// The name of the parameter group associated with the cluster.
-	ParameterGroupName *string `json:"parameterGroupName,omitempty"`
+	ParameterGroupName *string                                  `json:"parameterGroupName,omitempty"`
+	ParameterGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"parameterGroupRef,omitempty"`
 	// The port number on which each of the nodes accepts connections.
 	Port *int64 `json:"port,omitempty"`
 	// A list of security group names to associate with this cluster.
-	SecurityGroupIDs []*string `json:"securityGroupIDs,omitempty"`
+	SecurityGroupIDs  []*string                                  `json:"securityGroupIDs,omitempty"`
+	SecurityGroupRefs []*ackv1alpha1.AWSResourceReferenceWrapper `json:"securityGroupRefs,omitempty"`
 	// A list of Amazon Resource Names (ARN) that uniquely identify the RDB snapshot
 	// files stored in Amazon S3. The snapshot files are used to populate the new
 	// cluster. The Amazon S3 object name in the ARN cannot contain any commas.
 	SnapshotARNs []*string `json:"snapshotARNs,omitempty"`
 	// The name of a snapshot from which to restore data into the new cluster. The
 	// snapshot status changes to restoring while the new cluster is being created.
-	SnapshotName *string `json:"snapshotName,omitempty"`
+	SnapshotName *string                                  `json:"snapshotName,omitempty"`
+	SnapshotRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"snapshotRef,omitempty"`
 	// The number of days for which MemoryDB retains automatic snapshots before
 	// deleting them. For example, if you set SnapshotRetentionLimit to 5, a snapshot
 	// that was taken today is retained for 5 days before being deleted.
@@ -80,9 +83,11 @@ type ClusterSpec struct {
 	SnapshotWindow *string `json:"snapshotWindow,omitempty"`
 	// The Amazon Resource Name (ARN) of the Amazon Simple Notification Service
 	// (SNS) topic to which notifications are sent.
-	SNSTopicARN *string `json:"snsTopicARN,omitempty"`
+	SNSTopicARN *string                                  `json:"snsTopicARN,omitempty"`
+	SNSTopicRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"snsTopicRef,omitempty"`
 	// The name of the subnet group to be used for the cluster.
-	SubnetGroupName *string `json:"subnetGroupName,omitempty"`
+	SubnetGroupName *string                                  `json:"subnetGroupName,omitempty"`
+	SubnetGroupRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"subnetGroupRef,omitempty"`
 	// A flag to enable in-transit encryption on the cluster.
 	TLSEnabled *bool `json:"tlsEnabled,omitempty"`
 	// A list of tags to be added to this resource. Tags are comma-separated key,value

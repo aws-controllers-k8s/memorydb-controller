@@ -1,0 +1,62 @@
+id: "SNAPSHOT_CREATE_UPDATE_REF"
+description: "In this test we create a Snapshot using a reference to a Cluster"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "CLUSTER_INITIAL_CREATE"
+    description: "Create cluster"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+        aclName: open-access
+        numShards: 1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 3600
+  - id: "SNAPSHOT_CREATE_WITH_REF"
+    description: "Create snapshot with ref"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+      spec:
+        name: snapshot$RANDOM_SUFFIX
+        clusterRef:
+          from:
+            name: cluster$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 1800
+          ACK.ReferencesResolved:
+            status: "True"
+            timeout: 1800
+    expect_aws:
+      ClusterConfiguration:
+        Name: cluster$RANDOM_SUFFIX
+  - id: "DELETE_SNAPSHOT"
+    description: "Delete snapshot"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Snapshot
+      metadata:
+        name: snapshot$RANDOM_SUFFIX
+  - id: "DELETE_CLUSTER"
+    description: "Delete cluster"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX

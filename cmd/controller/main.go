@@ -18,12 +18,15 @@ package main
 import (
 	"os"
 
+	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
+	kmsapitypes "github.com/aws-controllers-k8s/kms-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackcfg "github.com/aws-controllers-k8s/runtime/pkg/config"
 	ackrt "github.com/aws-controllers-k8s/runtime/pkg/runtime"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	ackrtutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	ackrtwebhook "github.com/aws-controllers-k8s/runtime/pkg/webhook"
+	snsapitypes "github.com/aws-controllers-k8s/sns-controller/apis/v1alpha1"
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 	flag "github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,6 +60,9 @@ func init() {
 
 	_ = svctypes.AddToScheme(scheme)
 	_ = ackv1alpha1.AddToScheme(scheme)
+	_ = ec2apitypes.AddToScheme(scheme)
+	_ = kmsapitypes.AddToScheme(scheme)
+	_ = snsapitypes.AddToScheme(scheme)
 }
 
 func main() {
