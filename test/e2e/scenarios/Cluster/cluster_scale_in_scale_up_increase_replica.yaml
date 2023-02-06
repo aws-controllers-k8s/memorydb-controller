@@ -1,4 +1,4 @@
-id: "SCALE_IN_SCALE_UP_INCREASE_REPLICA"
+id: "CLUSTER_SCALE_IN_SCALE_UP_INCREASE_REPLICA"
 description: "In this test we create Cluster and update scale in, scale up and increase replica"
 #marks:
 #  - slow

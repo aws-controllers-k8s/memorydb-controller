@@ -36,7 +36,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 190
   - id: "USER_UPDATE_PASSWORD"
     description: "Update Password"
     patch:

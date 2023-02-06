@@ -1,4 +1,4 @@
-id: "SCALE_OUT_SCALE_DOWN_DECREASE_REPLICA"
+id: "CLUSTER_SCALE_OUT_SCALE_DOWN_DECREASE_REPLICA"
 description: "In this test we create Cluster and update scale out, scale down and decrease replica"
 #marks:
 #  - slow
