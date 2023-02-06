@@ -673,10 +673,8 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	case "ACLAlreadyExistsFault",
 		"DefaultUserRequired",
 		"DuplicateUserNameFault",
-		"ACLQuotaExceededFault",
 		"InvalidParameterValueException",
-		"InvalidParameterCombinationException",
-		"TagQuotaPerResourceExceeded":
+		"InvalidParameterCombinationException":
 		return true
 	default:
 		return false

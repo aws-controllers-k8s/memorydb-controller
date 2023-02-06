@@ -582,14 +582,10 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "SubnetGroupAlreadyExistsFault",
-		"SubnetGroupQuotaExceededFault",
-		"SubnetQuotaExceededFault",
-		"InvalidSubnet",
-		"SubnetNotAllowedFault",
-		"TagQuotaPerResourceExceeded",
-		"SubnetInUse",
-		"InvalidParameterValueException":
+	case "InvalidSubnet",
+		"InvalidParameterValueException",
+		"SubnetGroupAlreadyExistsFault",
+		"SubnetNotAllowedFault":
 		return true
 	default:
 		return false

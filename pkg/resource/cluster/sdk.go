@@ -1307,14 +1307,8 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	}
 	switch awsErr.Code() {
 	case "ClusterAlreadyExistsFault",
-		"ClusterQuotaForCustomerExceededFault",
-		"NodeQuotaForClusterExceededFault",
-		"NodeQuotaForCustomerExceededFault",
-		"InsufficientClusterCapacityFault",
-		"ShardsPerClusterQuotaExceededFault",
 		"InvalidParameterValueException",
 		"InvalidParameterCombinationException",
-		"TagQuotaPerResourceExceeded",
 		"NoOperationFault":
 		return true
 	default:

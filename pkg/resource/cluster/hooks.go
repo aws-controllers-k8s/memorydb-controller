@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	condMsgCurrentlyDeleting            = "cluster currently being deleted"
-	condMsgNoDeleteWhileUpdating        = "cluster is being updated. cannot delete"
+	condMsgCurrentlyDeleting            = "cluster is currently being deleted"
+	condMsgNoDeleteWhileUpdating        = "cluster is currently being updated. cannot delete"
 	resourceStatusAvailable      string = "available"
 )
 
