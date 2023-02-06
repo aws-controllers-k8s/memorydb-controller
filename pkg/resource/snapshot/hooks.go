@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
+	memorydbutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
 )
 
 var (
@@ -274,7 +275,7 @@ func (rm *resourceManager) getTags(
 	if err != nil {
 		return nil, err
 	}
-	tags := resourceTagsFromSDKTags(resp.TagList)
+	tags := memorydbutil.ResourceTagsFromSDKTags(resp.TagList)
 	return tags, nil
 }
 
@@ -341,7 +342,7 @@ func (rm *resourceManager) updateTags(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
-				Tags:        sdkTagsFromResourceTags(toAdd),
+				Tags:        memorydbutil.SDKTagsFromResourceTags(toAdd),
 			},
 		)
 		rm.metrics.RecordAPICall("UPDATE", "TagResource", err)
@@ -351,30 +352,4 @@ func (rm *resourceManager) updateTags(
 	}
 
 	return nil
-}
-
-func sdkTagsFromResourceTags(
-	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
-	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
-			Key:   rTags[i].Key,
-			Value: rTags[i].Value,
-		}
-	}
-	return tags
-}
-
-func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
-) []*svcapitypes.Tag {
-	tags := make([]*svcapitypes.Tag, len(sdkTags))
-	for i := range sdkTags {
-		tags[i] = &svcapitypes.Tag{
-			Key:   sdkTags[i].Key,
-			Value: sdkTags[i].Value,
-		}
-	}
-	return tags
 }
