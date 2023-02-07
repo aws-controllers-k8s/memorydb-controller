@@ -209,6 +209,7 @@ resources:
           path: SourceSnapshotName
       ClusterName:
         is_primary_key: false
+        is_required: false
         from:
           operation: CreateSnapshot
           path: ClusterName
