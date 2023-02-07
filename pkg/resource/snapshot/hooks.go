@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	resourceStatusActive string = "active"
+	resourceStatusAvailable string = "available"
 )
 
 func (rm *resourceManager) customDescribeSnapshotSetOutput(
@@ -251,12 +251,12 @@ func (rm *resourceManager) newCopySnapshotPayload(
 	return res, nil
 }
 
-// snapshotActive returns true when the status of the given Snapshot is set to `active`
-func (rm *resourceManager) snapshotActive(
+// isSnapshotAvailable returns true when the status of the given Snapshot is set to `available`
+func (rm *resourceManager) isSnapshotAvailable(
 	latest *resource,
 ) bool {
 	latestStatus := latest.ko.Status.Status
-	return latestStatus != nil && *latestStatus == resourceStatusActive
+	return latestStatus != nil && *latestStatus == resourceStatusAvailable
 }
 
 // getTags gets tags from given ParameterGroup.

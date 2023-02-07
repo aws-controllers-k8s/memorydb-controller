@@ -146,7 +146,7 @@ func (rm *resourceManager) sdkFind(
 	}
 
 	rm.setStatusDefaults(ko)
-	if rm.userActive(&resource{ko}) {
+	if rm.isUserActive(&resource{ko}) {
 		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
 		tags, err := rm.getTags(ctx, *resourceARN)
 		if err != nil {

@@ -58,8 +58,8 @@ func (rm *resourceManager) validateUserNeedsUpdate(
 	return nil, nil
 }
 
-// userActive returns true when the status of the given User is set to `active`
-func (rm *resourceManager) userActive(
+// isUserActive returns true when the status of the given User is set to `active`
+func (rm *resourceManager) isUserActive(
 	latest *resource,
 ) bool {
 	latestStatus := latest.ko.Status.Status
