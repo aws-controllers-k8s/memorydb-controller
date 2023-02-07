@@ -28,7 +28,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 7200
+            timeout: 3600
     expect_k8s:
       spec:
         name: cluster$RANDOM_SUFFIX
@@ -55,7 +55,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 10000
+            timeout: 3600
     expect_k8s:
       spec:
         nodeType: db.t4g.medium

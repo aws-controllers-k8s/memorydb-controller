@@ -48,7 +48,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 190
+            timeout: 180
     expect_k8s:
       spec:
         accessString: off resetchannels -@all +get
