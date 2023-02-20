@@ -16,6 +16,7 @@ steps:
         nodeType: cache.t4g.medium
         aclName: open-access
         numShards: 2
+        snapshotRetentionLimit: 0
     wait:
       status:
         conditions:
