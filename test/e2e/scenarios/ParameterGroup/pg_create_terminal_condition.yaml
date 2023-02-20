@@ -16,11 +16,12 @@ steps:
         description: PG with invalid family
         family: memorydb_redis
         name: pg$RANDOM_SUFFIX
-    wait: 300
-    expect:
+    wait:
       status:
         conditions:
-          ACK.Terminal: "True"
+          ACK.Terminal:
+            status: "True"
+            timeout: 300
   - id: "DELETE_PG"
     description: "Delete parameter group"
     delete: pg$RANDOM_SUFFIX

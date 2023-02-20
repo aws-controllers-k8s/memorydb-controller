@@ -53,11 +53,10 @@ class DeleteDict(ResourceDict):
     pass
 
 
-# fields for 'expect' field in a test step
-class ExpectDict(TypedDict, total=False):
+# fields for 'expect_k8s' field in a test step
+class ExpectK8SDict(TypedDict, total=False):
     spec: Dict
     status: Dict
-
 
 # fields in a test step
 class StepDict(TypedDict, total=False):
@@ -67,7 +66,8 @@ class StepDict(TypedDict, total=False):
     patch: Union[str, PatchDict]
     delete: Union[str, DeleteDict]
     wait: Union[int, Dict]
-    expect: ExpectDict
+    expect_k8s: ExpectK8SDict
+    expect_aws: Dict
 
 
 class Step:
@@ -82,7 +82,8 @@ class Step:
 
         self.verb = None
         self.input_data = {}
-        self.expectations: ExpectDict = None
+        self.expectations_k8s: ExpectK8SDict = None
+        self.expectations_aws: Dict = None
 
         # (k8s.CustomResourceReference, ko) to teardown
         self.teardown_list = []
@@ -125,7 +126,8 @@ class Step:
             self.input_data = {**self.custom_resource_details, **self.input_data}
 
         self.wait = self.config.get("wait")
-        self.expectations = self.config.get("expect")
+        self.expectations_k8s = self.config.get("expect_k8s")
+        self.expectations_aws = self.config.get("expect_aws")
 
     @property
     def id(self) -> str:

@@ -35,6 +35,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: subnet$RANDOM_SUFFIX
+        subnetIDs:
+          - $SUBNET1
+    expect_aws:
+      Name: subnet$RANDOM_SUFFIX
+      Subnets:
+        - Identifier: $SUBNET1
   - id: "UPDATE_SUBNET_INVALID"
     description: "Update SubnetGroup SubnetIds with invalid values"
     patch:
@@ -47,6 +56,9 @@ steps:
           ACK.Terminal:
             status: "True"
             timeout: 100
+    expect_aws:
+      Subnets:
+        - Identifier: $SUBNET1
   - id: "DELETE_SUBNET"
     description: "Delete subnet group"
     delete: subnet$RANDOM_SUFFIX

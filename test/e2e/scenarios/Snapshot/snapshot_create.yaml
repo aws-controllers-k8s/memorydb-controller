@@ -20,6 +20,14 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
+    expect_k8s:
+      spec:
+        clusterName: $SNAPSHOT_CLUSTER_NAME1
+        name: snapshot$RANDOM_SUFFIX
+    expect_aws:
+      ClusterConfiguration:
+        Name: $SNAPSHOT_CLUSTER_NAME1
+      Name: snapshot$RANDOM_SUFFIX
   - id: "DELETE_SNAPSHOT"
     description: "Delete snapshot"
     delete:

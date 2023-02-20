@@ -22,7 +22,6 @@ steps:
           ACK.Terminal:
             status: "True"
             timeout: 600
-
   - id: "FIX_NODE_TYPE"
     description: "Create a Cluster"
     patch:
@@ -38,7 +37,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
-
+    expect_k8s:
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+    expect_aws:
+      Name: cluster$RANDOM_SUFFIX
+      NodeType: db.t4g.small
   - id: "INVALID_NUM_SHARD"
     description: "INVALID_NUM_SHARD"
     patch:
@@ -55,7 +60,8 @@ steps:
           ACK.Terminal:
             status: "True"
             timeout: 1800
-
+    expect_aws:
+      NumberOfShards: 2
   - id: "FIX_TERMINAL_CONDITIONS"
     description: "Fix errors"
     patch:
@@ -72,7 +78,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
-
+    expect_k8s:
+      spec:
+        nodeType: db.t4g.medium
+        numShards: 2
+    expect_aws:
+      NodeType: db.t4g.medium
+      NumberOfShards: 2
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:

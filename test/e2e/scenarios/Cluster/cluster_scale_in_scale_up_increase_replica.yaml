@@ -29,6 +29,16 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
+    expect_k8s:
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.small
+        numShards: 2
+        numReplicasPerShard: 0
+    expect_aws:
+      Name: cluster$RANDOM_SUFFIX
+      NodeType: db.t4g.small
+      NumberOfShards: 2
   - id: "UPDATE_SHARD_COUNT_SCALE_UP_INCREASE_REPLICA"
     description: "Update scale in, scale up and increase replica"
     patch:
@@ -46,6 +56,14 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 10000
+    expect_k8s:
+      spec:
+        nodeType: db.t4g.medium
+        numShards: 1
+        numReplicasPerShard: 1
+    expect_aws:
+      NodeType: db.t4g.medium
+      NumberOfShards: 1
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:

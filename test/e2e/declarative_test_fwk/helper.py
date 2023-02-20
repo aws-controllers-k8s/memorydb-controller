@@ -16,6 +16,7 @@
 
 from e2e.declarative_test_fwk import model
 
+import boto3
 import logging
 from typing import Tuple
 from time import sleep
@@ -55,6 +56,9 @@ class ResourceHelper:
     """
 
     DEFAULT_WAIT_SECS = 30
+
+    def __init__(self):
+        self.mdb = boto3.client("memorydb")
 
     def create(self, input_data: dict, input_replacements: dict = {}) -> Tuple[k8s.CustomResourceReference, dict]:
         """Creates custom resource inside Kubernetes cluster per the specifications in input data.
@@ -110,21 +114,36 @@ class ResourceHelper:
         sleep(self.DEFAULT_WAIT_SECS)
         self.wait_for_delete(reference)  # throws exception if wait fails
 
-    def assert_expectations(self, verb: str, input_data: dict, expectations: model.ExpectDict, reference: k8s.CustomResourceReference) -> None:
-        """Asserts custom resource reference inside Kubernetes cluster against the supplied expectations
+    def assert_k8s_resource(self, expectations_k8s: model.ExpectK8SDict, reference: k8s.CustomResourceReference) -> None:
+        """Compare the supplied expectations with custom resource reference inside Kubernetes cluster
 
-        :param verb: expectations after performing the verb (apply, patch, delete)
-        :param input_data: input data to verb
-        :param expectations: expectations to assert
+        :param expectations_k8s: expectations to assert
         :param reference: custom resource reference
+
         :return: None
         """
-        self._assert_conditions(expectations, reference, wait=False)
-        # conditions expectations met, now check current resource against expectations
+        self._assert_conditions(expectations_k8s, reference, wait=False)
+        # conditions expectations met, now check current resource against expectations_k8s
         resource = k8s.get_resource(reference)
-        self.assert_items(expectations.get("status"), resource.get("status"))
+        # status and spec assertions with resources from Kubernetes
+        self.assert_items_k8s(expectations_k8s.get("status"), resource.get("status"))
+        self.assert_items_k8s(expectations_k8s.get("spec"), resource.get("spec"))
 
-        # self._assert_state(expectations.get("spec"), resource)  # uncomment to support spec assertions
+    def assert_aws_resource(self, expectations_aws: dict, reference: k8s.CustomResourceReference) -> None:
+        """Compare the supplied expectations with aws resource from api calls by boto3
+
+         Args:
+            expectations_aws: expectations to assert
+            reference: custom resource reference
+
+        Returns:
+            None
+        """
+        resource = k8s.get_resource(reference)
+        # assertions with resources from boto3
+        # spec of k8s resource here is for getting name of resource
+        # boto3 call APIs using name of resource
+        self.assert_items_aws(expectations_aws, resource.get("spec"))
 
     def wait_for(self, wait_expectations: dict, reference: k8s.CustomResourceReference) -> None:
         """Waits for custom resource reference details inside Kubernetes cluster to match supplied config,
@@ -157,9 +176,9 @@ class ResourceHelper:
                     assert k8s.wait_on_condition(reference, condition_name, expected_value,
                                                  wait_periods=default_wait_periods, period_length=default_period_length)
                 else:
-                    actual_condition = k8s.get_resource_condition(reference, condition_name)
-                    assert actual_condition is not None
-                    assert expected_value == actual_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {actual_condition}"
+                    k8s_resource_condition = k8s.get_resource_condition(reference, condition_name)
+                    assert k8s_resource_condition is not None
+                    assert expected_value == k8s_resource_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
 
             elif type(expected_value) is dict:
                 # Example:
@@ -176,23 +195,84 @@ class ResourceHelper:
                     assert k8s.wait_on_condition(reference, condition_name, condition_value,
                                                  wait_periods=wait_timeout, period_length=default_period_length)
 
-                actual_condition = k8s.get_resource_condition(reference,
+                k8s_resource_condition = k8s.get_resource_condition(reference,
                                                               condition_name)
-                assert actual_condition is not None
-                assert condition_value == actual_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {actual_condition}"
+                assert k8s_resource_condition is not None
+                assert condition_value == k8s_resource_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
                 if condition_message is not None:
-                    assert condition_message == actual_condition.get("message"), f"Condition message mismatch. Expected condition: {condition_name} - {expected_value} but found {actual_condition}"
+                    assert condition_message == k8s_resource_condition.get("message"), f"Condition message mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
 
             else:
                 raise Exception(f"Condition {condition_name} is provided with invalid value: {expected_value} ")
 
-    def assert_items(self, expectations: dict, state: dict) -> None:
-        """Asserts state against supplied expectations
-        Override it as needed for custom verifications
+    def assert_items_aws(self, expectations: dict, k8s_resource: dict) -> None:
+        """Asserts boto3 response against supplied expectations
 
         Args:
-            expectations: dictionary with items (expected) to assert in state
-            state: dictionary with items (actual)
+            expectations: dictionary with items (expected) to assert in k8s resource
+            k8s_resource: the current status/spec of the k8s resource
+
+        Returns:
+            None
+        """
+        if not expectations:
+            # nothing to assert as there are no expectations
+            return
+        if not k8s_resource:
+            # there are expectations but no given k8s resource state to validate
+            # following assert will fail and assert introspection will provide useful information for debugging
+            assert expectations == k8s_resource
+
+        resource_name = ""
+        for (key, value) in k8s_resource.items():
+            if key == "name":
+                resource_name = value
+        # get aws resource
+        aws_resource = self.get_aws_resource(resource_name)
+        latestTags = self.mdb.list_tags(ResourceArn=aws_resource.get("ARN"))['TagList']
+
+        for (key, value) in expectations.items():
+            if key == "Tags":
+                self.assert_tags(value, latestTags)
+                continue
+            # validation for specific fields
+            if self.assert_extra_items_aws(key, value, aws_resource):
+                continue
+            assert value == aws_resource.get(key)
+
+    def get_aws_resource(self, resource_name):
+        """get aws resource from boto3
+        Override it for each resource type
+
+        Args:
+            resource_name: the name of resource to use for calling memorydb apis
+
+        Returns:
+            aws resource
+        """
+        return
+
+    def assert_extra_items_aws(self, expected_name, expected_value, aws_resource) -> bool:
+        """Asserts specific fields that boto3 response against supplied expectation
+        Override it as needed for validations of specific field
+
+        Args:
+            expected_name: expected name of a specific field to assert in aws resource
+            expected_value: expected value of a specific field to assert in aws resource
+            aws_resource: specific resource from aws memorydb
+
+        Returns:
+            The return value. If resource has expected_name as a field, execute custom logic to validate that specific
+            field and return true. Otherwise, if resource doesn't have expected_name as a field, return false.
+        """
+        return False
+
+    def assert_items_k8s(self, expectations: dict, k8s_resource: dict) -> None:
+        """Asserts k8s resource against supplied expectations
+
+        Args:
+            expectations: dictionary with items (expected) to assert in k8s_resource
+            k8s_resource: the current status/spec of the k8s resource
 
         Returns:
             None
@@ -201,16 +281,60 @@ class ResourceHelper:
         if not expectations:
             # nothing to assert as there are no expectations
             return
-        if not state:
-            # there are expectations but no given state to validate
+        if not k8s_resource:
+            # there are expectations but no given k8s_resource state to validate
             # following assert will fail and assert introspection will provide useful information for debugging
-            assert expectations == state
+            assert expectations == k8s_resource
 
         for (key, value) in expectations.items():
             # conditions are processed separately
             if key == "conditions":
                 continue
-            assert (key, value) == (key, state.get(key))
+            # tags are processed by custom logic
+            if key == "tags":
+                self.assert_tags(value, k8s_resource.get(key))
+                continue
+            # assert any specific extra fields
+            if self.assert_extra_items_k8s(key, value, k8s_resource):
+                continue
+            assert value == k8s_resource.get(key)
+
+    def assert_extra_items_k8s(self, expected_name, expected_value, k8s_resource) -> bool:
+        """Asserts extra fields from k8s resource against fields from expectations
+        Override it as needed for custom verifications
+
+        Args:
+            expected_name: expected name of a specific field to assert in k8s resource
+            expected_value: expected value of a specific field to assert in k8s resource
+            k8s_resource: the current status/spec of the k8s resource
+
+        Returns:
+            The return value. If resource has expected_name as a field, execute custom logic to validate that specific
+            field and return true. Otherwise, if resource doesn't have expected_name as a field, return false.
+        """
+        return False
+
+    def assert_tags(self, expected_tags, latest_tags):
+        """Asserts tags from resource against tags from expectations
+        If latest_tags contains all tags in expected_tags, no AssertError.
+        If any tag in expected_tags is not in latest_tags, return an AssertError
+
+        Args:
+            expected_tags: tags from expectations
+            latest_tags: tags from resource
+
+        Returns:
+            None
+        """
+        for expected_tag in expected_tags:
+            tag_exist = False
+            for latest_tag in latest_tags:
+                if expected_tag == latest_tag:
+                    tag_exist = True
+                    break
+            if tag_exist:
+                continue
+            assert expected_tag == None
 
     def custom_resource_reference(self, input_data: dict, input_replacements: dict = {}) -> k8s.CustomResourceReference:
         """Helper method to provide k8s.CustomResourceReference for supplied input

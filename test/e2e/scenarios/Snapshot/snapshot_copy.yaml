@@ -20,6 +20,14 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
+    expect_k8s:
+      spec:
+        clusterName: $SNAPSHOT_CLUSTER_NAME2
+        name: snapshot$RANDOM_SUFFIX
+    expect_aws:
+      ClusterConfiguration:
+        Name: $SNAPSHOT_CLUSTER_NAME2
+      Name: snapshot$RANDOM_SUFFIX
   - id: "COPY_SNAPSHOT"
     description: "Ack Copy Snapshot"
     create:
@@ -36,6 +44,12 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
+    expect_k8s:
+      spec:
+        sourceSnapshotName: snapshot$RANDOM_SUFFIX
+        name: snapshotcopy$RANDOM_SUFFIX
+    expect_aws:
+      Name: snapshotcopy$RANDOM_SUFFIX
   - id: "DELETE_COPY_SNAPSHOT"
     description: "Ack Delete Copy Snapshot"
     delete:

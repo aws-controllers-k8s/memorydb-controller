@@ -13,6 +13,6 @@
         }
     }
 
-    if !delta.DifferentExcept("Spec.Tags", "Spec.ParameterNameValues") {
+    if !delta.DifferentExcept("Spec.Tags") {
     	return desired, nil
     }
