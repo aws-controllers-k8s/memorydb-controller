@@ -16,8 +16,8 @@ package subnet_group
 import (
 	"context"
 
+	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	ackutil "github.com/aws-controllers-k8s/runtime/pkg/util"
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
@@ -54,9 +54,18 @@ func (rm *resourceManager) updateTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	toAdd, toDelete := computeTagsDelta(
-		desired.ko.Spec.Tags, latest.ko.Spec.Tags,
-	)
+	desiredTags := ToACKTags(desired.ko.Spec.Tags)
+	latestTags := ToACKTags(latest.ko.Spec.Tags)
+
+	added, _, removed := ackcompare.GetTagsDifference(latestTags, desiredTags)
+
+	toAdd := FromACKTags(added)
+	toRemove := FromACKTags(removed)
+
+	var toDelete []*string
+	for _, removedElement := range toRemove {
+		toDelete = append(toDelete, removedElement.Key)
+	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from parameter group", "tags", toDelete)
@@ -91,38 +100,6 @@ func (rm *resourceManager) updateTags(
 	return nil
 }
 
-func computeTagsDelta(
-	desired []*svcapitypes.Tag,
-	latest []*svcapitypes.Tag,
-) (addedOrUpdated []*svcapitypes.Tag, removed []*string) {
-	var visitedIndexes []string
-	var hasSameKey bool
-
-	for _, latestElement := range latest {
-		hasSameKey = false
-		visitedIndexes = append(visitedIndexes, *latestElement.Key)
-		for _, desiredElement := range desired {
-			if equalStrings(latestElement.Key, desiredElement.Key) {
-				hasSameKey = true
-				if !equalStrings(latestElement.Value, desiredElement.Value) {
-					addedOrUpdated = append(addedOrUpdated, desiredElement)
-				}
-				break
-			}
-		}
-		if hasSameKey {
-			continue
-		}
-		removed = append(removed, latestElement.Key)
-	}
-	for _, desiredElement := range desired {
-		if !ackutil.InStrings(*desiredElement.Key, visitedIndexes) {
-			addedOrUpdated = append(addedOrUpdated, desiredElement)
-		}
-	}
-	return addedOrUpdated, removed
-}
-
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
 ) []*svcsdk.Tag {
@@ -147,13 +124,4 @@ func resourceTagsFromSDKTags(
 		}
 	}
 	return tags
-}
-
-func equalStrings(a, b *string) bool {
-	if a == nil {
-		return b == nil
-	} else if b == nil {
-		return false
-	}
-	return *a == *b
 }
