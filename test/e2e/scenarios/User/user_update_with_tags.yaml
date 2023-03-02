@@ -26,6 +26,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: user$RANDOM_SUFFIX
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
   - id: "USER_ADD_TAGS"
     description: "Add tags in User"
     patch:
@@ -34,13 +39,26 @@ steps:
           - key: "test_key_1"
             value: "test_value_1"
           - key: "test_key_2"
-          - key:
+            value: "test_value_2"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+            value: "test_value_2"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
+        - Key: "test_key_2"
+          Value: "test_value_2"
   - id: "USER_DELETE_TAGS"
     description: "Delete tags in User"
     patch:
@@ -54,19 +72,37 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "SG_ADD_AND_DELETE_TAGS"
     description: "Add some tags and delete some tags in User"
     patch:
       spec:
         tags:
           - key: "test_key_2"
-            value: "test_value_2"
+            value: "test_value_3"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_3"
+    expect_aws:
+      Tags:
+        - Key: "test_key_2"
+          Value: "test_value_3"
   - id: "DELETE_USER"
     description: "Delete User"
     delete: user$RANDOM_SUFFIX

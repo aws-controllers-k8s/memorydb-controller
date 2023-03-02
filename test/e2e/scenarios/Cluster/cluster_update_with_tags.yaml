@@ -22,6 +22,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
+    expect_k8s:
+      spec:
+        name: cluster$RANDOM_SUFFIX
+    expect_aws:
+      Name: cluster$RANDOM_SUFFIX
   - id: "CLUSTER_ADD_TAGS"
     description: "Add tags in Cluster"
     patch:
@@ -34,13 +39,26 @@ steps:
           - key: "test_key_1"
             value: "test_value_1"
           - key: "test_key_2"
-          - key:
+            value: "test_value_2"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+            value: "test_value_2"
+#    expect_aws:
+#      Tags:
+#        - Key: "test_key_1"
+#          Value: "test_value_1"
+#        - Key: "test_key_2"
+#          Value: "test_value_2"
   - id: "CLUSTER_DELETE_TAGS"
     description: "Delete tags in Cluster"
     patch:
@@ -58,6 +76,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+#    expect_aws:
+#      Tags:
+#        - Key: "test_key_1"
+#          Value: "test_value_1"
   - id: "Cluster_ADD_AND_DELETE_TAGS"
     description: "Add some tags and delete some tags in Cluster"
     patch:
@@ -68,13 +95,22 @@ steps:
       spec:
         tags:
           - key: "test_key_2"
-            value: "test_value_2"
+            value: "test_value_3"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_3"
+#    expect_aws:
+#      Tags:
+#        - Key: "test_key_2"
+#          Value: "test_value_3"
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:

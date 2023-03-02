@@ -29,6 +29,28 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 7200
+    expect_k8s:
+      spec:
+        name: cluster$RANDOM_SUFFIX
+        nodeType: db.t4g.medium
+        aclName: open-access
+        numShards: 1
+        description: Test create from ACK
+        snsTopicARN: $TOPIC1
+        numReplicasPerShard: 1
+        tlsEnabled: true
+        snapshotWindow: 05:00-06:00
+        snapshotRetentionLimit: 0
+    expect_aws:
+      Name: cluster$RANDOM_SUFFIX
+      NodeType: db.t4g.medium
+      ACLName: open-access
+      NumberOfShards: 1
+      Description: Test create from ACK
+      SnsTopicArn: $TOPIC1
+      TLSEnabled: true
+      SnapshotWindow: 05:00-06:00
+      SnapshotRetentionLimit: 0
   - id: "UPDATE_CLUSTER_DESCRIPTION_SNS_TOPIC_MAINTENANCE_WINDOW"
     description: "Update description, sns topic, maintenance window"
     patch:
@@ -46,6 +68,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 600
+    expect_k8s:
+      spec:
+        description: Test step 2 from ACK
+        snsTopicARN: $TOPIC2
+        maintenanceWindow: thu:09:00-thu:10:00
+    expect_aws:
+      Description: Test step 2 from ACK
+      SnsTopicArn: $TOPIC2
+      MaintenanceWindow: thu:09:00-thu:10:00
   - id: "UPDATE_SNAPSHOT_WINDOW_RETENTION_LIMIT"
     description: "Update snapshot window and retention limit"
     patch:
@@ -62,6 +93,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
+    expect_k8s:
+      spec:
+        snapshotWindow: 08:00-09:00
+        snapshotRetentionLimit: 10
+    expect_aws:
+      SnapshotWindow: 08:00-09:00
+      SnapshotRetentionLimit: 10
   - id: "USER_CREATE"
     description: "Create User"
     create:
@@ -83,6 +121,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: user$RANDOM_SUFFIX
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
   - id: "ACL_CREATE"
     description: "Create new ACL"
     create:
@@ -100,6 +143,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: acl$RANDOM_SUFFIX
+    expect_aws:
+      Name: acl$RANDOM_SUFFIX
   - id: "UPDATE_ACL"
     description: "Update ACL"
     patch:
@@ -115,6 +163,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 3600
+    expect_k8s:
+      spec:
+        aclName: acl$RANDOM_SUFFIX
+    expect_aws:
+      ACLName: acl$RANDOM_SUFFIX
   - id: "PG_INITIAL_CREATE"
     description: "PG with activerehashing as no"
     create:
@@ -135,6 +188,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: pg$RANDOM_SUFFIX
+    expect_aws:
+      Name: pg$RANDOM_SUFFIX
   - id: "UPDATE_PG"
     description: "Update PG"
     patch:
@@ -150,6 +208,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        parameterGroupName: pg$RANDOM_SUFFIX
+    expect_aws:
+      ParameterGroupName: pg$RANDOM_SUFFIX
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:

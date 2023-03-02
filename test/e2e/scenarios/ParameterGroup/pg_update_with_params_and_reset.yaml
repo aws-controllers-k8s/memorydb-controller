@@ -22,6 +22,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        description: PG with no params while creating
+        family: memorydb_redis6
+        name: pg$RANDOM_SUFFIX
+    expect_aws:
+      Name: pg$RANDOM_SUFFIX
+      Family: memorydb_redis6
+      Description: PG with no params while creating
   - id: "PG_UPDATE"
     description: "Update activerehashing to no"
     patch:
@@ -35,6 +44,35 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        parameterNameValues:
+          - parameterName: activerehashing
+            parameterValue: "no"
+    expect_aws:
+      Parameters:
+        - Name: activerehashing
+          Value: "no"
+  - id: "PG_RESET"
+    description: "Update parameterNameValues to empty list"
+    patch:
+      spec:
+        parameterNameValues: []
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 100
+    expect_k8s:
+      spec:
+        parameterNameValues:
+          - parameterName: activerehashing
+            parameterValue: "yes"
+    expect_aws:
+      Parameters:
+        - Name: activerehashing
+          Value: "yes"
   - id: "DELETE_PG"
     description: "Delete parameter group"
     delete: pg$RANDOM_SUFFIX

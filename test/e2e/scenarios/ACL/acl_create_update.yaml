@@ -25,6 +25,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: userone$RANDOM_SUFFIX
+    expect_aws:
+      Name: userone$RANDOM_SUFFIX
   - id: "USER_TWO_CREATE"
     description: "Create User Two"
     create:
@@ -46,6 +51,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: usertwo$RANDOM_SUFFIX
+    expect_aws:
+      Name: usertwo$RANDOM_SUFFIX
   - id: "ACL_CREATE"
     description: "Create new ACL"
     create:
@@ -64,6 +74,17 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userNames:
+          - userone$RANDOM_SUFFIX
+          - usertwo$RANDOM_SUFFIX
+    expect_aws:
+      Name: acl$RANDOM_SUFFIX
+      UserNames:
+        - userone$RANDOM_SUFFIX
+        - usertwo$RANDOM_SUFFIX
   - id: "UPDATE_ACL"
     description: "Update userNames"
     patch:
@@ -80,6 +101,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        userNames:
+          - userone$RANDOM_SUFFIX
+    expect_aws:
+      UserNames:
+        - userone$RANDOM_SUFFIX
   - id: "ACL_DELETE"
     description: "Delete ACL"
     delete:

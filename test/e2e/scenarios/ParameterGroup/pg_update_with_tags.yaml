@@ -22,6 +22,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: pg$RANDOM_SUFFIX
+    expect_aws:
+      Name: pg$RANDOM_SUFFIX
   - id: "PG_ADD_TAGS"
     description: "Add tags in PG"
     patch:
@@ -30,13 +35,26 @@ steps:
           - key: "test_key_1"
             value: "test_value_1"
           - key: "test_key_2"
-          - key:
+            value: "test_value_2"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+            value: "test_value_2"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
+        - Key: "test_key_2"
+          Value: "test_value_2"
   - id: "PG_DELETE_TAGS"
     description: "Delete tags in PG"
     patch:
@@ -50,19 +68,37 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "PG_ADD_AND_DELETE_TAGS"
     description: "Add some tags and delete tags in PG"
     patch:
       spec:
         tags:
           - key: "test_key_2"
-            value: "test_value_2"
+            value: "test_value_3"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_3"
+    expect_aws:
+      Tags:
+        - Key: "test_key_2"
+          Value: "test_value_3"
   - id: "DELETE_PG"
     description: "Delete parameter group"
     delete: pg$RANDOM_SUFFIX

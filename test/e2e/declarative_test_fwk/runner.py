@@ -83,7 +83,8 @@ def run_step(step: model.Step) -> None:
     elif step.verb == model.Verb.delete:
         delete_resource(step)
     wait(step)
-    assert_expectations(step)
+    assert_k8s_resource(step)
+    assert_aws_resource(step)
 
 
 def create_resource(step: model.Step) -> None:
@@ -182,8 +183,8 @@ def wait(step: model.Step) -> None:
         raise e
 
 
-def assert_expectations(step: model.Step) -> None:
-    """Asserts expectations as specified in the Step.
+def assert_k8s_resource(step: model.Step) -> None:
+    """Asserts k8s resource in the Step.
 
     Args:
         step: test step
@@ -192,18 +193,39 @@ def assert_expectations(step: model.Step) -> None:
         None
     """
 
-    logging.info(f"assert:  {step}")
-    if not step.expectations:
+    logging.debug(f"assert:  {step}")
+    if not step.expectations_k8s:
         return
 
     resource_helper = helper.get_resource_helper(step.resource_kind)
     reference = resource_helper.custom_resource_reference(step.input_data, step.replacements)
     try:
-        resource_helper.assert_expectations(step.verb, step.input_data, step.expectations, reference)
+        resource_helper.assert_k8s_resource(step.expectations_k8s, reference)
     except AssertionError as ae:
         logging.error(f"AssertionError at {step}")
         raise ae
 
+def assert_aws_resource(step: model.Step) -> None:
+    """Asserts aws resource in the Step.
+
+    Args:
+        step: test step
+
+    Returns:
+        None
+    """
+
+    logging.debug(f"assert:  {step}")
+    if not step.expectations_aws:
+        return
+
+    resource_helper = helper.get_resource_helper(step.resource_kind)
+    reference = resource_helper.custom_resource_reference(step.input_data, step.replacements)
+    try:
+        resource_helper.assert_aws_resource(step.expectations_aws, reference)
+    except AssertionError as ae:
+        logging.error(f"AssertionError at {step}")
+        raise ae
 
 def teardown_step(step: model.Step) -> None:
     """Teardown custom resources that were created during step execution (run) inside Kubernetes cluster.

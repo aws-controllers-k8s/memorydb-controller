@@ -26,6 +26,18 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: on resetchannels -@all +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
+      AccessString: on resetchannels -@all +get
   - id: "USER_UPDATE_ACCESS_STRING"
     description: "Update AccessString"
     patch:
@@ -37,6 +49,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 190
+    expect_k8s:
+      spec:
+        accessString: off resetchannels -@all +get
+    expect_aws:
+      AccessString: off resetchannels -@all +get
   - id: "USER_UPDATE_PASSWORD"
     description: "Update Password"
     patch:
@@ -52,6 +69,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET2
   - id: "USER_UPDATE_ACCESS_STRING_AND_SECRET"
     description: "Update Secret and AccessString"
     patch:
@@ -68,6 +92,16 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        accessString: on resetchannels -@all +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    expect_aws:
+      AccessString: on resetchannels -@all +get
   - id: "REAPPLY_SPEC"
     description: "Update Secret and AccessString we should not see any errors"
     patch:
@@ -84,6 +118,16 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        accessString: on resetchannels -@all +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    expect_aws:
+      AccessString: on resetchannels -@all +get
   - id: "DELETE_USER"
     description: "Delete User"
     delete: user$RANDOM_SUFFIX

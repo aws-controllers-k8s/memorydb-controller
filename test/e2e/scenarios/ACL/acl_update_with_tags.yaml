@@ -25,6 +25,11 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: user$RANDOM_SUFFIX
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
   - id: "ACL_CREATE"
     description: "Create ACL"
     create:
@@ -42,6 +47,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 180
+    expect_k8s:
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userNames:
+          - user$RANDOM_SUFFIX
+    expect_aws:
+      Name: acl$RANDOM_SUFFIX
+      UserNames:
+        - user$RANDOM_SUFFIX
   - id: "ACL_ADD_TAGS"
     description: "Add tags in ACL"
     patch:
@@ -54,13 +68,26 @@ steps:
           - key: "test_key_1"
             value: "test_value_1"
           - key: "test_key_2"
-          - key:
+            value: "test_value_2"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+          - key: "test_key_2"
+            value: "test_value_2"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
+        - Key: "test_key_2"
+          Value: "test_value_2"
   - id: "ACL_DELETE_TAGS"
     description: "Delete tags in ACL"
     patch:
@@ -78,6 +105,15 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "ACL_ADD_AND_DELETE_TAGS"
     description: "Add some tags and delete some tags in ACL"
     patch:
@@ -88,13 +124,22 @@ steps:
       spec:
         tags:
           - key: "test_key_2"
-            value: "test_value_2"
+            value: "test_value_3"
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        tags:
+          - key: "test_key_2"
+            value: "test_value_3"
+    expect_aws:
+      Tags:
+        - Key: "test_key_2"
+          Value: "test_value_3"
   - id: "ACL_DELETE"
     description: "Delete ACL"
     delete:

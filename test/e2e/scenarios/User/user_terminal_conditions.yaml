@@ -37,6 +37,13 @@ steps:
           ACK.ResourceSynced:
             status: "True"
             timeout: 100
+    expect_k8s:
+      spec:
+        name: user$RANDOM_SUFFIX
+        accessString: off resetchannels -@all +get
+    expect_aws:
+      Name: user$RANDOM_SUFFIX
+      AccessString: off resetchannels -@all +get
   - id: "USER_UPDATE_INCORRECT_ACCESS_STRING"
     description: "Update to incorrect access string"
     patch:
@@ -48,6 +55,8 @@ steps:
           ACK.Terminal:
             status: "True"
             timeout: 100
+    expect_aws:
+      AccessString: off resetchannels -@all +get
   - id: "DELETE_USER"
     description: "Delete User"
     delete: user$RANDOM_SUFFIX
