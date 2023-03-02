@@ -237,6 +237,11 @@ resources:
         DescribeSnapshots:
           input_fields:
             SnapshotName: Name
+    synced:
+      when:
+        - path: Status.Status
+          in:
+            - available
   ParameterGroup:
     exceptions:
       errors:

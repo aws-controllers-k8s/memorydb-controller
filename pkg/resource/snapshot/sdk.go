@@ -201,7 +201,7 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 
-	if rm.snapshotActive(&resource{ko}) {
+	if rm.isSnapshotAvailable(&resource{ko}) {
 		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
 		tags, err := rm.getTags(ctx, *resourceARN)
 		if err != nil {

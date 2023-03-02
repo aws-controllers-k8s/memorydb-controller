@@ -31,7 +31,7 @@ import (
 var (
 	condMsgCurrentlyDeleting            = "cluster currently being deleted"
 	condMsgNoDeleteWhileUpdating        = "cluster is being updated. cannot delete"
-	resourceStatusActive         string = "active"
+	resourceStatusAvailable      string = "available"
 )
 
 var (
@@ -264,12 +264,12 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	return res
 }
 
-// clusterActive returns true when the status of the given Cluster is set to `active`
-func (rm *resourceManager) clusterActive(
+// isClusterAvailable returns true when the status of the given Cluster is set to `available`
+func (rm *resourceManager) isClusterAvailable(
 	latest *resource,
 ) bool {
 	latestStatus := latest.ko.Status.Status
-	return latestStatus != nil && *latestStatus == resourceStatusActive
+	return latestStatus != nil && *latestStatus == resourceStatusAvailable
 }
 
 // getTags gets tags from given ParameterGroup.

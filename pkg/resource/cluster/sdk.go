@@ -352,7 +352,7 @@ func (rm *resourceManager) sdkFind(
 		return nil, respErr
 	}
 
-	if rm.clusterActive(&resource{ko}) {
+	if rm.isClusterAvailable(&resource{ko}) {
 		resourceARN := (*string)(ko.Status.ACKResourceMetadata.ARN)
 		tags, err := rm.getTags(ctx, *resourceARN)
 		if err != nil {

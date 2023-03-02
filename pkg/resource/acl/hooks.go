@@ -45,8 +45,8 @@ func (rm *resourceManager) validateACLNeedsUpdate(
 	return nil
 }
 
-// aclActive returns true when the status of the given ACL is set to `active`
-func (rm *resourceManager) aclActive(
+// isACLActive returns true when the status of the given ACL is set to `active`
+func (rm *resourceManager) isACLActive(
 	latest *resource,
 ) bool {
 	latestStatus := latest.ko.Status.Status
