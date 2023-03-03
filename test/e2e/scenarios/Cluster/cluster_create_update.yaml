@@ -77,29 +77,6 @@ steps:
       Description: Test step 2 from ACK
       SnsTopicArn: $TOPIC2
       MaintenanceWindow: thu:09:00-thu:10:00
-  - id: "UPDATE_SNAPSHOT_WINDOW_RETENTION_LIMIT"
-    description: "Update snapshot window and retention limit"
-    patch:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        snapshotWindow: 08:00-09:00
-        snapshotRetentionLimit: 10
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 3600
-    expect_k8s:
-      spec:
-        snapshotWindow: 08:00-09:00
-        snapshotRetentionLimit: 10
-    expect_aws:
-      SnapshotWindow: 08:00-09:00
-      SnapshotRetentionLimit: 10
   - id: "USER_CREATE"
     description: "Create User"
     create:
@@ -162,7 +139,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 3600
+            timeout: 180
     expect_k8s:
       spec:
         aclName: acl$RANDOM_SUFFIX
@@ -213,6 +190,29 @@ steps:
         parameterGroupName: pg$RANDOM_SUFFIX
     expect_aws:
       ParameterGroupName: pg$RANDOM_SUFFIX
+  - id: "UPDATE_SNAPSHOT_WINDOW_RETENTION_LIMIT"
+    description: "Update snapshot window and retention limit"
+    patch:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: Cluster
+      metadata:
+        name: cluster$RANDOM_SUFFIX
+      spec:
+        snapshotWindow: 08:00-09:00
+        snapshotRetentionLimit: 10
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 3600
+    expect_k8s:
+      spec:
+        snapshotWindow: 08:00-09:00
+        snapshotRetentionLimit: 10
+    expect_aws:
+      SnapshotWindow: 08:00-09:00
+      SnapshotRetentionLimit: 10
   - id: "DELETE_CLUSTER"
     description: "Delete the cluster"
     delete:

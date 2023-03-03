@@ -26,7 +26,7 @@ class Cluster(Bootstrappable):
     def create_cluster(self):
         mdb = boto3.client("memorydb")
         mdb.create_cluster(ClusterName=self.clusterName,
-                           Description='Cluster for Ack snapshot resource testing',
+                           Description='Cluster for Ack snapshot resource testing', SnapshotRetentionLimit=0,
                            NodeType='db.r6g.large', ACLName='open-access', NumShards=1, NumReplicasPerShard=0)
         timeout = time.time() + 30*60  # 30 minutes from now
         available_status = "Available"
