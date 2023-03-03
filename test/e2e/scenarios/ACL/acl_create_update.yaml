@@ -85,8 +85,8 @@ steps:
       UserNames:
         - userone$RANDOM_SUFFIX
         - usertwo$RANDOM_SUFFIX
-  - id: "UPDATE_ACL"
-    description: "Update userNames"
+  - id: "UPDATE_ACL_WITH_USERNAMES_AND_TAGS"
+    description: "Update userNames and tags"
     patch:
       apiVersion: $CRD_GROUP/$CRD_VERSION
       kind: ACL
@@ -95,6 +95,9 @@ steps:
       spec:
         userNames:
           - userone$RANDOM_SUFFIX
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     wait:
       status:
         conditions:
@@ -105,9 +108,15 @@ steps:
       spec:
         userNames:
           - userone$RANDOM_SUFFIX
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     expect_aws:
       UserNames:
         - userone$RANDOM_SUFFIX
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "ACL_DELETE"
     description: "Delete ACL"
     delete:
