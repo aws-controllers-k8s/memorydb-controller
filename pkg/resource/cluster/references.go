@@ -17,12 +17,27 @@ package cluster
 
 import (
 	"context"
+	"fmt"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
+	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
+	snsapitypes "github.com/aws-controllers-k8s/sns-controller/apis/v1alpha1"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 )
+
+// +kubebuilder:rbac:groups=sns.services.k8s.aws,resources=topics,verbs=get;list
+// +kubebuilder:rbac:groups=sns.services.k8s.aws,resources=topics/status,verbs=get;list
+
+// +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups,verbs=get;list
+// +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups/status,verbs=get;list
 
 // ResolveReferences finds if there are any Reference field(s) present
 // inside AWSResource passed in the parameter and attempts to resolve
@@ -36,17 +51,414 @@ func (rm *resourceManager) ResolveReferences(
 	apiReader client.Reader,
 	res acktypes.AWSResource,
 ) (acktypes.AWSResource, error) {
-	return res, nil
+	namespace := res.MetaObject().GetNamespace()
+	ko := rm.concreteResource(res).ko.DeepCopy()
+	err := validateReferenceFields(ko)
+	if err == nil {
+		err = resolveReferenceForACLName(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
+		err = resolveReferenceForParameterGroupName(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
+		err = resolveReferenceForSNSTopicARN(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
+		err = resolveReferenceForSecurityGroupIDs(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
+		err = resolveReferenceForSnapshotName(ctx, apiReader, namespace, ko)
+	}
+	if err == nil {
+		err = resolveReferenceForSubnetGroupName(ctx, apiReader, namespace, ko)
+	}
+
+	// If there was an error while resolving any reference, reset all the
+	// resolved values so that they do not get persisted inside etcd
+	if err != nil {
+		ko = rm.concreteResource(res).ko.DeepCopy()
+	}
+	if hasNonNilReferences(ko) {
+		return ackcondition.WithReferencesResolvedCondition(&resource{ko}, err)
+	}
+	return &resource{ko}, err
 }
 
 // validateReferenceFields validates the reference field and corresponding
 // identifier field.
 func validateReferenceFields(ko *svcapitypes.Cluster) error {
+	if ko.Spec.ACLRef != nil && ko.Spec.ACLName != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("ACLName", "ACLRef")
+	}
+	if ko.Spec.ACLRef == nil && ko.Spec.ACLName == nil {
+		return ackerr.ResourceReferenceOrIDRequiredFor("ACLName", "ACLRef")
+	}
+	if ko.Spec.ParameterGroupRef != nil && ko.Spec.ParameterGroupName != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("ParameterGroupName", "ParameterGroupRef")
+	}
+	if ko.Spec.SNSTopicRef != nil && ko.Spec.SNSTopicARN != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("SNSTopicARN", "SNSTopicRef")
+	}
+	if ko.Spec.SecurityGroupRefs != nil && ko.Spec.SecurityGroupIDs != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("SecurityGroupIDs", "SecurityGroupRefs")
+	}
+	if ko.Spec.SnapshotRef != nil && ko.Spec.SnapshotName != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("SnapshotName", "SnapshotRef")
+	}
+	if ko.Spec.SubnetGroupRef != nil && ko.Spec.SubnetGroupName != nil {
+		return ackerr.ResourceReferenceAndIDNotSupportedFor("SubnetGroupName", "SubnetGroupRef")
+	}
 	return nil
 }
 
 // hasNonNilReferences returns true if resource contains a reference to another
 // resource
 func hasNonNilReferences(ko *svcapitypes.Cluster) bool {
-	return false
+	return false || (ko.Spec.ACLRef != nil) || (ko.Spec.ParameterGroupRef != nil) || (ko.Spec.SNSTopicRef != nil) || (ko.Spec.SecurityGroupRefs != nil) || (ko.Spec.SnapshotRef != nil) || (ko.Spec.SubnetGroupRef != nil)
+}
+
+// resolveReferenceForACLName reads the resource referenced
+// from ACLRef field and sets the ACLName
+// from referenced resource
+func resolveReferenceForACLName(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.ACLRef != nil &&
+		ko.Spec.ACLRef.From != nil {
+		arr := ko.Spec.ACLRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty")
+		}
+		namespacedName := types.NamespacedName{
+			Namespace: namespace,
+			Name:      *arr.Name,
+		}
+		obj := svcapitypes.ACL{}
+		err := apiReader.Get(ctx, namespacedName, &obj)
+		if err != nil {
+			return err
+		}
+		var refResourceSynced, refResourceTerminal bool
+		for _, cond := range obj.Status.Conditions {
+			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceSynced = true
+			}
+			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceTerminal = true
+			}
+		}
+		if refResourceTerminal {
+			return ackerr.ResourceReferenceTerminalFor(
+				"ACL",
+				namespace, *arr.Name)
+		}
+		if !refResourceSynced {
+			return ackerr.ResourceReferenceNotSyncedFor(
+				"ACL",
+				namespace, *arr.Name)
+		}
+		if obj.Spec.Name == nil {
+			return ackerr.ResourceReferenceMissingTargetFieldFor(
+				"ACL",
+				namespace, *arr.Name,
+				"Spec.Name")
+		}
+		referencedValue := string(*obj.Spec.Name)
+		ko.Spec.ACLName = &referencedValue
+	}
+	return nil
+}
+
+// resolveReferenceForParameterGroupName reads the resource referenced
+// from ParameterGroupRef field and sets the ParameterGroupName
+// from referenced resource
+func resolveReferenceForParameterGroupName(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.ParameterGroupRef != nil &&
+		ko.Spec.ParameterGroupRef.From != nil {
+		arr := ko.Spec.ParameterGroupRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty")
+		}
+		namespacedName := types.NamespacedName{
+			Namespace: namespace,
+			Name:      *arr.Name,
+		}
+		obj := svcapitypes.ParameterGroup{}
+		err := apiReader.Get(ctx, namespacedName, &obj)
+		if err != nil {
+			return err
+		}
+		var refResourceSynced, refResourceTerminal bool
+		for _, cond := range obj.Status.Conditions {
+			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceSynced = true
+			}
+			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceTerminal = true
+			}
+		}
+		if refResourceTerminal {
+			return ackerr.ResourceReferenceTerminalFor(
+				"ParameterGroup",
+				namespace, *arr.Name)
+		}
+		if !refResourceSynced {
+			return ackerr.ResourceReferenceNotSyncedFor(
+				"ParameterGroup",
+				namespace, *arr.Name)
+		}
+		if obj.Spec.Name == nil {
+			return ackerr.ResourceReferenceMissingTargetFieldFor(
+				"ParameterGroup",
+				namespace, *arr.Name,
+				"Spec.Name")
+		}
+		referencedValue := string(*obj.Spec.Name)
+		ko.Spec.ParameterGroupName = &referencedValue
+	}
+	return nil
+}
+
+// resolveReferenceForSNSTopicARN reads the resource referenced
+// from SNSTopicRef field and sets the SNSTopicARN
+// from referenced resource
+func resolveReferenceForSNSTopicARN(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.SNSTopicRef != nil &&
+		ko.Spec.SNSTopicRef.From != nil {
+		arr := ko.Spec.SNSTopicRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty")
+		}
+		namespacedName := types.NamespacedName{
+			Namespace: namespace,
+			Name:      *arr.Name,
+		}
+		obj := snsapitypes.Topic{}
+		err := apiReader.Get(ctx, namespacedName, &obj)
+		if err != nil {
+			return err
+		}
+		var refResourceSynced, refResourceTerminal bool
+		for _, cond := range obj.Status.Conditions {
+			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceSynced = true
+			}
+			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceTerminal = true
+			}
+		}
+		if refResourceTerminal {
+			return ackerr.ResourceReferenceTerminalFor(
+				"Topic",
+				namespace, *arr.Name)
+		}
+		if !refResourceSynced {
+			return ackerr.ResourceReferenceNotSyncedFor(
+				"Topic",
+				namespace, *arr.Name)
+		}
+		if obj.Status.ACKResourceMetadata == nil || obj.Status.ACKResourceMetadata.ARN == nil {
+			return ackerr.ResourceReferenceMissingTargetFieldFor(
+				"Topic",
+				namespace, *arr.Name,
+				"Status.ACKResourceMetadata.ARN")
+		}
+		referencedValue := string(*obj.Status.ACKResourceMetadata.ARN)
+		ko.Spec.SNSTopicARN = &referencedValue
+	}
+	return nil
+}
+
+// resolveReferenceForSecurityGroupIDs reads the resource referenced
+// from SecurityGroupRefs field and sets the SecurityGroupIDs
+// from referenced resource
+func resolveReferenceForSecurityGroupIDs(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.SecurityGroupRefs != nil &&
+		len(ko.Spec.SecurityGroupRefs) > 0 {
+		resolvedReferences := []*string{}
+		for _, arrw := range ko.Spec.SecurityGroupRefs {
+			arr := arrw.From
+			if arr == nil || arr.Name == nil || *arr.Name == "" {
+				return fmt.Errorf("provided resource reference is nil or empty")
+			}
+			namespacedName := types.NamespacedName{
+				Namespace: namespace,
+				Name:      *arr.Name,
+			}
+			obj := ec2apitypes.SecurityGroup{}
+			err := apiReader.Get(ctx, namespacedName, &obj)
+			if err != nil {
+				return err
+			}
+			var refResourceSynced, refResourceTerminal bool
+			for _, cond := range obj.Status.Conditions {
+				if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+					cond.Status == corev1.ConditionTrue {
+					refResourceSynced = true
+				}
+				if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+					cond.Status == corev1.ConditionTrue {
+					refResourceTerminal = true
+				}
+			}
+			if refResourceTerminal {
+				return ackerr.ResourceReferenceTerminalFor(
+					"SecurityGroup",
+					namespace, *arr.Name)
+			}
+			if !refResourceSynced {
+				return ackerr.ResourceReferenceNotSyncedFor(
+					"SecurityGroup",
+					namespace, *arr.Name)
+			}
+			if obj.Status.ID == nil {
+				return ackerr.ResourceReferenceMissingTargetFieldFor(
+					"SecurityGroup",
+					namespace, *arr.Name,
+					"Status.ID")
+			}
+			referencedValue := string(*obj.Status.ID)
+			resolvedReferences = append(resolvedReferences, &referencedValue)
+		}
+		ko.Spec.SecurityGroupIDs = resolvedReferences
+	}
+	return nil
+}
+
+// resolveReferenceForSnapshotName reads the resource referenced
+// from SnapshotRef field and sets the SnapshotName
+// from referenced resource
+func resolveReferenceForSnapshotName(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.SnapshotRef != nil &&
+		ko.Spec.SnapshotRef.From != nil {
+		arr := ko.Spec.SnapshotRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty")
+		}
+		namespacedName := types.NamespacedName{
+			Namespace: namespace,
+			Name:      *arr.Name,
+		}
+		obj := svcapitypes.Snapshot{}
+		err := apiReader.Get(ctx, namespacedName, &obj)
+		if err != nil {
+			return err
+		}
+		var refResourceSynced, refResourceTerminal bool
+		for _, cond := range obj.Status.Conditions {
+			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceSynced = true
+			}
+			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceTerminal = true
+			}
+		}
+		if refResourceTerminal {
+			return ackerr.ResourceReferenceTerminalFor(
+				"Snapshot",
+				namespace, *arr.Name)
+		}
+		if !refResourceSynced {
+			return ackerr.ResourceReferenceNotSyncedFor(
+				"Snapshot",
+				namespace, *arr.Name)
+		}
+		if obj.Spec.Name == nil {
+			return ackerr.ResourceReferenceMissingTargetFieldFor(
+				"Snapshot",
+				namespace, *arr.Name,
+				"Spec.Name")
+		}
+		referencedValue := string(*obj.Spec.Name)
+		ko.Spec.SnapshotName = &referencedValue
+	}
+	return nil
+}
+
+// resolveReferenceForSubnetGroupName reads the resource referenced
+// from SubnetGroupRef field and sets the SubnetGroupName
+// from referenced resource
+func resolveReferenceForSubnetGroupName(
+	ctx context.Context,
+	apiReader client.Reader,
+	namespace string,
+	ko *svcapitypes.Cluster,
+) error {
+	if ko.Spec.SubnetGroupRef != nil &&
+		ko.Spec.SubnetGroupRef.From != nil {
+		arr := ko.Spec.SubnetGroupRef.From
+		if arr == nil || arr.Name == nil || *arr.Name == "" {
+			return fmt.Errorf("provided resource reference is nil or empty")
+		}
+		namespacedName := types.NamespacedName{
+			Namespace: namespace,
+			Name:      *arr.Name,
+		}
+		obj := svcapitypes.SubnetGroup{}
+		err := apiReader.Get(ctx, namespacedName, &obj)
+		if err != nil {
+			return err
+		}
+		var refResourceSynced, refResourceTerminal bool
+		for _, cond := range obj.Status.Conditions {
+			if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceSynced = true
+			}
+			if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
+				cond.Status == corev1.ConditionTrue {
+				refResourceTerminal = true
+			}
+		}
+		if refResourceTerminal {
+			return ackerr.ResourceReferenceTerminalFor(
+				"SubnetGroup",
+				namespace, *arr.Name)
+		}
+		if !refResourceSynced {
+			return ackerr.ResourceReferenceNotSyncedFor(
+				"SubnetGroup",
+				namespace, *arr.Name)
+		}
+		if obj.Spec.Name == nil {
+			return ackerr.ResourceReferenceMissingTargetFieldFor(
+				"SubnetGroup",
+				namespace, *arr.Name,
+				"Spec.Name")
+		}
+		referencedValue := string(*obj.Spec.Name)
+		ko.Spec.SubnetGroupName = &referencedValue
+	}
+	return nil
 }

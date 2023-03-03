@@ -34,7 +34,8 @@ type ACLSpec struct {
 	// tag key must be accompanied by a tag value, although null is accepted.
 	Tags []*Tag `json:"tags,omitempty"`
 	// The list of users that belong to the Access Control List.
-	UserNames []*string `json:"userNames,omitempty"`
+	UserNames []*string                                  `json:"userNames,omitempty"`
+	UserRefs  []*ackv1alpha1.AWSResourceReferenceWrapper `json:"userRefs,omitempty"`
 }
 
 // ACLStatus defines the observed state of ACL

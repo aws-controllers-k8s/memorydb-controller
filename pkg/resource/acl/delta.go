@@ -56,6 +56,9 @@ func newResourceDelta(
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.UserNames, b.ko.Spec.UserNames) {
 		delta.Add("Spec.UserNames", a.ko.Spec.UserNames, b.ko.Spec.UserNames)
 	}
+	if !reflect.DeepEqual(a.ko.Spec.UserRefs, b.ko.Spec.UserRefs) {
+		delta.Add("Spec.UserRefs", a.ko.Spec.UserRefs, b.ko.Spec.UserRefs)
+	}
 
 	return delta
 }

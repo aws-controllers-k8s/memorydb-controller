@@ -1,0 +1,96 @@
+id: "ACL_CREATE_UPDATE"
+description: "In this test we create two Users and reference them in an ACL"
+#marks:
+#  - slow
+#  - blocked
+steps:
+  - id: "USER_ONE_CREATE"
+    description: "Create User One"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: userone$RANDOM_SUFFIX
+      spec:
+        name: userone$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "USER_TWO_CREATE"
+    description: "Create User Two"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: usertwo$RANDOM_SUFFIX
+      spec:
+        name: usertwo$RANDOM_SUFFIX
+        accessString: on +get
+        authenticationMode:
+          type_: password
+          passwords:
+            - key: password
+              name: $SECRET1
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+  - id: "ACL_CREATE_WITH_REF"
+    description: "Create new ACL with ref"
+    create:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+      spec:
+        name: acl$RANDOM_SUFFIX
+        userRefs:
+          - from:
+              name: userone$RANDOM_SUFFIX
+          - from:
+              name: usertwo$RANDOM_SUFFIX
+    wait:
+      status:
+        conditions:
+          ACK.ResourceSynced:
+            status: "True"
+            timeout: 180
+          ACK.ReferencesResolved:
+            status: "True"
+            timeout: 180
+    expect_aws:
+      UserNames:
+        - userone$RANDOM_SUFFIX
+        - usertwo$RANDOM_SUFFIX
+  - id: "ACL_DELETE"
+    description: "Delete ACL"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: ACL
+      metadata:
+        name: acl$RANDOM_SUFFIX
+  - id: "USER_DELETE_ONE"
+    description: "Delete User one"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: userone$RANDOM_SUFFIX
+  - id: "USER_DELETE_TWO"
+    description: "Delete User two"
+    delete:
+      apiVersion: $CRD_GROUP/$CRD_VERSION
+      kind: User
+      metadata:
+        name: usertwo$RANDOM_SUFFIX

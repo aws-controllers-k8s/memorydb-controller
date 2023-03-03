@@ -50,6 +50,9 @@ func newResourceDelta(
 			delta.Add("Spec.ACLName", a.ko.Spec.ACLName, b.ko.Spec.ACLName)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.ACLRef, b.ko.Spec.ACLRef) {
+		delta.Add("Spec.ACLRef", a.ko.Spec.ACLRef, b.ko.Spec.ACLRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade) {
 		delta.Add("Spec.AutoMinorVersionUpgrade", a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade)
 	} else if a.ko.Spec.AutoMinorVersionUpgrade != nil && b.ko.Spec.AutoMinorVersionUpgrade != nil {
@@ -120,6 +123,9 @@ func newResourceDelta(
 			delta.Add("Spec.ParameterGroupName", a.ko.Spec.ParameterGroupName, b.ko.Spec.ParameterGroupName)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.ParameterGroupRef, b.ko.Spec.ParameterGroupRef) {
+		delta.Add("Spec.ParameterGroupRef", a.ko.Spec.ParameterGroupRef, b.ko.Spec.ParameterGroupRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Port, b.ko.Spec.Port) {
 		delta.Add("Spec.Port", a.ko.Spec.Port, b.ko.Spec.Port)
 	} else if a.ko.Spec.Port != nil && b.ko.Spec.Port != nil {
@@ -130,6 +136,9 @@ func newResourceDelta(
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs) {
 		delta.Add("Spec.SecurityGroupIDs", a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs)
 	}
+	if !reflect.DeepEqual(a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs) {
+		delta.Add("Spec.SecurityGroupRefs", a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs)
+	}
 	if !ackcompare.SliceStringPEqual(a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs) {
 		delta.Add("Spec.SnapshotARNs", a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs)
 	}
@@ -139,6 +148,9 @@ func newResourceDelta(
 		if *a.ko.Spec.SnapshotName != *b.ko.Spec.SnapshotName {
 			delta.Add("Spec.SnapshotName", a.ko.Spec.SnapshotName, b.ko.Spec.SnapshotName)
 		}
+	}
+	if !reflect.DeepEqual(a.ko.Spec.SnapshotRef, b.ko.Spec.SnapshotRef) {
+		delta.Add("Spec.SnapshotRef", a.ko.Spec.SnapshotRef, b.ko.Spec.SnapshotRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SnapshotRetentionLimit, b.ko.Spec.SnapshotRetentionLimit) {
 		delta.Add("Spec.SnapshotRetentionLimit", a.ko.Spec.SnapshotRetentionLimit, b.ko.Spec.SnapshotRetentionLimit)
@@ -161,12 +173,18 @@ func newResourceDelta(
 			delta.Add("Spec.SNSTopicARN", a.ko.Spec.SNSTopicARN, b.ko.Spec.SNSTopicARN)
 		}
 	}
+	if !reflect.DeepEqual(a.ko.Spec.SNSTopicRef, b.ko.Spec.SNSTopicRef) {
+		delta.Add("Spec.SNSTopicRef", a.ko.Spec.SNSTopicRef, b.ko.Spec.SNSTopicRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName) {
 		delta.Add("Spec.SubnetGroupName", a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName)
 	} else if a.ko.Spec.SubnetGroupName != nil && b.ko.Spec.SubnetGroupName != nil {
 		if *a.ko.Spec.SubnetGroupName != *b.ko.Spec.SubnetGroupName {
 			delta.Add("Spec.SubnetGroupName", a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName)
 		}
+	}
+	if !reflect.DeepEqual(a.ko.Spec.SubnetGroupRef, b.ko.Spec.SubnetGroupRef) {
+		delta.Add("Spec.SubnetGroupRef", a.ko.Spec.SubnetGroupRef, b.ko.Spec.SubnetGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.TLSEnabled, b.ko.Spec.TLSEnabled) {
 		delta.Add("Spec.TLSEnabled", a.ko.Spec.TLSEnabled, b.ko.Spec.TLSEnabled)
