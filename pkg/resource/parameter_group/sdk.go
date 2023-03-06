@@ -504,12 +504,10 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "ParameterGroupQuotaExceededFault",
-		"ParameterGroupAlreadyExistsFault",
-		"InvalidParameterGroupStateFault",
+	case "InvalidParameterGroupStateFault",
 		"InvalidParameterValueException",
 		"InvalidParameterCombinationException",
-		"TagQuotaPerResourceExceeded":
+		"ParameterGroupAlreadyExistsFault":
 		return true
 	default:
 		return false

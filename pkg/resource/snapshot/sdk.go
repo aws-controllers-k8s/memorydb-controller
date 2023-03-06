@@ -600,11 +600,9 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	}
 	switch awsErr.Code() {
 	case "InvalidParameterCombinationException",
-		"SnapshotAlreadyExistsFault",
-		"SnapshotQuotaExceededFault",
-		"TagQuotaPerResourceExceeded",
 		"InvalidParameterValueException",
-		"InvalidParameter":
+		"InvalidParameter",
+		"SnapshotAlreadyExistsFault":
 		return true
 	default:
 		return false

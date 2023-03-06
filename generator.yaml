@@ -10,14 +10,8 @@ resources:
           code: ClusterNotFoundFault
       terminal_codes:
         - ClusterAlreadyExistsFault
-        - ClusterQuotaForCustomerExceededFault
-        - NodeQuotaForClusterExceededFault
-        - NodeQuotaForCustomerExceededFault
-        - InsufficientClusterCapacityFault
-        - ShardsPerClusterQuotaExceededFault
         - InvalidParameterValueException
         - InvalidParameterCombinationException
-        - TagQuotaPerResourceExceeded
         - NoOperationFault
     renames:
       operations:
@@ -97,14 +91,10 @@ resources:
         404:
           code: SubnetGroupNotFoundFault
       terminal_codes:
-        - SubnetGroupAlreadyExistsFault
-        - SubnetGroupQuotaExceededFault
-        - SubnetQuotaExceededFault
         - InvalidSubnet
-        - SubnetNotAllowedFault
-        - TagQuotaPerResourceExceeded
-        - SubnetInUse
         - InvalidParameterValueException
+        - SubnetGroupAlreadyExistsFault
+        - SubnetNotAllowedFault
     fields:
       SubnetIDs:
         references:
@@ -145,10 +135,8 @@ resources:
         - ACLAlreadyExistsFault
         - DefaultUserRequired
         - DuplicateUserNameFault
-        - ACLQuotaExceededFault
         - InvalidParameterValueException
         - InvalidParameterCombinationException
-        - TagQuotaPerResourceExceeded
     fields:
       UserNames:
         references:
@@ -188,12 +176,10 @@ resources:
         404:
           code: UserNotFoundFault
       terminal_codes:
-        - InvalidParameterValueException
         - UserAlreadyExistsFault
-        - UserQuotaExceededFault
+        - InvalidParameterValueException
         - DuplicateUserNameFault
         - InvalidParameterCombinationException
-        - TagQuotaPerResourceExceeded
     fields:
       AuthenticationMode.Passwords:
         is_secret: true
@@ -233,12 +219,10 @@ resources:
         404:
           code: SnapshotNotFoundFault
       terminal_codes:
-        -  InvalidParameterCombinationException
-        -  SnapshotAlreadyExistsFault
-        -  SnapshotQuotaExceededFault
-        -  TagQuotaPerResourceExceeded
-        -  InvalidParameterValueException
-        -  InvalidParameter
+        - InvalidParameterCombinationException
+        - InvalidParameterValueException
+        - InvalidParameter
+        - SnapshotAlreadyExistsFault
     fields:
       SourceSnapshotName:
         from:
@@ -293,12 +277,10 @@ resources:
         404:
           code: ParameterGroupNotFoundFault
       terminal_codes:
-        - ParameterGroupQuotaExceededFault
-        - ParameterGroupAlreadyExistsFault
         - InvalidParameterGroupStateFault
         - InvalidParameterValueException
         - InvalidParameterCombinationException
-        - TagQuotaPerResourceExceeded
+        - ParameterGroupAlreadyExistsFault
     fields:
       Name:
         is_primary_key: true

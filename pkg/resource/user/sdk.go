@@ -608,12 +608,10 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 		return false
 	}
 	switch awsErr.Code() {
-	case "InvalidParameterValueException",
-		"UserAlreadyExistsFault",
-		"UserQuotaExceededFault",
+	case "UserAlreadyExistsFault",
+		"InvalidParameterValueException",
 		"DuplicateUserNameFault",
-		"InvalidParameterCombinationException",
-		"TagQuotaPerResourceExceeded":
+		"InvalidParameterCombinationException":
 		return true
 	default:
 		return false
