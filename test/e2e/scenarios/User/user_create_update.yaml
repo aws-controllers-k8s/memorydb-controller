@@ -1,5 +1,5 @@
 id: "USER_CREATE_UPDATE"
-description: "In this test we create User and Update"
+description: "In this test we create User and update it"
 #marks:
 #  - slow
 #  - blocked
@@ -54,8 +54,8 @@ steps:
         accessString: off resetchannels -@all +get
     expect_aws:
       AccessString: off resetchannels -@all +get
-  - id: "USER_UPDATE_PASSWORD"
-    description: "Update Password"
+  - id: "USER_UPDATE_PASSWORD_AND_TAGS"
+    description: "Update Password and Tags"
     patch:
       spec:
         authenticationMode:
@@ -63,6 +63,9 @@ steps:
           passwords:
             - key: password
               name: $SECRET2
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     wait:
       status:
         conditions:
@@ -76,6 +79,13 @@ steps:
           passwords:
             - key: password
               name: $SECRET2
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
+    expect_aws:
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "USER_UPDATE_ACCESS_STRING_AND_SECRET"
     description: "Update Secret and AccessString"
     patch:

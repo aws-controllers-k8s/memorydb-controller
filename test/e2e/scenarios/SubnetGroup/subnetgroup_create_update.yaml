@@ -50,7 +50,7 @@ steps:
         description: Subnet group update
     expect_aws:
       Description: Subnet group update
-  - id: "UPDATE_SUBNET"
+  - id: "UPDATE_SUBNETS"
     description: "Update SubnetGroup SubnetIds"
     patch:
       spec:
@@ -69,14 +69,17 @@ steps:
     expect_aws:
       Subnets:
         - Identifier: $SUBNET2
-  - id: "UPDATE_SUBNET_DESCRIPTION"
-    description: "Update SubnetGroup SubnetIds and Description"
+  - id: "UPDATE_SUBNETS_DESCRIPTION_AND_TAGS"
+    description: "Update SubnetGroup SubnetIds, Description, and Tags"
     patch:
       spec:
         description: Subnet group update description and subnets
         subnetIDs:
           - $SUBNET1
           - $SUBNET2
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     wait:
       status:
         conditions:
@@ -89,6 +92,9 @@ steps:
         subnetIDs:
           - $SUBNET1
           - $SUBNET2
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     expect_aws:
       Description: Subnet group update description and subnets
       Subnets:

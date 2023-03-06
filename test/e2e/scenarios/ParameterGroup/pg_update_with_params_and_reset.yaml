@@ -167,8 +167,8 @@ steps:
           Value: "3001"
         - Name: lazyfree-lazy-eviction
           Value: "yes"
-  - id: "PG_UPDATE_SECOND_HALF_PARAMETERS"
-    description: "Update rest 19 parameters at the same time"
+  - id: "PG_UPDATE_SECOND_HALF_PARAMETERS_AND_TAGS"
+    description: "Update rest 19 parameters and tags at the same time"
     patch:
       spec:
         parameterNameValues:
@@ -210,6 +210,9 @@ steps:
             parameterValue: "127"
           - parameterName: zset-max-ziplist-value
             parameterValue: "63"
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     wait:
       status:
         conditions:
@@ -257,6 +260,9 @@ steps:
             parameterValue: "127"
           - parameterName: zset-max-ziplist-value
             parameterValue: "63"
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     expect_aws:
       Parameters:
         - Name: lazyfree-lazy-expire
@@ -297,6 +303,9 @@ steps:
           Value: "127"
         - Name: zset-max-ziplist-value
           Value: "63"
+      Tags:
+        - Key: "test_key_1"
+          Value: "test_value_1"
   - id: "PG_RESET"
     description: "Update parameterNameValues to empty list"
     patch:
