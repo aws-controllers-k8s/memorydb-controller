@@ -334,7 +334,7 @@ func (rm *resourceManager) sdkUpdate(
 	if !delta.DifferentExcept("Spec.Tags") {
 		return desired, nil
 	}
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
 	}
@@ -418,6 +418,7 @@ func (rm *resourceManager) sdkUpdate(
 func (rm *resourceManager) newUpdateRequestPayload(
 	ctx context.Context,
 	r *resource,
+	delta *ackcompare.Delta,
 ) (*svcsdk.UpdateSubnetGroupInput, error) {
 	res := &svcsdk.UpdateSubnetGroupInput{}
 

@@ -369,7 +369,7 @@ func (rm *resourceManager) sdkUpdate(
 		return desired, nil
 	}
 
-	input, err := rm.newUpdateRequestPayload(ctx, desired)
+	input, err := rm.newUpdateRequestPayload(ctx, desired, delta)
 	if err != nil {
 		return nil, err
 	}
@@ -518,6 +518,7 @@ func (rm *resourceManager) sdkUpdate(
 func (rm *resourceManager) newUpdateRequestPayload(
 	ctx context.Context,
 	r *resource,
+	delta *ackcompare.Delta,
 ) (*svcsdk.UpdateACLInput, error) {
 	res := &svcsdk.UpdateACLInput{}
 
