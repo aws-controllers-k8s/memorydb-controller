@@ -22,7 +22,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 100
+            timeout: 60
   - id: "UPDATE_SUBNET_VALID"
     description: "Update SubnetGroup SubnetIds"
     patch:
@@ -55,7 +55,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 100
+            timeout: 60
     expect_aws:
       Subnets:
         - Identifier: $SUBNET1

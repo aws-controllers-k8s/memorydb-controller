@@ -42,7 +42,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -68,7 +68,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -90,7 +90,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:

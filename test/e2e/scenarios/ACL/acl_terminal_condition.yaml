@@ -46,7 +46,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 180
+            timeout: 60
   - id: "UPDATE_ACL_VALID"
     description: "Update userNames"
     patch:
@@ -87,7 +87,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 180
+            timeout: 60
     expect_aws:
       UserNames:
         - user$RANDOM_SUFFIX

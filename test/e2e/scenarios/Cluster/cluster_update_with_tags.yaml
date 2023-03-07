@@ -22,7 +22,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 3600
     expect_k8s:
       spec:
         name: cluster$RANDOM_SUFFIX
@@ -46,7 +46,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -76,7 +76,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -102,7 +102,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:

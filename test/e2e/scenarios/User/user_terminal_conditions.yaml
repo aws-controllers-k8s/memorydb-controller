@@ -25,7 +25,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 100
+            timeout: 60
   - id: "USER_UPDATE_ACCESS_STRING"
     description: "Update AccessString"
     patch:
@@ -54,7 +54,7 @@ steps:
         conditions:
           ACK.Terminal:
             status: "True"
-            timeout: 100
+            timeout: 60
     expect_aws:
       AccessString: off resetchannels -@all +get
   - id: "DELETE_USER"

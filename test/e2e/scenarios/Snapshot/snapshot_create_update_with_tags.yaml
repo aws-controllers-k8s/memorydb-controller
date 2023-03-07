@@ -4,31 +4,7 @@ description: "In this test we create snapshot and update tags"
 #  - slow
 #  - blocked
 steps:
-  - id: "CLUSTER_INITIAL_CREATE"
-    description: "Create cluster"
-    create:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX
-      spec:
-        name: cluster$RANDOM_SUFFIX
-        nodeType: db.t4g.small
-        aclName: open-access
-        numShards: 1
-        snapshotRetentionLimit: 0
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 1800
-    expect_k8s:
-      spec:
-        name: cluster$RANDOM_SUFFIX
-    expect_aws:
-      Name: cluster$RANDOM_SUFFIX
-  - id: "SNAPSHOT_INITIAL_CREATE"
+  - id: "CREATE_SNAPSHOT"
     description: "Create snapshot with no tags"
     create:
       apiVersion: $CRD_GROUP/$CRD_VERSION
@@ -36,21 +12,21 @@ steps:
       metadata:
         name: snapshot$RANDOM_SUFFIX
       spec:
-        clusterName: cluster$RANDOM_SUFFIX
+        clusterName: $SNAPSHOT_CLUSTER_NAME1
         name: snapshot$RANDOM_SUFFIX
     wait:
       status:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 1800
+            timeout: 3600
     expect_k8s:
       spec:
-        clusterName: cluster$RANDOM_SUFFIX
+        clusterName: $SNAPSHOT_CLUSTER_NAME1
         name: snapshot$RANDOM_SUFFIX
     expect_aws:
       ClusterConfiguration:
-        Name: cluster$RANDOM_SUFFIX
+        Name: $SNAPSHOT_CLUSTER_NAME1
       Name: snapshot$RANDOM_SUFFIX
   - id: "SNAPSHOT_ADD_TAGS"
     description: "Add tags in snapshot"
@@ -70,7 +46,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -100,7 +76,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -126,7 +102,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 100
+            timeout: 10
     expect_k8s:
       spec:
         tags:
@@ -143,10 +119,3 @@ steps:
       kind: Snapshot
       metadata:
         name: snapshot$RANDOM_SUFFIX
-  - id: "DELETE_CLUSTER"
-    description: "Delete cluster"
-    delete:
-      apiVersion: $CRD_GROUP/$CRD_VERSION
-      kind: Cluster
-      metadata:
-        name: cluster$RANDOM_SUFFIX

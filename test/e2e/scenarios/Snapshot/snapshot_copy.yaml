@@ -43,7 +43,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 3600
+            timeout: 1800
     expect_k8s:
       spec:
         sourceSnapshotName: snapshot$RANDOM_SUFFIX
