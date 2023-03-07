@@ -124,6 +124,10 @@ type ClusterStatus struct {
 	// The Redis engine patch version used by the cluster
 	// +kubebuilder:validation:Optional
 	EnginePatchVersion *string `json:"enginePatchVersion,omitempty"`
+	// A list of events. Each element in the list contains detailed information
+	// about one event.
+	// +kubebuilder:validation:Optional
+	Events []*Event `json:"events,omitempty"`
 	// The number of shards in the cluster
 	// +kubebuilder:validation:Optional
 	NumberOfShards *int64 `json:"numberOfShards,omitempty"`

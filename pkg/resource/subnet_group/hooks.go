@@ -23,7 +23,7 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 )
 
-// getTags gets tags from given ParameterGroup.
+// getTags gets tags from given SubnetGroup.
 func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
@@ -42,7 +42,7 @@ func (rm *resourceManager) getTags(
 	return tags, nil
 }
 
-// updateTags updates tags of given ParameterGroup to desired tags.
+// updateTags updates tags of given SubnetGroup to desired tags.
 func (rm *resourceManager) updateTags(
 	ctx context.Context,
 	desired *resource,

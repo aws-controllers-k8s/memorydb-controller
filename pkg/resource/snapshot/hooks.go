@@ -259,7 +259,7 @@ func (rm *resourceManager) isSnapshotAvailable(
 	return latestStatus != nil && *latestStatus == resourceStatusAvailable
 }
 
-// getTags gets tags from given ParameterGroup.
+// getTags gets tags from given Snapshot.
 func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
@@ -295,7 +295,7 @@ func (rm *resourceManager) customUpdate(
 	return desired, nil
 }
 
-// updateTags updates tags of given ParameterGroup to desired tags.
+// updateTags updates tags of given Snapshot to desired tags.
 func (rm *resourceManager) updateTags(
 	ctx context.Context,
 	desired *resource,

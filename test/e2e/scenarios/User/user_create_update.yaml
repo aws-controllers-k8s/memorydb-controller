@@ -112,8 +112,8 @@ steps:
               name: $SECRET1
     expect_aws:
       AccessString: on resetchannels -@all +get
-  - id: "REAPPLY_SPEC"
-    description: "Update Secret and AccessString we should not see any errors"
+  - id: "REAPPLY_SPEC_AND_VALIDATE_EVENTS"
+    description: "Update Secret and AccessString we should not see any errors. Events should present."
     patch:
       spec:
         accessString: on +get
@@ -129,6 +129,8 @@ steps:
             status: "True"
             timeout: 100
     expect_k8s:
+      status:
+        events:
       spec:
         accessString: on resetchannels -@all +get
         authenticationMode:

@@ -176,6 +176,25 @@ spec:
                   - type
                   type: object
                 type: array
+              events:
+                description: A list of events. Each element in the list contains detailed
+                  information about one event.
+                items:
+                  description: Represents a single occurrence of something interesting
+                    within the system. Some examples of events are creating a cluster
+                    or adding or removing a node.
+                  properties:
+                    date:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    sourceName:
+                      type: string
+                    sourceType:
+                      type: string
+                  type: object
+                type: array
               minimumEngineVersion:
                 description: The minimum engine version supported for the user
                 type: string

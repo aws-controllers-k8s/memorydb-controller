@@ -204,6 +204,17 @@ func (in *ACLStatus) DeepCopyInto(out *ACLStatus) {
 			}
 		}
 	}
+	if in.Events != nil {
+		in, out := &in.Events, &out.Events
+		*out = make([]*Event, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Event)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.MinimumEngineVersion != nil {
 		in, out := &in.MinimumEngineVersion, &out.MinimumEngineVersion
 		*out = new(string)
@@ -805,6 +816,17 @@ func (in *ClusterStatus) DeepCopyInto(out *ClusterStatus) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.Events != nil {
+		in, out := &in.Events, &out.Events
+		*out = make([]*Event, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Event)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+	}
 	if in.NumberOfShards != nil {
 		in, out := &in.NumberOfShards, &out.NumberOfShards
 		*out = new(int64)
@@ -1085,6 +1107,11 @@ func (in *Event) DeepCopyInto(out *Event) {
 	}
 	if in.SourceName != nil {
 		in, out := &in.SourceName, &out.SourceName
+		*out = new(string)
+		**out = **in
+	}
+	if in.SourceType != nil {
+		in, out := &in.SourceType, &out.SourceType
 		*out = new(string)
 		**out = **in
 	}
@@ -2361,6 +2388,17 @@ func (in *UserStatus) DeepCopyInto(out *UserStatus) {
 		in, out := &in.Authentication, &out.Authentication
 		*out = new(Authentication)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.Events != nil {
+		in, out := &in.Events, &out.Events
+		*out = make([]*Event, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Event)
+				(*in).DeepCopyInto(*out)
+			}
+		}
 	}
 	if in.MinimumEngineVersion != nil {
 		in, out := &in.MinimumEngineVersion, &out.MinimumEngineVersion

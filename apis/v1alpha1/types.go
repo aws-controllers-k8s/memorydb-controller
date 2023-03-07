@@ -151,6 +151,7 @@ type Event struct {
 	Date       *metav1.Time `json:"date,omitempty"`
 	Message    *string      `json:"message,omitempty"`
 	SourceName *string      `json:"sourceName,omitempty"`
+	SourceType *string      `json:"sourceType,omitempty"`
 }
 
 // Used to streamline results of a search based on the property being filtered.
