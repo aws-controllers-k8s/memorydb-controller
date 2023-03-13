@@ -1,6 +1,5 @@
-    validationErr := rm.validateACLNeedsUpdate(latest)
-
-    if validationErr != nil {
+    err = rm.validateACLNeedsUpdate(latest)
+    if err != nil {
 	    return nil, err
     }
 
