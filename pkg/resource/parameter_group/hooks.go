@@ -21,8 +21,13 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
 	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/samber/lo"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
+)
+
+const (
+	maxNumberOfParametersUpdate = 20
 )
 
 func (rm *resourceManager) setParameters(
@@ -156,6 +161,117 @@ func (rm *resourceManager) resetAllParameters(
 		return nil, err
 	}
 	return &resource{ko}, nil
+}
+
+// customUpdate overrides sdkUpdate by custom logic
+func (rm *resourceManager) customUpdate(
+	ctx context.Context,
+	desired *resource,
+	latest *resource,
+	delta *ackcompare.Delta,
+) (updated *resource, err error) {
+	rlog := ackrtlog.FromContext(ctx)
+	exit := rlog.Trace("rm.customUpdate")
+	defer func() {
+		exit(err)
+	}()
+	if delta.DifferentAt("Spec.Tags") {
+		err = rm.updateTags(ctx, desired, latest)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if delta.DifferentAt("Spec.ParameterNameValues") {
+		ko, err := rm.resetParameterGroup(ctx, desired, latest)
+
+		if ko != nil || err != nil {
+			return ko, err
+		}
+	}
+
+	if !delta.DifferentExcept("Spec.Tags") {
+		return desired, nil
+	}
+
+	inputs := rm.updateRequestPayload(desired)
+
+	var resp *svcsdk.UpdateParameterGroupOutput
+
+	// Update 20 parameters each time
+	for _, input := range inputs {
+		resp, err = rm.sdkapi.UpdateParameterGroupWithContext(ctx, input)
+		rm.metrics.RecordAPICall("UPDATE", "UpdateParameterGroup", err)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Merge in the information we read from the API call above to the copy of
+	// the original Kubernetes object we passed to the function
+	ko := desired.ko.DeepCopy()
+
+	if ko.Status.ACKResourceMetadata == nil {
+		ko.Status.ACKResourceMetadata = &ackv1alpha1.ResourceMetadata{}
+	}
+
+	if resp != nil {
+		if resp.ParameterGroup.ARN != nil {
+			arn := ackv1alpha1.AWSResourceName(*resp.ParameterGroup.ARN)
+			ko.Status.ACKResourceMetadata.ARN = &arn
+		}
+		if resp.ParameterGroup.Description != nil {
+			ko.Spec.Description = resp.ParameterGroup.Description
+		} else {
+			ko.Spec.Description = nil
+		}
+		if resp.ParameterGroup.Family != nil {
+			ko.Spec.Family = resp.ParameterGroup.Family
+		} else {
+			ko.Spec.Family = nil
+		}
+		if resp.ParameterGroup.Name != nil {
+			ko.Spec.Name = resp.ParameterGroup.Name
+		} else {
+			ko.Spec.Name = nil
+		}
+	}
+
+	rm.setStatusDefaults(ko)
+	ko, err = rm.setParameters(ctx, ko)
+
+	if err != nil {
+		return nil, err
+	}
+	return &resource{ko}, nil
+}
+
+// updateRequestPayload returns an array of SDK-specific struct for the HTTP request
+// payload of the Update API call for the resource
+// each element in return value has maximum 20 parameters
+func (rm *resourceManager) updateRequestPayload(
+	desired *resource,
+) []*svcsdk.UpdateParameterGroupInput {
+	parameterNameValues := lo.Chunk(desired.ko.Spec.ParameterNameValues, maxNumberOfParametersUpdate)
+	return lo.Map(parameterNameValues, func(parameters []*svcapitypes.ParameterNameValue, index int) *svcsdk.UpdateParameterGroupInput {
+		res := &svcsdk.UpdateParameterGroupInput{}
+		if desired.ko.Spec.Name != nil {
+			res.SetParameterGroupName(*desired.ko.Spec.Name)
+		}
+		f1 := []*svcsdk.ParameterNameValue{}
+		for _, f1iter := range parameters {
+			f1elem := &svcsdk.ParameterNameValue{}
+			if f1iter.ParameterName != nil {
+				f1elem.SetParameterName(*f1iter.ParameterName)
+			}
+			if f1iter.ParameterValue != nil {
+				f1elem.SetParameterValue(*f1iter.ParameterValue)
+			}
+			f1 = append(f1, f1elem)
+		}
+		res.SetParameterNameValues(f1)
+		return res
+	})
 }
 
 // getTags gets tags from given ParameterGroup.

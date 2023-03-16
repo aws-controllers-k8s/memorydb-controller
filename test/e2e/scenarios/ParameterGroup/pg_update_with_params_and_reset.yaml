@@ -31,8 +31,8 @@ steps:
       Description: PG with default params while creating
       Family: memorydb_redis6
       Name: pg$RANDOM_SUFFIX
-  - id: "PG_UPDATE_FIRST_HALF_PARAMETERS"
-    description: "Update first 20 parameters at the same time"
+  - id: "PG_UPDATE_ALL_PARAMETERS_AND_TAGS"
+    description: "Update all parameters and tags at the same time"
     patch:
       spec:
         parameterNameValues:
@@ -76,6 +76,47 @@ steps:
             parameterValue: "3001"
           - parameterName: lazyfree-lazy-eviction
             parameterValue: "yes"
+          - parameterName: lazyfree-lazy-expire
+            parameterValue: "yes"
+          - parameterName: lazyfree-lazy-server-del
+            parameterValue: "yes"
+          - parameterName: lazyfree-lazy-user-del
+            parameterValue: "yes"
+          - parameterName: lfu-decay-time
+            parameterValue: "2"
+          - parameterName: lfu-log-factor
+            parameterValue: "9"
+          - parameterName: list-compress-depth
+            parameterValue: "1"
+          - parameterName: maxmemory-policy
+            parameterValue: "allkeys-random"
+          - parameterName: maxmemory-samples
+            parameterValue: "4"
+          - parameterName: notify-keyspace-events
+            parameterValue: "AKE"
+          - parameterName: set-max-intset-entries
+            parameterValue: "511"
+          - parameterName: slowlog-log-slower-than
+            parameterValue: "9999"
+          - parameterName: slowlog-max-len
+            parameterValue: "127"
+          - parameterName: stream-node-max-bytes
+            parameterValue: "4095"
+          - parameterName: stream-node-max-entries
+            parameterValue: "99"
+          - parameterName: tcp-keepalive
+            parameterValue: "299"
+          - parameterName: timeout
+            parameterValue: "20"
+          - parameterName: tracking-table-max-keys
+            parameterValue: "1000001"
+          - parameterName: zset-max-ziplist-entries
+            parameterValue: "127"
+          - parameterName: zset-max-ziplist-value
+            parameterValue: "63"
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     wait:
       status:
         conditions:
@@ -125,6 +166,47 @@ steps:
             parameterValue: "3001"
           - parameterName: lazyfree-lazy-eviction
             parameterValue: "yes"
+          - parameterName: lazyfree-lazy-expire
+            parameterValue: "yes"
+          - parameterName: lazyfree-lazy-server-del
+            parameterValue: "yes"
+          - parameterName: lazyfree-lazy-user-del
+            parameterValue: "yes"
+          - parameterName: lfu-decay-time
+            parameterValue: "2"
+          - parameterName: lfu-log-factor
+            parameterValue: "9"
+          - parameterName: list-compress-depth
+            parameterValue: "1"
+          - parameterName: maxmemory-policy
+            parameterValue: "allkeys-random"
+          - parameterName: maxmemory-samples
+            parameterValue: "4"
+          - parameterName: notify-keyspace-events
+            parameterValue: "AKE"
+          - parameterName: set-max-intset-entries
+            parameterValue: "511"
+          - parameterName: slowlog-log-slower-than
+            parameterValue: "9999"
+          - parameterName: slowlog-max-len
+            parameterValue: "127"
+          - parameterName: stream-node-max-bytes
+            parameterValue: "4095"
+          - parameterName: stream-node-max-entries
+            parameterValue: "99"
+          - parameterName: tcp-keepalive
+            parameterValue: "299"
+          - parameterName: timeout
+            parameterValue: "20"
+          - parameterName: tracking-table-max-keys
+            parameterValue: "1000001"
+          - parameterName: zset-max-ziplist-entries
+            parameterValue: "127"
+          - parameterName: zset-max-ziplist-value
+            parameterValue: "63"
+        tags:
+          - key: "test_key_1"
+            value: "test_value_1"
     expect_aws:
       Parameters:
         - Name: acllog-max-len
@@ -167,104 +249,6 @@ steps:
           Value: "3001"
         - Name: lazyfree-lazy-eviction
           Value: "yes"
-  - id: "PG_UPDATE_SECOND_HALF_PARAMETERS_AND_TAGS"
-    description: "Update rest 19 parameters and tags at the same time"
-    patch:
-      spec:
-        parameterNameValues:
-          - parameterName: lazyfree-lazy-expire
-            parameterValue: "yes"
-          - parameterName: lazyfree-lazy-server-del
-            parameterValue: "yes"
-          - parameterName: lazyfree-lazy-user-del
-            parameterValue: "yes"
-          - parameterName: lfu-decay-time
-            parameterValue: "2"
-          - parameterName: lfu-log-factor
-            parameterValue: "9"
-          - parameterName: list-compress-depth
-            parameterValue: "1"
-          - parameterName: maxmemory-policy
-            parameterValue: "allkeys-random"
-          - parameterName: maxmemory-samples
-            parameterValue: "4"
-          - parameterName: notify-keyspace-events
-            parameterValue: "AKE"
-          - parameterName: set-max-intset-entries
-            parameterValue: "511"
-          - parameterName: slowlog-log-slower-than
-            parameterValue: "9999"
-          - parameterName: slowlog-max-len
-            parameterValue: "127"
-          - parameterName: stream-node-max-bytes
-            parameterValue: "4095"
-          - parameterName: stream-node-max-entries
-            parameterValue: "99"
-          - parameterName: tcp-keepalive
-            parameterValue: "299"
-          - parameterName: timeout
-            parameterValue: "20"
-          - parameterName: tracking-table-max-keys
-            parameterValue: "1000001"
-          - parameterName: zset-max-ziplist-entries
-            parameterValue: "127"
-          - parameterName: zset-max-ziplist-value
-            parameterValue: "63"
-        tags:
-          - key: "test_key_1"
-            value: "test_value_1"
-    wait:
-      status:
-        conditions:
-          ACK.ResourceSynced:
-            status: "True"
-            timeout: 100
-    expect_k8s:
-      spec:
-        parameterNameValues:
-          - parameterName: lazyfree-lazy-expire
-            parameterValue: "yes"
-          - parameterName: lazyfree-lazy-server-del
-            parameterValue: "yes"
-          - parameterName: lazyfree-lazy-user-del
-            parameterValue: "yes"
-          - parameterName: lfu-decay-time
-            parameterValue: "2"
-          - parameterName: lfu-log-factor
-            parameterValue: "9"
-          - parameterName: list-compress-depth
-            parameterValue: "1"
-          - parameterName: maxmemory-policy
-            parameterValue: "allkeys-random"
-          - parameterName: maxmemory-samples
-            parameterValue: "4"
-          - parameterName: notify-keyspace-events
-            parameterValue: "AKE"
-          - parameterName: set-max-intset-entries
-            parameterValue: "511"
-          - parameterName: slowlog-log-slower-than
-            parameterValue: "9999"
-          - parameterName: slowlog-max-len
-            parameterValue: "127"
-          - parameterName: stream-node-max-bytes
-            parameterValue: "4095"
-          - parameterName: stream-node-max-entries
-            parameterValue: "99"
-          - parameterName: tcp-keepalive
-            parameterValue: "299"
-          - parameterName: timeout
-            parameterValue: "20"
-          - parameterName: tracking-table-max-keys
-            parameterValue: "1000001"
-          - parameterName: zset-max-ziplist-entries
-            parameterValue: "127"
-          - parameterName: zset-max-ziplist-value
-            parameterValue: "63"
-        tags:
-          - key: "test_key_1"
-            value: "test_value_1"
-    expect_aws:
-      Parameters:
         - Name: lazyfree-lazy-expire
           Value: "yes"
         - Name: lazyfree-lazy-server-del
