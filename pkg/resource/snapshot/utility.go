@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"errors"
+	"fmt"
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
@@ -11,12 +12,18 @@ import (
 
 var (
 	condMsgCurrentlyDeleting string = "snapshot currently being deleted"
+	availableStatus          string = "available"
 	deleteStatus             string = "deleting"
+	failedStatus             string = "failed"
 )
 
 var (
 	requeueWaitWhileDeleting = ackrequeue.NeededAfter(
 		errors.New("delete is in progress"),
+		ackrequeue.DefaultRequeueAfterDuration,
+	)
+	requeueWaitSnapshotIsReadyForDeleting = ackrequeue.NeededAfter(
+		fmt.Errorf("snapshot is not ready for deletion - must be in either %q or %q state", availableStatus, failedStatus),
 		ackrequeue.DefaultRequeueAfterDuration,
 	)
 )
@@ -28,6 +35,15 @@ func isDeleting(r *resource) bool {
 	}
 	status := *r.ko.Status.Status
 	return status == deleteStatus
+}
+
+// isNotReadyForDeleting returns true if supplied cluster resource state is not 'deleting', 'available', or 'failed'
+func isNotReadyForDeleting(r *resource) bool {
+	if r == nil || r.ko.Status.Status == nil {
+		return false
+	}
+	status := *r.ko.Status.Status
+	return status != deleteStatus && status != availableStatus && status != failedStatus
 }
 
 func (rm *resourceManager) setSnapshotOutput(

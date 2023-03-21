@@ -14,3 +14,8 @@
 		// TODO: return err as nil when reconciler is updated.
 		return r, requeueWaitWhileDeleting
 	}
+
+	if isNotReadyForDeleting(r) {
+	    // return a requeue if snapshot is not ready to be deleted
+	    return r, requeueWaitSnapshotIsReadyForDeleting
+	}
