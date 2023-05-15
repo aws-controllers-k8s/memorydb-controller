@@ -25,7 +25,6 @@ import (
 
 	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
-	ackcondition "github.com/aws-controllers-k8s/runtime/pkg/condition"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	snsapitypes "github.com/aws-controllers-k8s/sns-controller/apis/v1alpha1"
@@ -39,106 +38,153 @@ import (
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups,verbs=get;list
 // +kubebuilder:rbac:groups=ec2.services.k8s.aws,resources=securitygroups/status,verbs=get;list
 
+// ClearResolvedReferences removes any reference values that were made
+// concrete in the spec. It returns a copy of the input AWSResource which
+// contains the original *Ref values, but none of their respective concrete
+// values.
+func (rm *resourceManager) ClearResolvedReferences(res acktypes.AWSResource) acktypes.AWSResource {
+	ko := rm.concreteResource(res).ko.DeepCopy()
+
+	if ko.Spec.ACLRef != nil {
+		ko.Spec.ACLName = nil
+	}
+
+	if ko.Spec.ParameterGroupRef != nil {
+		ko.Spec.ParameterGroupName = nil
+	}
+
+	if ko.Spec.SNSTopicRef != nil {
+		ko.Spec.SNSTopicARN = nil
+	}
+
+	if len(ko.Spec.SecurityGroupRefs) > 0 {
+		ko.Spec.SecurityGroupIDs = nil
+	}
+
+	if ko.Spec.SnapshotRef != nil {
+		ko.Spec.SnapshotName = nil
+	}
+
+	if ko.Spec.SubnetGroupRef != nil {
+		ko.Spec.SubnetGroupName = nil
+	}
+
+	return &resource{ko}
+}
+
 // ResolveReferences finds if there are any Reference field(s) present
-// inside AWSResource passed in the parameter and attempts to resolve
-// those reference field(s) into target field(s).
-// It returns an AWSResource with resolved reference(s), and an error if the
-// passed AWSResource's reference field(s) cannot be resolved.
-// This method also adds/updates the ConditionTypeReferencesResolved for the
-// AWSResource.
+// inside AWSResource passed in the parameter and attempts to resolve those
+// reference field(s) into their respective target field(s). It returns a
+// copy of the input AWSResource with resolved reference(s), a boolean which
+// is set to true if the resource contains any references (regardless of if
+// they are resolved successfully) and an error if the passed AWSResource's
+// reference field(s) could not be resolved.
 func (rm *resourceManager) ResolveReferences(
 	ctx context.Context,
 	apiReader client.Reader,
 	res acktypes.AWSResource,
-) (acktypes.AWSResource, error) {
+) (acktypes.AWSResource, bool, error) {
 	namespace := res.MetaObject().GetNamespace()
-	ko := rm.concreteResource(res).ko.DeepCopy()
+	ko := rm.concreteResource(res).ko
+
+	resourceHasReferences := false
 	err := validateReferenceFields(ko)
-	if err == nil {
-		err = resolveReferenceForACLName(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForParameterGroupName(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForSNSTopicARN(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForSecurityGroupIDs(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForSnapshotName(ctx, apiReader, namespace, ko)
-	}
-	if err == nil {
-		err = resolveReferenceForSubnetGroupName(ctx, apiReader, namespace, ko)
+	if fieldHasReferences, err := rm.resolveReferenceForACLName(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
 
-	// If there was an error while resolving any reference, reset all the
-	// resolved values so that they do not get persisted inside etcd
-	if err != nil {
-		ko = rm.concreteResource(res).ko.DeepCopy()
+	if fieldHasReferences, err := rm.resolveReferenceForParameterGroupName(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
-	if hasNonNilReferences(ko) {
-		return ackcondition.WithReferencesResolvedCondition(&resource{ko}, err)
+
+	if fieldHasReferences, err := rm.resolveReferenceForSNSTopicARN(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
 	}
-	return &resource{ko}, err
+
+	if fieldHasReferences, err := rm.resolveReferenceForSecurityGroupIDs(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
+	}
+
+	if fieldHasReferences, err := rm.resolveReferenceForSnapshotName(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
+	}
+
+	if fieldHasReferences, err := rm.resolveReferenceForSubnetGroupName(ctx, apiReader, namespace, ko); err != nil {
+		return &resource{ko}, (resourceHasReferences || fieldHasReferences), err
+	} else {
+		resourceHasReferences = resourceHasReferences || fieldHasReferences
+	}
+
+	return &resource{ko}, resourceHasReferences, err
 }
 
 // validateReferenceFields validates the reference field and corresponding
 // identifier field.
 func validateReferenceFields(ko *svcapitypes.Cluster) error {
+
 	if ko.Spec.ACLRef != nil && ko.Spec.ACLName != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("ACLName", "ACLRef")
 	}
 	if ko.Spec.ACLRef == nil && ko.Spec.ACLName == nil {
 		return ackerr.ResourceReferenceOrIDRequiredFor("ACLName", "ACLRef")
 	}
+
 	if ko.Spec.ParameterGroupRef != nil && ko.Spec.ParameterGroupName != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("ParameterGroupName", "ParameterGroupRef")
 	}
+
 	if ko.Spec.SNSTopicRef != nil && ko.Spec.SNSTopicARN != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("SNSTopicARN", "SNSTopicRef")
 	}
-	if ko.Spec.SecurityGroupRefs != nil && ko.Spec.SecurityGroupIDs != nil {
+
+	if len(ko.Spec.SecurityGroupRefs) > 0 && len(ko.Spec.SecurityGroupIDs) > 0 {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("SecurityGroupIDs", "SecurityGroupRefs")
 	}
+
 	if ko.Spec.SnapshotRef != nil && ko.Spec.SnapshotName != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("SnapshotName", "SnapshotRef")
 	}
+
 	if ko.Spec.SubnetGroupRef != nil && ko.Spec.SubnetGroupName != nil {
 		return ackerr.ResourceReferenceAndIDNotSupportedFor("SubnetGroupName", "SubnetGroupRef")
 	}
 	return nil
 }
 
-// hasNonNilReferences returns true if resource contains a reference to another
-// resource
-func hasNonNilReferences(ko *svcapitypes.Cluster) bool {
-	return false || (ko.Spec.ACLRef != nil) || (ko.Spec.ParameterGroupRef != nil) || (ko.Spec.SNSTopicRef != nil) || (ko.Spec.SecurityGroupRefs != nil) || (ko.Spec.SnapshotRef != nil) || (ko.Spec.SubnetGroupRef != nil)
-}
-
 // resolveReferenceForACLName reads the resource referenced
 // from ACLRef field and sets the ACLName
-// from referenced resource
-func resolveReferenceForACLName(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForACLName(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.ACLRef != nil && ko.Spec.ACLRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.ACLRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: ACLRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ACLRef")
 		}
 		obj := &svcapitypes.ACL{}
 		if err := getReferencedResourceState_ACL(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.ACLName = (*string)(obj.Spec.Name)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_ACL looks up whether a referenced resource
@@ -194,26 +240,28 @@ func getReferencedResourceState_ACL(
 
 // resolveReferenceForParameterGroupName reads the resource referenced
 // from ParameterGroupRef field and sets the ParameterGroupName
-// from referenced resource
-func resolveReferenceForParameterGroupName(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForParameterGroupName(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.ParameterGroupRef != nil && ko.Spec.ParameterGroupRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.ParameterGroupRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: ParameterGroupRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ParameterGroupRef")
 		}
 		obj := &svcapitypes.ParameterGroup{}
 		if err := getReferencedResourceState_ParameterGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.ParameterGroupName = (*string)(obj.Spec.Name)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_ParameterGroup looks up whether a referenced resource
@@ -269,26 +317,28 @@ func getReferencedResourceState_ParameterGroup(
 
 // resolveReferenceForSNSTopicARN reads the resource referenced
 // from SNSTopicRef field and sets the SNSTopicARN
-// from referenced resource
-func resolveReferenceForSNSTopicARN(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForSNSTopicARN(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.SNSTopicRef != nil && ko.Spec.SNSTopicRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.SNSTopicRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: SNSTopicRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SNSTopicRef")
 		}
 		obj := &snsapitypes.Topic{}
 		if err := getReferencedResourceState_Topic(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.SNSTopicARN = (*string)(obj.Status.ACKResourceMetadata.ARN)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_Topic looks up whether a referenced resource
@@ -344,30 +394,33 @@ func getReferencedResourceState_Topic(
 
 // resolveReferenceForSecurityGroupIDs reads the resource referenced
 // from SecurityGroupRefs field and sets the SecurityGroupIDs
-// from referenced resource
-func resolveReferenceForSecurityGroupIDs(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForSecurityGroupIDs(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
-	if len(ko.Spec.SecurityGroupRefs) > 0 {
-		resolved0 := []*string{}
-		for _, iter0 := range ko.Spec.SecurityGroupRefs {
-			arr := iter0.From
-			if arr == nil || arr.Name == nil || *arr.Name == "" {
-				return fmt.Errorf("provided resource reference is nil or empty: SecurityGroupRefs")
+) (hasReferences bool, err error) {
+	for _, f0iter := range ko.Spec.SecurityGroupRefs {
+		if f0iter != nil && f0iter.From != nil {
+			hasReferences = true
+			arr := f0iter.From
+			if arr.Name == nil || *arr.Name == "" {
+				return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SecurityGroupRefs")
 			}
 			obj := &ec2apitypes.SecurityGroup{}
 			if err := getReferencedResourceState_SecurityGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-				return err
+				return hasReferences, err
 			}
-			resolved0 = append(resolved0, (*string)(obj.Status.ID))
+			if ko.Spec.SecurityGroupIDs == nil {
+				ko.Spec.SecurityGroupIDs = make([]*string, 0, 1)
+			}
+			ko.Spec.SecurityGroupIDs = append(ko.Spec.SecurityGroupIDs, (*string)(obj.Status.ID))
 		}
-		ko.Spec.SecurityGroupIDs = resolved0
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_SecurityGroup looks up whether a referenced resource
@@ -423,26 +476,28 @@ func getReferencedResourceState_SecurityGroup(
 
 // resolveReferenceForSnapshotName reads the resource referenced
 // from SnapshotRef field and sets the SnapshotName
-// from referenced resource
-func resolveReferenceForSnapshotName(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForSnapshotName(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.SnapshotRef != nil && ko.Spec.SnapshotRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.SnapshotRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: SnapshotRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SnapshotRef")
 		}
 		obj := &svcapitypes.Snapshot{}
 		if err := getReferencedResourceState_Snapshot(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.SnapshotName = (*string)(obj.Spec.Name)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_Snapshot looks up whether a referenced resource
@@ -498,26 +553,28 @@ func getReferencedResourceState_Snapshot(
 
 // resolveReferenceForSubnetGroupName reads the resource referenced
 // from SubnetGroupRef field and sets the SubnetGroupName
-// from referenced resource
-func resolveReferenceForSubnetGroupName(
+// from referenced resource. Returns a boolean indicating whether a reference
+// contains references, or an error
+func (rm *resourceManager) resolveReferenceForSubnetGroupName(
 	ctx context.Context,
 	apiReader client.Reader,
 	namespace string,
 	ko *svcapitypes.Cluster,
-) error {
+) (hasReferences bool, err error) {
 	if ko.Spec.SubnetGroupRef != nil && ko.Spec.SubnetGroupRef.From != nil {
+		hasReferences = true
 		arr := ko.Spec.SubnetGroupRef.From
-		if arr == nil || arr.Name == nil || *arr.Name == "" {
-			return fmt.Errorf("provided resource reference is nil or empty: SubnetGroupRef")
+		if arr.Name == nil || *arr.Name == "" {
+			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SubnetGroupRef")
 		}
 		obj := &svcapitypes.SubnetGroup{}
 		if err := getReferencedResourceState_SubnetGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
-			return err
+			return hasReferences, err
 		}
 		ko.Spec.SubnetGroupName = (*string)(obj.Spec.Name)
 	}
 
-	return nil
+	return hasReferences, nil
 }
 
 // getReferencedResourceState_SubnetGroup looks up whether a referenced resource
