@@ -163,7 +163,7 @@ steps:
         name: pg$RANDOM_SUFFIX
       spec:
         description: PG with activerehashing as no
-        family: memorydb_redis6
+        family: memorydb_redis7
         name: pg$RANDOM_SUFFIX
         parameterNameValues:
           - parameterName: activerehashing

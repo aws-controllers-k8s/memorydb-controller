@@ -1,0 +1,14 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ack-system
+  name: memorydb-leader-election-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: memorydb-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: ack-memorydb-controller
+  namespace: ack-system

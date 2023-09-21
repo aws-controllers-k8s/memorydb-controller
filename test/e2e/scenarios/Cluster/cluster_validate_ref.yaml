@@ -56,7 +56,7 @@ steps:
         name: pg$RANDOM_SUFFIX
       spec:
         description: PG initial create
-        family: memorydb_redis6
+        family: memorydb_redis7
         name: pg$RANDOM_SUFFIX
     wait:
       status:

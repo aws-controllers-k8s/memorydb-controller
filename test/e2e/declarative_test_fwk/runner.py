@@ -177,10 +177,30 @@ def wait(step: model.Step) -> None:
         resource_helper.wait_for(step.wait, reference)
     except AssertionError as ae:
         logging.error(f"Wait failed, AssertionError at {step}")
+        print_resource_condition("ACK.Terminal", reference)
         raise ae
     except Exception as e:
         logging.error(f"Wait failed, Exception at {step}")
+        print_resource_condition("ACK.Terminal", reference)
         raise e
+
+
+def print_resource_condition(condition_name: str, reference: k8s.CustomResourceReference) -> None:
+    """
+    Prints given condition details on given resource.
+
+    :param condition_name: name of the condition to print
+    :param reference: custom resource reference
+    :return: None
+    """
+    try:
+        k8s_resource_condition = k8s.get_resource_condition(reference, condition_name)
+        if k8s_resource_condition:
+            logging.info(f"For resource: {reference.name}, the {condition_name} condition details are: {k8s_resource_condition}")
+        else:
+            logging.info(f"Condition {condition_name} not found For resource: {reference.name}")
+    except:
+        logging.error(f"failed to print resource condition {condition_name} details")
 
 
 def assert_k8s_resource(step: model.Step) -> None:
