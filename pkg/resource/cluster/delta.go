@@ -60,6 +60,13 @@ func newResourceDelta(
 			delta.Add("Spec.AutoMinorVersionUpgrade", a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.DataTiering, b.ko.Spec.DataTiering) {
+		delta.Add("Spec.DataTiering", a.ko.Spec.DataTiering, b.ko.Spec.DataTiering)
+	} else if a.ko.Spec.DataTiering != nil && b.ko.Spec.DataTiering != nil {
+		if *a.ko.Spec.DataTiering != *b.ko.Spec.DataTiering {
+			delta.Add("Spec.DataTiering", a.ko.Spec.DataTiering, b.ko.Spec.DataTiering)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Description, b.ko.Spec.Description) {
 		delta.Add("Spec.Description", a.ko.Spec.Description, b.ko.Spec.Description)
 	} else if a.ko.Spec.Description != nil && b.ko.Spec.Description != nil {
@@ -133,14 +140,22 @@ func newResourceDelta(
 			delta.Add("Spec.Port", a.ko.Spec.Port, b.ko.Spec.Port)
 		}
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs) {
+	if len(a.ko.Spec.SecurityGroupIDs) != len(b.ko.Spec.SecurityGroupIDs) {
 		delta.Add("Spec.SecurityGroupIDs", a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs)
+	} else if len(a.ko.Spec.SecurityGroupIDs) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs) {
+			delta.Add("Spec.SecurityGroupIDs", a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs)
+		}
 	}
 	if !reflect.DeepEqual(a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs) {
 		delta.Add("Spec.SecurityGroupRefs", a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs)
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs) {
+	if len(a.ko.Spec.SnapshotARNs) != len(b.ko.Spec.SnapshotARNs) {
 		delta.Add("Spec.SnapshotARNs", a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs)
+	} else if len(a.ko.Spec.SnapshotARNs) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs) {
+			delta.Add("Spec.SnapshotARNs", a.ko.Spec.SnapshotARNs, b.ko.Spec.SnapshotARNs)
+		}
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SnapshotName, b.ko.Spec.SnapshotName) {
 		delta.Add("Spec.SnapshotName", a.ko.Spec.SnapshotName, b.ko.Spec.SnapshotName)

@@ -167,6 +167,11 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.ClusterConfiguration = nil
 		}
+		if elem.DataTiering != nil {
+			ko.Status.DataTiering = elem.DataTiering
+		} else {
+			ko.Status.DataTiering = nil
+		}
 		if elem.KmsKeyId != nil {
 			ko.Spec.KMSKeyID = elem.KmsKeyId
 		} else {
@@ -347,6 +352,11 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ClusterConfiguration = f1
 	} else {
 		ko.Status.ClusterConfiguration = nil
+	}
+	if resp.Snapshot.DataTiering != nil {
+		ko.Status.DataTiering = resp.Snapshot.DataTiering
+	} else {
+		ko.Status.DataTiering = nil
 	}
 	if resp.Snapshot.KmsKeyId != nil {
 		ko.Spec.KMSKeyID = resp.Snapshot.KmsKeyId

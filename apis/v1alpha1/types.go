@@ -108,6 +108,7 @@ type Cluster_SDK struct {
 	// Represents the information required for client programs to connect to the
 	// cluster and its nodes.
 	ClusterEndpoint      *Endpoint `json:"clusterEndpoint,omitempty"`
+	DataTiering          *string   `json:"dataTiering,omitempty"`
 	Description          *string   `json:"description,omitempty"`
 	EnginePatchVersion   *string   `json:"enginePatchVersion,omitempty"`
 	EngineVersion        *string   `json:"engineVersion,omitempty"`
@@ -205,9 +206,38 @@ type PendingModifiedServiceUpdate struct {
 	Status            *string `json:"status,omitempty"`
 }
 
+// The recurring charge to run this reserved node.
+type RecurringCharge struct {
+	RecurringChargeAmount    *float64 `json:"recurringChargeAmount,omitempty"`
+	RecurringChargeFrequency *string  `json:"recurringChargeFrequency,omitempty"`
+}
+
 // A request to configure the number of replicas in a shard
 type ReplicaConfigurationRequest struct {
 	ReplicaCount *int64 `json:"replicaCount,omitempty"`
+}
+
+// Represents the output of a PurchaseReservedNodesOffering operation.
+type ReservedNode struct {
+	ARN                     *string      `json:"arn,omitempty"`
+	Duration                *int64       `json:"duration,omitempty"`
+	FixedPrice              *float64     `json:"fixedPrice,omitempty"`
+	NodeCount               *int64       `json:"nodeCount,omitempty"`
+	NodeType                *string      `json:"nodeType,omitempty"`
+	OfferingType            *string      `json:"offeringType,omitempty"`
+	ReservationID           *string      `json:"reservationID,omitempty"`
+	ReservedNodesOfferingID *string      `json:"reservedNodesOfferingID,omitempty"`
+	StartTime               *metav1.Time `json:"startTime,omitempty"`
+	State                   *string      `json:"state,omitempty"`
+}
+
+// The offering type of this node.
+type ReservedNodesOffering struct {
+	Duration                *int64   `json:"duration,omitempty"`
+	FixedPrice              *float64 `json:"fixedPrice,omitempty"`
+	NodeType                *string  `json:"nodeType,omitempty"`
+	OfferingType            *string  `json:"offeringType,omitempty"`
+	ReservedNodesOfferingID *string  `json:"reservedNodesOfferingID,omitempty"`
 }
 
 // The status of the online resharding
@@ -282,6 +312,7 @@ type Snapshot_SDK struct {
 	ARN *string `json:"arn,omitempty"`
 	// A list of cluster configuration options.
 	ClusterConfiguration *ClusterConfiguration `json:"clusterConfiguration,omitempty"`
+	DataTiering          *string               `json:"dataTiering,omitempty"`
 	KMSKeyID             *string               `json:"kmsKeyID,omitempty"`
 	Name                 *string               `json:"name,omitempty"`
 	Source               *string               `json:"source,omitempty"`

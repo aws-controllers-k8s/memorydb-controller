@@ -57,6 +57,11 @@ spec:
                 description: When set to true, the cluster will automatically receive
                   minor engine version upgrades after launch.
                 type: boolean
+              dataTiering:
+                description: Enables data tiering. Data tiering is only supported
+                  for clusters using the r6gd node type. This parameter must be set
+                  when using r6gd nodes. For more information, see Data tiering (https://docs.aws.amazon.com/memorydb/latest/devguide/data-tiering.html).
+                type: boolean
               description:
                 description: An optional description of the cluster.
                 type: string
@@ -68,10 +73,12 @@ spec:
                 description: The ID of the KMS key used to encrypt the cluster.
                 type: string
               maintenanceWindow:
-                description: Specifies the weekly time range during which maintenance
+                description: "Specifies the weekly time range during which maintenance
                   on the cluster is performed. It is specified as a range in the format
                   ddd:hh24:mi-ddd:hh24:mi (24H Clock UTC). The minimum maintenance
-                  window is a 60 minute period.
+                  window is a 60 minute period. \n Valid values for ddd are: \n -
+                  sun \n - mon \n - tue \n - wed \n - thu \n - fri \n - sat \n Example:
+                  sun:23:00-mon:01:30"
                 type: string
               name:
                 description: The name of the cluster. This value must be unique as

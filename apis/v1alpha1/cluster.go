@@ -31,6 +31,10 @@ type ClusterSpec struct {
 	// When set to true, the cluster will automatically receive minor engine version
 	// upgrades after launch.
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
+	// Enables data tiering. Data tiering is only supported for clusters using the
+	// r6gd node type. This parameter must be set when using r6gd nodes. For more
+	// information, see Data tiering (https://docs.aws.amazon.com/memorydb/latest/devguide/data-tiering.html).
+	DataTiering *bool `json:"dataTiering,omitempty"`
 	// An optional description of the cluster.
 	Description *string `json:"description,omitempty"`
 	// The version number of the Redis engine to be used for the cluster.
@@ -40,6 +44,24 @@ type ClusterSpec struct {
 	// Specifies the weekly time range during which maintenance on the cluster is
 	// performed. It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
 	// (24H Clock UTC). The minimum maintenance window is a 60 minute period.
+	//
+	// Valid values for ddd are:
+	//
+	//   - sun
+	//
+	//   - mon
+	//
+	//   - tue
+	//
+	//   - wed
+	//
+	//   - thu
+	//
+	//   - fri
+	//
+	//   - sat
+	//
+	// Example: sun:23:00-mon:01:30
 	MaintenanceWindow *string `json:"maintenanceWindow,omitempty"`
 	// The name of the cluster. This value must be unique as it also serves as the
 	// cluster identifier.

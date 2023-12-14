@@ -122,6 +122,11 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Status.ClusterEndpoint = nil
 		}
+		if elem.DataTiering != nil {
+			ko.Spec.DataTiering = elem.DataTiering
+		} else {
+			ko.Spec.DataTiering = nil
+		}
 		if elem.Description != nil {
 			ko.Spec.Description = elem.Description
 		} else {
@@ -173,108 +178,108 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.ParameterGroupStatus = nil
 		}
 		if elem.PendingUpdates != nil {
-			f15 := &svcapitypes.ClusterPendingUpdates{}
+			f16 := &svcapitypes.ClusterPendingUpdates{}
 			if elem.PendingUpdates.ACLs != nil {
-				f15f0 := &svcapitypes.ACLsUpdateStatus{}
+				f16f0 := &svcapitypes.ACLsUpdateStatus{}
 				if elem.PendingUpdates.ACLs.ACLToApply != nil {
-					f15f0.ACLToApply = elem.PendingUpdates.ACLs.ACLToApply
+					f16f0.ACLToApply = elem.PendingUpdates.ACLs.ACLToApply
 				}
-				f15.ACLs = f15f0
+				f16.ACLs = f16f0
 			}
 			if elem.PendingUpdates.Resharding != nil {
-				f15f1 := &svcapitypes.ReshardingStatus{}
+				f16f1 := &svcapitypes.ReshardingStatus{}
 				if elem.PendingUpdates.Resharding.SlotMigration != nil {
-					f15f1f0 := &svcapitypes.SlotMigration{}
+					f16f1f0 := &svcapitypes.SlotMigration{}
 					if elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-						f15f1f0.ProgressPercentage = elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
+						f16f1f0.ProgressPercentage = elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 					}
-					f15f1.SlotMigration = f15f1f0
+					f16f1.SlotMigration = f16f1f0
 				}
-				f15.Resharding = f15f1
+				f16.Resharding = f16f1
 			}
 			if elem.PendingUpdates.ServiceUpdates != nil {
-				f15f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
-				for _, f15f2iter := range elem.PendingUpdates.ServiceUpdates {
-					f15f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
-					if f15f2iter.ServiceUpdateName != nil {
-						f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
+				f16f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
+				for _, f16f2iter := range elem.PendingUpdates.ServiceUpdates {
+					f16f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
+					if f16f2iter.ServiceUpdateName != nil {
+						f16f2elem.ServiceUpdateName = f16f2iter.ServiceUpdateName
 					}
-					if f15f2iter.Status != nil {
-						f15f2elem.Status = f15f2iter.Status
+					if f16f2iter.Status != nil {
+						f16f2elem.Status = f16f2iter.Status
 					}
-					f15f2 = append(f15f2, f15f2elem)
+					f16f2 = append(f16f2, f16f2elem)
 				}
-				f15.ServiceUpdates = f15f2
+				f16.ServiceUpdates = f16f2
 			}
-			ko.Status.PendingUpdates = f15
+			ko.Status.PendingUpdates = f16
 		} else {
 			ko.Status.PendingUpdates = nil
 		}
 		if elem.SecurityGroups != nil {
-			f16 := []*svcapitypes.SecurityGroupMembership{}
-			for _, f16iter := range elem.SecurityGroups {
-				f16elem := &svcapitypes.SecurityGroupMembership{}
-				if f16iter.SecurityGroupId != nil {
-					f16elem.SecurityGroupID = f16iter.SecurityGroupId
-				}
-				if f16iter.Status != nil {
-					f16elem.Status = f16iter.Status
-				}
-				f16 = append(f16, f16elem)
-			}
-			ko.Status.SecurityGroups = f16
-		} else {
-			ko.Status.SecurityGroups = nil
-		}
-		if elem.Shards != nil {
-			f17 := []*svcapitypes.Shard{}
-			for _, f17iter := range elem.Shards {
-				f17elem := &svcapitypes.Shard{}
-				if f17iter.Name != nil {
-					f17elem.Name = f17iter.Name
-				}
-				if f17iter.Nodes != nil {
-					f17elemf1 := []*svcapitypes.Node{}
-					for _, f17elemf1iter := range f17iter.Nodes {
-						f17elemf1elem := &svcapitypes.Node{}
-						if f17elemf1iter.AvailabilityZone != nil {
-							f17elemf1elem.AvailabilityZone = f17elemf1iter.AvailabilityZone
-						}
-						if f17elemf1iter.CreateTime != nil {
-							f17elemf1elem.CreateTime = &metav1.Time{*f17elemf1iter.CreateTime}
-						}
-						if f17elemf1iter.Endpoint != nil {
-							f17elemf1elemf2 := &svcapitypes.Endpoint{}
-							if f17elemf1iter.Endpoint.Address != nil {
-								f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
-							}
-							if f17elemf1iter.Endpoint.Port != nil {
-								f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-							}
-							f17elemf1elem.Endpoint = f17elemf1elemf2
-						}
-						if f17elemf1iter.Name != nil {
-							f17elemf1elem.Name = f17elemf1iter.Name
-						}
-						if f17elemf1iter.Status != nil {
-							f17elemf1elem.Status = f17elemf1iter.Status
-						}
-						f17elemf1 = append(f17elemf1, f17elemf1elem)
-					}
-					f17elem.Nodes = f17elemf1
-				}
-				if f17iter.NumberOfNodes != nil {
-					f17elem.NumberOfNodes = f17iter.NumberOfNodes
-				}
-				if f17iter.Slots != nil {
-					f17elem.Slots = f17iter.Slots
+			f17 := []*svcapitypes.SecurityGroupMembership{}
+			for _, f17iter := range elem.SecurityGroups {
+				f17elem := &svcapitypes.SecurityGroupMembership{}
+				if f17iter.SecurityGroupId != nil {
+					f17elem.SecurityGroupID = f17iter.SecurityGroupId
 				}
 				if f17iter.Status != nil {
 					f17elem.Status = f17iter.Status
 				}
 				f17 = append(f17, f17elem)
 			}
-			ko.Status.Shards = f17
+			ko.Status.SecurityGroups = f17
+		} else {
+			ko.Status.SecurityGroups = nil
+		}
+		if elem.Shards != nil {
+			f18 := []*svcapitypes.Shard{}
+			for _, f18iter := range elem.Shards {
+				f18elem := &svcapitypes.Shard{}
+				if f18iter.Name != nil {
+					f18elem.Name = f18iter.Name
+				}
+				if f18iter.Nodes != nil {
+					f18elemf1 := []*svcapitypes.Node{}
+					for _, f18elemf1iter := range f18iter.Nodes {
+						f18elemf1elem := &svcapitypes.Node{}
+						if f18elemf1iter.AvailabilityZone != nil {
+							f18elemf1elem.AvailabilityZone = f18elemf1iter.AvailabilityZone
+						}
+						if f18elemf1iter.CreateTime != nil {
+							f18elemf1elem.CreateTime = &metav1.Time{*f18elemf1iter.CreateTime}
+						}
+						if f18elemf1iter.Endpoint != nil {
+							f18elemf1elemf2 := &svcapitypes.Endpoint{}
+							if f18elemf1iter.Endpoint.Address != nil {
+								f18elemf1elemf2.Address = f18elemf1iter.Endpoint.Address
+							}
+							if f18elemf1iter.Endpoint.Port != nil {
+								f18elemf1elemf2.Port = f18elemf1iter.Endpoint.Port
+							}
+							f18elemf1elem.Endpoint = f18elemf1elemf2
+						}
+						if f18elemf1iter.Name != nil {
+							f18elemf1elem.Name = f18elemf1iter.Name
+						}
+						if f18elemf1iter.Status != nil {
+							f18elemf1elem.Status = f18elemf1iter.Status
+						}
+						f18elemf1 = append(f18elemf1, f18elemf1elem)
+					}
+					f18elem.Nodes = f18elemf1
+				}
+				if f18iter.NumberOfNodes != nil {
+					f18elem.NumberOfNodes = f18iter.NumberOfNodes
+				}
+				if f18iter.Slots != nil {
+					f18elem.Slots = f18iter.Slots
+				}
+				if f18iter.Status != nil {
+					f18elem.Status = f18iter.Status
+				}
+				f18 = append(f18, f18elem)
+			}
+			ko.Status.Shards = f18
 		} else {
 			ko.Status.Shards = nil
 		}
@@ -456,6 +461,11 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Status.ClusterEndpoint = nil
 	}
+	if resp.Cluster.DataTiering != nil {
+		ko.Spec.DataTiering = resp.Cluster.DataTiering
+	} else {
+		ko.Spec.DataTiering = nil
+	}
 	if resp.Cluster.Description != nil {
 		ko.Spec.Description = resp.Cluster.Description
 	} else {
@@ -507,108 +517,108 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ParameterGroupStatus = nil
 	}
 	if resp.Cluster.PendingUpdates != nil {
-		f15 := &svcapitypes.ClusterPendingUpdates{}
+		f16 := &svcapitypes.ClusterPendingUpdates{}
 		if resp.Cluster.PendingUpdates.ACLs != nil {
-			f15f0 := &svcapitypes.ACLsUpdateStatus{}
+			f16f0 := &svcapitypes.ACLsUpdateStatus{}
 			if resp.Cluster.PendingUpdates.ACLs.ACLToApply != nil {
-				f15f0.ACLToApply = resp.Cluster.PendingUpdates.ACLs.ACLToApply
+				f16f0.ACLToApply = resp.Cluster.PendingUpdates.ACLs.ACLToApply
 			}
-			f15.ACLs = f15f0
+			f16.ACLs = f16f0
 		}
 		if resp.Cluster.PendingUpdates.Resharding != nil {
-			f15f1 := &svcapitypes.ReshardingStatus{}
+			f16f1 := &svcapitypes.ReshardingStatus{}
 			if resp.Cluster.PendingUpdates.Resharding.SlotMigration != nil {
-				f15f1f0 := &svcapitypes.SlotMigration{}
+				f16f1f0 := &svcapitypes.SlotMigration{}
 				if resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-					f15f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
+					f16f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 				}
-				f15f1.SlotMigration = f15f1f0
+				f16f1.SlotMigration = f16f1f0
 			}
-			f15.Resharding = f15f1
+			f16.Resharding = f16f1
 		}
 		if resp.Cluster.PendingUpdates.ServiceUpdates != nil {
-			f15f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
-			for _, f15f2iter := range resp.Cluster.PendingUpdates.ServiceUpdates {
-				f15f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
-				if f15f2iter.ServiceUpdateName != nil {
-					f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
+			f16f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
+			for _, f16f2iter := range resp.Cluster.PendingUpdates.ServiceUpdates {
+				f16f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
+				if f16f2iter.ServiceUpdateName != nil {
+					f16f2elem.ServiceUpdateName = f16f2iter.ServiceUpdateName
 				}
-				if f15f2iter.Status != nil {
-					f15f2elem.Status = f15f2iter.Status
+				if f16f2iter.Status != nil {
+					f16f2elem.Status = f16f2iter.Status
 				}
-				f15f2 = append(f15f2, f15f2elem)
+				f16f2 = append(f16f2, f16f2elem)
 			}
-			f15.ServiceUpdates = f15f2
+			f16.ServiceUpdates = f16f2
 		}
-		ko.Status.PendingUpdates = f15
+		ko.Status.PendingUpdates = f16
 	} else {
 		ko.Status.PendingUpdates = nil
 	}
 	if resp.Cluster.SecurityGroups != nil {
-		f16 := []*svcapitypes.SecurityGroupMembership{}
-		for _, f16iter := range resp.Cluster.SecurityGroups {
-			f16elem := &svcapitypes.SecurityGroupMembership{}
-			if f16iter.SecurityGroupId != nil {
-				f16elem.SecurityGroupID = f16iter.SecurityGroupId
-			}
-			if f16iter.Status != nil {
-				f16elem.Status = f16iter.Status
-			}
-			f16 = append(f16, f16elem)
-		}
-		ko.Status.SecurityGroups = f16
-	} else {
-		ko.Status.SecurityGroups = nil
-	}
-	if resp.Cluster.Shards != nil {
-		f17 := []*svcapitypes.Shard{}
-		for _, f17iter := range resp.Cluster.Shards {
-			f17elem := &svcapitypes.Shard{}
-			if f17iter.Name != nil {
-				f17elem.Name = f17iter.Name
-			}
-			if f17iter.Nodes != nil {
-				f17elemf1 := []*svcapitypes.Node{}
-				for _, f17elemf1iter := range f17iter.Nodes {
-					f17elemf1elem := &svcapitypes.Node{}
-					if f17elemf1iter.AvailabilityZone != nil {
-						f17elemf1elem.AvailabilityZone = f17elemf1iter.AvailabilityZone
-					}
-					if f17elemf1iter.CreateTime != nil {
-						f17elemf1elem.CreateTime = &metav1.Time{*f17elemf1iter.CreateTime}
-					}
-					if f17elemf1iter.Endpoint != nil {
-						f17elemf1elemf2 := &svcapitypes.Endpoint{}
-						if f17elemf1iter.Endpoint.Address != nil {
-							f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
-						}
-						if f17elemf1iter.Endpoint.Port != nil {
-							f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-						}
-						f17elemf1elem.Endpoint = f17elemf1elemf2
-					}
-					if f17elemf1iter.Name != nil {
-						f17elemf1elem.Name = f17elemf1iter.Name
-					}
-					if f17elemf1iter.Status != nil {
-						f17elemf1elem.Status = f17elemf1iter.Status
-					}
-					f17elemf1 = append(f17elemf1, f17elemf1elem)
-				}
-				f17elem.Nodes = f17elemf1
-			}
-			if f17iter.NumberOfNodes != nil {
-				f17elem.NumberOfNodes = f17iter.NumberOfNodes
-			}
-			if f17iter.Slots != nil {
-				f17elem.Slots = f17iter.Slots
+		f17 := []*svcapitypes.SecurityGroupMembership{}
+		for _, f17iter := range resp.Cluster.SecurityGroups {
+			f17elem := &svcapitypes.SecurityGroupMembership{}
+			if f17iter.SecurityGroupId != nil {
+				f17elem.SecurityGroupID = f17iter.SecurityGroupId
 			}
 			if f17iter.Status != nil {
 				f17elem.Status = f17iter.Status
 			}
 			f17 = append(f17, f17elem)
 		}
-		ko.Status.Shards = f17
+		ko.Status.SecurityGroups = f17
+	} else {
+		ko.Status.SecurityGroups = nil
+	}
+	if resp.Cluster.Shards != nil {
+		f18 := []*svcapitypes.Shard{}
+		for _, f18iter := range resp.Cluster.Shards {
+			f18elem := &svcapitypes.Shard{}
+			if f18iter.Name != nil {
+				f18elem.Name = f18iter.Name
+			}
+			if f18iter.Nodes != nil {
+				f18elemf1 := []*svcapitypes.Node{}
+				for _, f18elemf1iter := range f18iter.Nodes {
+					f18elemf1elem := &svcapitypes.Node{}
+					if f18elemf1iter.AvailabilityZone != nil {
+						f18elemf1elem.AvailabilityZone = f18elemf1iter.AvailabilityZone
+					}
+					if f18elemf1iter.CreateTime != nil {
+						f18elemf1elem.CreateTime = &metav1.Time{*f18elemf1iter.CreateTime}
+					}
+					if f18elemf1iter.Endpoint != nil {
+						f18elemf1elemf2 := &svcapitypes.Endpoint{}
+						if f18elemf1iter.Endpoint.Address != nil {
+							f18elemf1elemf2.Address = f18elemf1iter.Endpoint.Address
+						}
+						if f18elemf1iter.Endpoint.Port != nil {
+							f18elemf1elemf2.Port = f18elemf1iter.Endpoint.Port
+						}
+						f18elemf1elem.Endpoint = f18elemf1elemf2
+					}
+					if f18elemf1iter.Name != nil {
+						f18elemf1elem.Name = f18elemf1iter.Name
+					}
+					if f18elemf1iter.Status != nil {
+						f18elemf1elem.Status = f18elemf1iter.Status
+					}
+					f18elemf1 = append(f18elemf1, f18elemf1elem)
+				}
+				f18elem.Nodes = f18elemf1
+			}
+			if f18iter.NumberOfNodes != nil {
+				f18elem.NumberOfNodes = f18iter.NumberOfNodes
+			}
+			if f18iter.Slots != nil {
+				f18elem.Slots = f18iter.Slots
+			}
+			if f18iter.Status != nil {
+				f18elem.Status = f18iter.Status
+			}
+			f18 = append(f18, f18elem)
+		}
+		ko.Status.Shards = f18
 	} else {
 		ko.Status.Shards = nil
 	}
@@ -684,6 +694,9 @@ func (rm *resourceManager) newCreateRequestPayload(
 	if r.ko.Spec.Name != nil {
 		res.SetClusterName(*r.ko.Spec.Name)
 	}
+	if r.ko.Spec.DataTiering != nil {
+		res.SetDataTiering(*r.ko.Spec.DataTiering)
+	}
 	if r.ko.Spec.Description != nil {
 		res.SetDescription(*r.ko.Spec.Description)
 	}
@@ -712,22 +725,22 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.SetPort(*r.ko.Spec.Port)
 	}
 	if r.ko.Spec.SecurityGroupIDs != nil {
-		f12 := []*string{}
-		for _, f12iter := range r.ko.Spec.SecurityGroupIDs {
-			var f12elem string
-			f12elem = *f12iter
-			f12 = append(f12, &f12elem)
-		}
-		res.SetSecurityGroupIds(f12)
-	}
-	if r.ko.Spec.SnapshotARNs != nil {
 		f13 := []*string{}
-		for _, f13iter := range r.ko.Spec.SnapshotARNs {
+		for _, f13iter := range r.ko.Spec.SecurityGroupIDs {
 			var f13elem string
 			f13elem = *f13iter
 			f13 = append(f13, &f13elem)
 		}
-		res.SetSnapshotArns(f13)
+		res.SetSecurityGroupIds(f13)
+	}
+	if r.ko.Spec.SnapshotARNs != nil {
+		f14 := []*string{}
+		for _, f14iter := range r.ko.Spec.SnapshotARNs {
+			var f14elem string
+			f14elem = *f14iter
+			f14 = append(f14, &f14elem)
+		}
+		res.SetSnapshotArns(f14)
 	}
 	if r.ko.Spec.SnapshotName != nil {
 		res.SetSnapshotName(*r.ko.Spec.SnapshotName)
@@ -748,18 +761,18 @@ func (rm *resourceManager) newCreateRequestPayload(
 		res.SetTLSEnabled(*r.ko.Spec.TLSEnabled)
 	}
 	if r.ko.Spec.Tags != nil {
-		f20 := []*svcsdk.Tag{}
-		for _, f20iter := range r.ko.Spec.Tags {
-			f20elem := &svcsdk.Tag{}
-			if f20iter.Key != nil {
-				f20elem.SetKey(*f20iter.Key)
+		f21 := []*svcsdk.Tag{}
+		for _, f21iter := range r.ko.Spec.Tags {
+			f21elem := &svcsdk.Tag{}
+			if f21iter.Key != nil {
+				f21elem.SetKey(*f21iter.Key)
 			}
-			if f20iter.Value != nil {
-				f20elem.SetValue(*f20iter.Value)
+			if f21iter.Value != nil {
+				f21elem.SetValue(*f21iter.Value)
 			}
-			f20 = append(f20, f20elem)
+			f21 = append(f21, f21elem)
 		}
-		res.SetTags(f20)
+		res.SetTags(f21)
 	}
 
 	return res, nil
@@ -846,6 +859,11 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Status.ClusterEndpoint = nil
 	}
+	if resp.Cluster.DataTiering != nil {
+		ko.Spec.DataTiering = resp.Cluster.DataTiering
+	} else {
+		ko.Spec.DataTiering = nil
+	}
 	if resp.Cluster.Description != nil {
 		ko.Spec.Description = resp.Cluster.Description
 	} else {
@@ -897,108 +915,108 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ParameterGroupStatus = nil
 	}
 	if resp.Cluster.PendingUpdates != nil {
-		f15 := &svcapitypes.ClusterPendingUpdates{}
+		f16 := &svcapitypes.ClusterPendingUpdates{}
 		if resp.Cluster.PendingUpdates.ACLs != nil {
-			f15f0 := &svcapitypes.ACLsUpdateStatus{}
+			f16f0 := &svcapitypes.ACLsUpdateStatus{}
 			if resp.Cluster.PendingUpdates.ACLs.ACLToApply != nil {
-				f15f0.ACLToApply = resp.Cluster.PendingUpdates.ACLs.ACLToApply
+				f16f0.ACLToApply = resp.Cluster.PendingUpdates.ACLs.ACLToApply
 			}
-			f15.ACLs = f15f0
+			f16.ACLs = f16f0
 		}
 		if resp.Cluster.PendingUpdates.Resharding != nil {
-			f15f1 := &svcapitypes.ReshardingStatus{}
+			f16f1 := &svcapitypes.ReshardingStatus{}
 			if resp.Cluster.PendingUpdates.Resharding.SlotMigration != nil {
-				f15f1f0 := &svcapitypes.SlotMigration{}
+				f16f1f0 := &svcapitypes.SlotMigration{}
 				if resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-					f15f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
+					f16f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 				}
-				f15f1.SlotMigration = f15f1f0
+				f16f1.SlotMigration = f16f1f0
 			}
-			f15.Resharding = f15f1
+			f16.Resharding = f16f1
 		}
 		if resp.Cluster.PendingUpdates.ServiceUpdates != nil {
-			f15f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
-			for _, f15f2iter := range resp.Cluster.PendingUpdates.ServiceUpdates {
-				f15f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
-				if f15f2iter.ServiceUpdateName != nil {
-					f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
+			f16f2 := []*svcapitypes.PendingModifiedServiceUpdate{}
+			for _, f16f2iter := range resp.Cluster.PendingUpdates.ServiceUpdates {
+				f16f2elem := &svcapitypes.PendingModifiedServiceUpdate{}
+				if f16f2iter.ServiceUpdateName != nil {
+					f16f2elem.ServiceUpdateName = f16f2iter.ServiceUpdateName
 				}
-				if f15f2iter.Status != nil {
-					f15f2elem.Status = f15f2iter.Status
+				if f16f2iter.Status != nil {
+					f16f2elem.Status = f16f2iter.Status
 				}
-				f15f2 = append(f15f2, f15f2elem)
+				f16f2 = append(f16f2, f16f2elem)
 			}
-			f15.ServiceUpdates = f15f2
+			f16.ServiceUpdates = f16f2
 		}
-		ko.Status.PendingUpdates = f15
+		ko.Status.PendingUpdates = f16
 	} else {
 		ko.Status.PendingUpdates = nil
 	}
 	if resp.Cluster.SecurityGroups != nil {
-		f16 := []*svcapitypes.SecurityGroupMembership{}
-		for _, f16iter := range resp.Cluster.SecurityGroups {
-			f16elem := &svcapitypes.SecurityGroupMembership{}
-			if f16iter.SecurityGroupId != nil {
-				f16elem.SecurityGroupID = f16iter.SecurityGroupId
-			}
-			if f16iter.Status != nil {
-				f16elem.Status = f16iter.Status
-			}
-			f16 = append(f16, f16elem)
-		}
-		ko.Status.SecurityGroups = f16
-	} else {
-		ko.Status.SecurityGroups = nil
-	}
-	if resp.Cluster.Shards != nil {
-		f17 := []*svcapitypes.Shard{}
-		for _, f17iter := range resp.Cluster.Shards {
-			f17elem := &svcapitypes.Shard{}
-			if f17iter.Name != nil {
-				f17elem.Name = f17iter.Name
-			}
-			if f17iter.Nodes != nil {
-				f17elemf1 := []*svcapitypes.Node{}
-				for _, f17elemf1iter := range f17iter.Nodes {
-					f17elemf1elem := &svcapitypes.Node{}
-					if f17elemf1iter.AvailabilityZone != nil {
-						f17elemf1elem.AvailabilityZone = f17elemf1iter.AvailabilityZone
-					}
-					if f17elemf1iter.CreateTime != nil {
-						f17elemf1elem.CreateTime = &metav1.Time{*f17elemf1iter.CreateTime}
-					}
-					if f17elemf1iter.Endpoint != nil {
-						f17elemf1elemf2 := &svcapitypes.Endpoint{}
-						if f17elemf1iter.Endpoint.Address != nil {
-							f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
-						}
-						if f17elemf1iter.Endpoint.Port != nil {
-							f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-						}
-						f17elemf1elem.Endpoint = f17elemf1elemf2
-					}
-					if f17elemf1iter.Name != nil {
-						f17elemf1elem.Name = f17elemf1iter.Name
-					}
-					if f17elemf1iter.Status != nil {
-						f17elemf1elem.Status = f17elemf1iter.Status
-					}
-					f17elemf1 = append(f17elemf1, f17elemf1elem)
-				}
-				f17elem.Nodes = f17elemf1
-			}
-			if f17iter.NumberOfNodes != nil {
-				f17elem.NumberOfNodes = f17iter.NumberOfNodes
-			}
-			if f17iter.Slots != nil {
-				f17elem.Slots = f17iter.Slots
+		f17 := []*svcapitypes.SecurityGroupMembership{}
+		for _, f17iter := range resp.Cluster.SecurityGroups {
+			f17elem := &svcapitypes.SecurityGroupMembership{}
+			if f17iter.SecurityGroupId != nil {
+				f17elem.SecurityGroupID = f17iter.SecurityGroupId
 			}
 			if f17iter.Status != nil {
 				f17elem.Status = f17iter.Status
 			}
 			f17 = append(f17, f17elem)
 		}
-		ko.Status.Shards = f17
+		ko.Status.SecurityGroups = f17
+	} else {
+		ko.Status.SecurityGroups = nil
+	}
+	if resp.Cluster.Shards != nil {
+		f18 := []*svcapitypes.Shard{}
+		for _, f18iter := range resp.Cluster.Shards {
+			f18elem := &svcapitypes.Shard{}
+			if f18iter.Name != nil {
+				f18elem.Name = f18iter.Name
+			}
+			if f18iter.Nodes != nil {
+				f18elemf1 := []*svcapitypes.Node{}
+				for _, f18elemf1iter := range f18iter.Nodes {
+					f18elemf1elem := &svcapitypes.Node{}
+					if f18elemf1iter.AvailabilityZone != nil {
+						f18elemf1elem.AvailabilityZone = f18elemf1iter.AvailabilityZone
+					}
+					if f18elemf1iter.CreateTime != nil {
+						f18elemf1elem.CreateTime = &metav1.Time{*f18elemf1iter.CreateTime}
+					}
+					if f18elemf1iter.Endpoint != nil {
+						f18elemf1elemf2 := &svcapitypes.Endpoint{}
+						if f18elemf1iter.Endpoint.Address != nil {
+							f18elemf1elemf2.Address = f18elemf1iter.Endpoint.Address
+						}
+						if f18elemf1iter.Endpoint.Port != nil {
+							f18elemf1elemf2.Port = f18elemf1iter.Endpoint.Port
+						}
+						f18elemf1elem.Endpoint = f18elemf1elemf2
+					}
+					if f18elemf1iter.Name != nil {
+						f18elemf1elem.Name = f18elemf1iter.Name
+					}
+					if f18elemf1iter.Status != nil {
+						f18elemf1elem.Status = f18elemf1iter.Status
+					}
+					f18elemf1 = append(f18elemf1, f18elemf1elem)
+				}
+				f18elem.Nodes = f18elemf1
+			}
+			if f18iter.NumberOfNodes != nil {
+				f18elem.NumberOfNodes = f18iter.NumberOfNodes
+			}
+			if f18iter.Slots != nil {
+				f18elem.Slots = f18iter.Slots
+			}
+			if f18iter.Status != nil {
+				f18elem.Status = f18iter.Status
+			}
+			f18 = append(f18, f18elem)
+		}
+		ko.Status.Shards = f18
 	} else {
 		ko.Status.Shards = nil
 	}

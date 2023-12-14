@@ -27,12 +27,21 @@ type AuthenticationType string
 const (
 	AuthenticationType_password    AuthenticationType = "password"
 	AuthenticationType_no_password AuthenticationType = "no-password"
+	AuthenticationType_iam         AuthenticationType = "iam"
+)
+
+type DataTieringStatus string
+
+const (
+	DataTieringStatus_true  DataTieringStatus = "true"
+	DataTieringStatus_false DataTieringStatus = "false"
 )
 
 type InputAuthenticationType string
 
 const (
 	InputAuthenticationType_password InputAuthenticationType = "password"
+	InputAuthenticationType_iam      InputAuthenticationType = "iam"
 )
 
 type ServiceUpdateStatus string
