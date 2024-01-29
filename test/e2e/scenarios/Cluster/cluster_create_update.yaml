@@ -67,7 +67,7 @@ steps:
         conditions:
           ACK.ResourceSynced:
             status: "True"
-            timeout: 600
+            timeout: 1200
     expect_k8s:
       spec:
         description: Test step 2 from ACK

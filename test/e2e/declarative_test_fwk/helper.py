@@ -297,6 +297,11 @@ class ResourceHelper:
             # assert any specific extra fields
             if self.assert_extra_items_k8s(key, value, k8s_resource):
                 continue
+            logging.info("++++++")
+            logging.info(key)
+            logging.info(value)
+            logging.info(k8s_resource.get(key))
+            logging.info("++++++")
             assert value == k8s_resource.get(key)
 
     def assert_extra_items_k8s(self, expected_name, expected_value, k8s_resource) -> bool:
