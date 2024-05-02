@@ -42,7 +42,7 @@ var (
 	)
 	requeueWaitWhileUpdating = ackrequeue.NeededAfter(
 		errors.New("update is in progress"),
-		ackrequeue.DefaultRequeueAfterDuration,
+		ackrequeue.DefaultRequeueAfterDuration*2,
 	)
 )
 
