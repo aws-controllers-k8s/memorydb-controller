@@ -53,8 +53,12 @@ func newResourceDelta(
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)
 	}
-	if !ackcompare.SliceStringPEqual(a.ko.Spec.UserNames, b.ko.Spec.UserNames) {
+	if len(a.ko.Spec.UserNames) != len(b.ko.Spec.UserNames) {
 		delta.Add("Spec.UserNames", a.ko.Spec.UserNames, b.ko.Spec.UserNames)
+	} else if len(a.ko.Spec.UserNames) > 0 {
+		if !ackcompare.SliceStringPEqual(a.ko.Spec.UserNames, b.ko.Spec.UserNames) {
+			delta.Add("Spec.UserNames", a.ko.Spec.UserNames, b.ko.Spec.UserNames)
+		}
 	}
 	if !reflect.DeepEqual(a.ko.Spec.UserRefs, b.ko.Spec.UserRefs) {
 		delta.Add("Spec.UserRefs", a.ko.Spec.UserRefs, b.ko.Spec.UserRefs)
