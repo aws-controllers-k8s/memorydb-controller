@@ -781,8 +781,10 @@ func (rm *resourceManager) sdkUpdate(
 	res, err := rm.validateClusterNeedsUpdate(desired, latest, delta)
 
 	if err != nil || res != nil {
-		return res, err
+		return desired, err
 	}
+
+
 
 	if delta.DifferentAt("Spec.Tags") {
 		err = rm.updateTags(ctx, desired, latest)
@@ -1060,6 +1062,8 @@ func (rm *resourceManager) sdkUpdate(
 	if input.ShardConfiguration != nil && input.ShardConfiguration.ShardCount != nil {
 		rm.setNumShardAnnotation(*input.ShardConfiguration.ShardCount, ko)
 	}
+
+	return &resource{ko}, requeueWaitWhileUpdating
 	return &resource{ko}, nil
 }
 

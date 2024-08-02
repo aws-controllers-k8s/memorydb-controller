@@ -64,8 +64,12 @@ func newResourceDelta(
 			delta.Add("Spec.Name", a.ko.Spec.Name, b.ko.Spec.Name)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.ParameterNameValues, b.ko.Spec.ParameterNameValues) {
+	if len(a.ko.Spec.ParameterNameValues) != len(b.ko.Spec.ParameterNameValues) {
 		delta.Add("Spec.ParameterNameValues", a.ko.Spec.ParameterNameValues, b.ko.Spec.ParameterNameValues)
+	} else if len(a.ko.Spec.ParameterNameValues) > 0 {
+		if !reflect.DeepEqual(a.ko.Spec.ParameterNameValues, b.ko.Spec.ParameterNameValues) {
+			delta.Add("Spec.ParameterNameValues", a.ko.Spec.ParameterNameValues, b.ko.Spec.ParameterNameValues)
+		}
 	}
 	if !ackcompare.MapStringStringEqual(ToACKTags(a.ko.Spec.Tags), ToACKTags(b.ko.Spec.Tags)) {
 		delta.Add("Spec.Tags", a.ko.Spec.Tags, b.ko.Spec.Tags)

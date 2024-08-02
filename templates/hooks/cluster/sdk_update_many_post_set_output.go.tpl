@@ -19,3 +19,4 @@
 	if input.ShardConfiguration != nil && input.ShardConfiguration.ShardCount != nil {
 		rm.setNumShardAnnotation(*input.ShardConfiguration.ShardCount, ko)
 	}
+	return &resource{ko}, requeueWaitWhileUpdating
