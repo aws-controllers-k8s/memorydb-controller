@@ -208,12 +208,8 @@ func getReferencedResourceState_ACL(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -225,6 +221,13 @@ func getReferencedResourceState_ACL(
 		return ackerr.ResourceReferenceTerminalFor(
 			"ACL",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -288,12 +291,8 @@ func getReferencedResourceState_ParameterGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -305,6 +304,13 @@ func getReferencedResourceState_ParameterGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"ParameterGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -368,12 +374,8 @@ func getReferencedResourceState_Topic(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -385,6 +387,13 @@ func getReferencedResourceState_Topic(
 		return ackerr.ResourceReferenceTerminalFor(
 			"Topic",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -453,12 +462,8 @@ func getReferencedResourceState_SecurityGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -470,6 +475,13 @@ func getReferencedResourceState_SecurityGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"SecurityGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -533,12 +545,8 @@ func getReferencedResourceState_Snapshot(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -550,6 +558,13 @@ func getReferencedResourceState_Snapshot(
 		return ackerr.ResourceReferenceTerminalFor(
 			"Snapshot",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
@@ -613,12 +628,8 @@ func getReferencedResourceState_SubnetGroup(
 	if err != nil {
 		return err
 	}
-	var refResourceSynced, refResourceTerminal bool
+	var refResourceTerminal bool
 	for _, cond := range obj.Status.Conditions {
-		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
-			cond.Status == corev1.ConditionTrue {
-			refResourceSynced = true
-		}
 		if cond.Type == ackv1alpha1.ConditionTypeTerminal &&
 			cond.Status == corev1.ConditionTrue {
 			return ackerr.ResourceReferenceTerminalFor(
@@ -630,6 +641,13 @@ func getReferencedResourceState_SubnetGroup(
 		return ackerr.ResourceReferenceTerminalFor(
 			"SubnetGroup",
 			namespace, name)
+	}
+	var refResourceSynced bool
+	for _, cond := range obj.Status.Conditions {
+		if cond.Type == ackv1alpha1.ConditionTypeResourceSynced &&
+			cond.Status == corev1.ConditionTrue {
+			refResourceSynced = true
+		}
 	}
 	if !refResourceSynced {
 		return ackerr.ResourceReferenceNotSyncedFor(
