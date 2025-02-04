@@ -10,6 +10,9 @@ require (
 	github.com/aws-controllers-k8s/runtime v0.41.0
 	github.com/aws-controllers-k8s/sns-controller v0.0.5
 	github.com/aws/aws-sdk-go v1.49.0
+	github.com/aws/aws-sdk-go-v2 v1.35.0
+	github.com/aws/aws-sdk-go-v2/service/memorydb v1.25.6
+	github.com/aws/smithy-go v1.22.2
 	github.com/go-logr/logr v1.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.37.0
@@ -21,6 +24,17 @@ require (
 )
 
 require (
+	github.com/aws/aws-sdk-go-v2/config v1.28.6 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.47 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.21 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.30 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.24.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -78,3 +92,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
+
+replace github.com/aws-controllers-k8s/runtime => github.com/michaelhtm/ack-runtime v0.40.1-0.20250130234502-3f0eb0b7ed16

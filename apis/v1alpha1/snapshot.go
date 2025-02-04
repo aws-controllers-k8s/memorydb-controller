@@ -58,6 +58,11 @@ type SnapshotStatus struct {
 	// The configuration of the cluster from which the snapshot was taken
 	// +kubebuilder:validation:Optional
 	ClusterConfiguration *ClusterConfiguration `json:"clusterConfiguration,omitempty"`
+	// Enables data tiering. Data tiering is only supported for clusters using the
+	// r6gd node type. This parameter must be set when using r6gd nodes. For more
+	// information, see Data tiering (https://docs.aws.amazon.com/memorydb/latest/devguide/data-tiering.html).
+	// +kubebuilder:validation:Optional
+	DataTiering *string `json:"dataTiering,omitempty"`
 	// Indicates whether the snapshot is from an automatic backup (automated) or
 	// was created manually (manual).
 	// +kubebuilder:validation:Optional

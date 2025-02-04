@@ -1,7 +1,15 @@
 ignore:
+  resource_names:
+    - MultiRegionCluster
   field_paths:
     - DescribeSnapshotsInput.ClusterName
     - DescribeSnapshotsInput.Source
+    - CreateClusterInput.DataTiering
+    - UpdateClusterOutput.DataTiering
+    - CreateClusterInput.MultiRegionClusterName
+    - UpdateClusterOutput.MultiRegionClusterName
+    - Snapshot.ClusterConfiguration.MultiRegionClusterName
+    - Snapshot.ClusterConfiguration.MultiRegionParameterGroupName
 resources:
   Cluster:
     exceptions:
@@ -89,7 +97,6 @@ resources:
         - path: Status.Status
           in:
             - available
-            - create-failed
   SubnetGroup:
     exceptions:
       errors:
@@ -192,7 +199,6 @@ resources:
         - InvalidParameterCombinationException
     fields:
       AuthenticationMode.Passwords:
-        is_secret: true
         compare:
           is_ignored: true
       Events:
@@ -336,4 +342,4 @@ resources:
 operations:
   DescribeClusters:
     override_values:
-      ShowShardDetails: true
+      ShowShardDetails: aws.Bool(true)

@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.MemoryDB{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.ACL{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeACLsOutput
-	resp, err = rm.sdkapi.DescribeACLsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeACLs(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeACLs", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ACLNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ACLNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -96,13 +99,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.ACKResourceMetadata.ARN = &tmpARN
 		}
 		if elem.Clusters != nil {
-			f1 := []*string{}
-			for _, f1iter := range elem.Clusters {
-				var f1elem string
-				f1elem = *f1iter
-				f1 = append(f1, &f1elem)
-			}
-			ko.Status.Clusters = f1
+			ko.Status.Clusters = aws.StringSlice(elem.Clusters)
 		} else {
 			ko.Status.Clusters = nil
 		}
@@ -119,22 +116,10 @@ func (rm *resourceManager) sdkFind(
 		if elem.PendingChanges != nil {
 			f4 := &svcapitypes.ACLPendingChanges{}
 			if elem.PendingChanges.UserNamesToAdd != nil {
-				f4f0 := []*string{}
-				for _, f4f0iter := range elem.PendingChanges.UserNamesToAdd {
-					var f4f0elem string
-					f4f0elem = *f4f0iter
-					f4f0 = append(f4f0, &f4f0elem)
-				}
-				f4.UserNamesToAdd = f4f0
+				f4.UserNamesToAdd = aws.StringSlice(elem.PendingChanges.UserNamesToAdd)
 			}
 			if elem.PendingChanges.UserNamesToRemove != nil {
-				f4f1 := []*string{}
-				for _, f4f1iter := range elem.PendingChanges.UserNamesToRemove {
-					var f4f1elem string
-					f4f1elem = *f4f1iter
-					f4f1 = append(f4f1, &f4f1elem)
-				}
-				f4.UserNamesToRemove = f4f1
+				f4.UserNamesToRemove = aws.StringSlice(elem.PendingChanges.UserNamesToRemove)
 			}
 			ko.Status.PendingChanges = f4
 		} else {
@@ -146,13 +131,7 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.Status = nil
 		}
 		if elem.UserNames != nil {
-			f6 := []*string{}
-			for _, f6iter := range elem.UserNames {
-				var f6elem string
-				f6elem = *f6iter
-				f6 = append(f6, &f6elem)
-			}
-			ko.Spec.UserNames = f6
+			ko.Spec.UserNames = aws.StringSlice(elem.UserNames)
 		} else {
 			ko.Spec.UserNames = nil
 		}
@@ -199,7 +178,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeACLsInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetACLName(*r.ko.Spec.Name)
+		res.ACLName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -224,7 +203,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateACLOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateACLWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateACL(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateACL", err)
 	if err != nil {
 		return nil, err
@@ -241,13 +220,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.ACL.Clusters != nil {
-		f1 := []*string{}
-		for _, f1iter := range resp.ACL.Clusters {
-			var f1elem string
-			f1elem = *f1iter
-			f1 = append(f1, &f1elem)
-		}
-		ko.Status.Clusters = f1
+		ko.Status.Clusters = aws.StringSlice(resp.ACL.Clusters)
 	} else {
 		ko.Status.Clusters = nil
 	}
@@ -264,22 +237,10 @@ func (rm *resourceManager) sdkCreate(
 	if resp.ACL.PendingChanges != nil {
 		f4 := &svcapitypes.ACLPendingChanges{}
 		if resp.ACL.PendingChanges.UserNamesToAdd != nil {
-			f4f0 := []*string{}
-			for _, f4f0iter := range resp.ACL.PendingChanges.UserNamesToAdd {
-				var f4f0elem string
-				f4f0elem = *f4f0iter
-				f4f0 = append(f4f0, &f4f0elem)
-			}
-			f4.UserNamesToAdd = f4f0
+			f4.UserNamesToAdd = aws.StringSlice(resp.ACL.PendingChanges.UserNamesToAdd)
 		}
 		if resp.ACL.PendingChanges.UserNamesToRemove != nil {
-			f4f1 := []*string{}
-			for _, f4f1iter := range resp.ACL.PendingChanges.UserNamesToRemove {
-				var f4f1elem string
-				f4f1elem = *f4f1iter
-				f4f1 = append(f4f1, &f4f1elem)
-			}
-			f4.UserNamesToRemove = f4f1
+			f4.UserNamesToRemove = aws.StringSlice(resp.ACL.PendingChanges.UserNamesToRemove)
 		}
 		ko.Status.PendingChanges = f4
 	} else {
@@ -291,13 +252,7 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Status = nil
 	}
 	if resp.ACL.UserNames != nil {
-		f6 := []*string{}
-		for _, f6iter := range resp.ACL.UserNames {
-			var f6elem string
-			f6elem = *f6iter
-			f6 = append(f6, &f6elem)
-		}
-		ko.Spec.UserNames = f6
+		ko.Spec.UserNames = aws.StringSlice(resp.ACL.UserNames)
 	} else {
 		ko.Spec.UserNames = nil
 	}
@@ -315,30 +270,24 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateACLInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetACLName(*r.ko.Spec.Name)
+		res.ACLName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Tags != nil {
-		f1 := []*svcsdk.Tag{}
+		f1 := []svcsdktypes.Tag{}
 		for _, f1iter := range r.ko.Spec.Tags {
-			f1elem := &svcsdk.Tag{}
+			f1elem := &svcsdktypes.Tag{}
 			if f1iter.Key != nil {
-				f1elem.SetKey(*f1iter.Key)
+				f1elem.Key = f1iter.Key
 			}
 			if f1iter.Value != nil {
-				f1elem.SetValue(*f1iter.Value)
+				f1elem.Value = f1iter.Value
 			}
-			f1 = append(f1, f1elem)
+			f1 = append(f1, *f1elem)
 		}
-		res.SetTags(f1)
+		res.Tags = f1
 	}
 	if r.ko.Spec.UserNames != nil {
-		f2 := []*string{}
-		for _, f2iter := range r.ko.Spec.UserNames {
-			var f2elem string
-			f2elem = *f2iter
-			f2 = append(f2, &f2elem)
-		}
-		res.SetUserNames(f2)
+		res.UserNames = aws.ToStringSlice(r.ko.Spec.UserNames)
 	}
 
 	return res, nil
@@ -406,35 +355,35 @@ func (rm *resourceManager) sdkUpdate(
 
 			// User Ids to add
 			{
-				var userNamesToAdd []*string
+				var userNamesToAdd []string
 
 				for userName, include := range requiredUserNamesMap {
 					if include {
-						userNamesToAdd = append(userNamesToAdd, &userName)
+						userNamesToAdd = append(userNamesToAdd, userName)
 					}
 				}
 
-				input.SetUserNamesToAdd(userNamesToAdd)
+				input.UserNamesToAdd = userNamesToAdd
 			}
 
 			// User Ids to remove
 			{
-				var userNamesToRemove []*string
+				var userNamesToRemove []string
 
 				for userName, include := range existingUserNamesMap {
 					if include {
-						userNamesToRemove = append(userNamesToRemove, &userName)
+						userNamesToRemove = append(userNamesToRemove, userName)
 					}
 				}
 
-				input.SetUserNamesToRemove(userNamesToRemove)
+				input.UserNamesToRemove = userNamesToRemove
 			}
 		}
 	}
 
 	var resp *svcsdk.UpdateACLOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateACLWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateACL(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateACL", err)
 	if err != nil {
 		return nil, err
@@ -451,13 +400,7 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.ACKResourceMetadata.ARN = &arn
 	}
 	if resp.ACL.Clusters != nil {
-		f1 := []*string{}
-		for _, f1iter := range resp.ACL.Clusters {
-			var f1elem string
-			f1elem = *f1iter
-			f1 = append(f1, &f1elem)
-		}
-		ko.Status.Clusters = f1
+		ko.Status.Clusters = aws.StringSlice(resp.ACL.Clusters)
 	} else {
 		ko.Status.Clusters = nil
 	}
@@ -474,22 +417,10 @@ func (rm *resourceManager) sdkUpdate(
 	if resp.ACL.PendingChanges != nil {
 		f4 := &svcapitypes.ACLPendingChanges{}
 		if resp.ACL.PendingChanges.UserNamesToAdd != nil {
-			f4f0 := []*string{}
-			for _, f4f0iter := range resp.ACL.PendingChanges.UserNamesToAdd {
-				var f4f0elem string
-				f4f0elem = *f4f0iter
-				f4f0 = append(f4f0, &f4f0elem)
-			}
-			f4.UserNamesToAdd = f4f0
+			f4.UserNamesToAdd = aws.StringSlice(resp.ACL.PendingChanges.UserNamesToAdd)
 		}
 		if resp.ACL.PendingChanges.UserNamesToRemove != nil {
-			f4f1 := []*string{}
-			for _, f4f1iter := range resp.ACL.PendingChanges.UserNamesToRemove {
-				var f4f1elem string
-				f4f1elem = *f4f1iter
-				f4f1 = append(f4f1, &f4f1elem)
-			}
-			f4.UserNamesToRemove = f4f1
+			f4.UserNamesToRemove = aws.StringSlice(resp.ACL.PendingChanges.UserNamesToRemove)
 		}
 		ko.Status.PendingChanges = f4
 	} else {
@@ -501,13 +432,7 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Status = nil
 	}
 	if resp.ACL.UserNames != nil {
-		f6 := []*string{}
-		for _, f6iter := range resp.ACL.UserNames {
-			var f6elem string
-			f6elem = *f6iter
-			f6 = append(f6, &f6elem)
-		}
-		ko.Spec.UserNames = f6
+		ko.Spec.UserNames = aws.StringSlice(resp.ACL.UserNames)
 	} else {
 		ko.Spec.UserNames = nil
 	}
@@ -527,7 +452,7 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateACLInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetACLName(*r.ko.Spec.Name)
+		res.ACLName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -549,7 +474,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteACLOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteACLWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteACL(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteACL", err)
 	return nil, err
 }
@@ -562,7 +487,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteACLInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetACLName(*r.ko.Spec.Name)
+		res.ACLName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -670,11 +595,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "ACLAlreadyExistsFault",
 		"DefaultUserRequired",
 		"DuplicateUserNameFault",

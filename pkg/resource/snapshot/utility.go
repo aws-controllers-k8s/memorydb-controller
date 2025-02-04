@@ -3,10 +3,13 @@ package snapshot
 import (
 	"errors"
 	"fmt"
+
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -48,14 +51,12 @@ func isNotReadyForDeleting(r *resource) bool {
 
 func (rm *resourceManager) setSnapshotOutput(
 	r *resource,
-	obj *svcsdk.Snapshot,
+	obj svcsdktypes.Snapshot,
 ) (*resource, error) {
-	if obj == nil ||
-		r == nil ||
-		r.ko == nil {
+	if r == nil || r.ko == nil || (obj == svcsdktypes.Snapshot{}) {
 		return nil, nil
 	}
-	resp := &svcsdk.DeleteSnapshotOutput{Snapshot: obj}
+	resp := &svcsdk.DeleteSnapshotOutput{Snapshot: &obj}
 
 	// Merge in the information we read from the API call above to the copy of
 	// the original Kubernetes object we passed to the function
@@ -86,13 +87,13 @@ func (rm *resourceManager) setSnapshotOutput(
 			f1.NodeType = resp.Snapshot.ClusterConfiguration.NodeType
 		}
 		if resp.Snapshot.ClusterConfiguration.NumShards != nil {
-			f1.NumShards = resp.Snapshot.ClusterConfiguration.NumShards
+			f1.NumShards = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.NumShards))
 		}
 		if resp.Snapshot.ClusterConfiguration.ParameterGroupName != nil {
 			f1.ParameterGroupName = resp.Snapshot.ClusterConfiguration.ParameterGroupName
 		}
 		if resp.Snapshot.ClusterConfiguration.Port != nil {
-			f1.Port = resp.Snapshot.ClusterConfiguration.Port
+			f1.Port = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.Port))
 		}
 		if resp.Snapshot.ClusterConfiguration.Shards != nil {
 			f1f8 := []*svcapitypes.ShardDetail{}
@@ -101,7 +102,7 @@ func (rm *resourceManager) setSnapshotOutput(
 				if f1f8iter.Configuration != nil {
 					f1f8elemf0 := &svcapitypes.ShardConfiguration{}
 					if f1f8iter.Configuration.ReplicaCount != nil {
-						f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+						f1f8elemf0.ReplicaCount = aws.Int64(int64(*f1f8iter.Configuration.ReplicaCount))
 					}
 					if f1f8iter.Configuration.Slots != nil {
 						f1f8elemf0.Slots = f1f8iter.Configuration.Slots
@@ -122,7 +123,7 @@ func (rm *resourceManager) setSnapshotOutput(
 			f1.Shards = f1f8
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit != nil {
-			f1.SnapshotRetentionLimit = resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit
+			f1.SnapshotRetentionLimit = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit))
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotWindow != nil {
 			f1.SnapshotWindow = resp.Snapshot.ClusterConfiguration.SnapshotWindow

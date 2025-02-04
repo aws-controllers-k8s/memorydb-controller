@@ -33,13 +33,33 @@ type ClusterSpec struct {
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
 	// An optional description of the cluster.
 	Description *string `json:"description,omitempty"`
-	// The version number of the Redis engine to be used for the cluster.
+	// The name of the engine to be used for the cluster.
+	Engine *string `json:"engine,omitempty"`
+	// The version number of the Redis OSS engine to be used for the cluster.
 	EngineVersion *string `json:"engineVersion,omitempty"`
 	// The ID of the KMS key used to encrypt the cluster.
 	KMSKeyID *string `json:"kmsKeyID,omitempty"`
 	// Specifies the weekly time range during which maintenance on the cluster is
 	// performed. It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
 	// (24H Clock UTC). The minimum maintenance window is a 60 minute period.
+	//
+	// Valid values for ddd are:
+	//
+	//   - sun
+	//
+	//   - mon
+	//
+	//   - tue
+	//
+	//   - wed
+	//
+	//   - thu
+	//
+	//   - fri
+	//
+	//   - sat
+	//
+	// Example: sun:23:00-mon:01:30
 	MaintenanceWindow *string `json:"maintenanceWindow,omitempty"`
 	// The name of the cluster. This value must be unique as it also serves as the
 	// cluster identifier.
@@ -121,13 +141,21 @@ type ClusterStatus struct {
 	// The cluster's configuration endpoint
 	// +kubebuilder:validation:Optional
 	ClusterEndpoint *Endpoint `json:"clusterEndpoint,omitempty"`
-	// The Redis engine patch version used by the cluster
+	// Enables data tiering. Data tiering is only supported for clusters using the
+	// r6gd node type. This parameter must be set when using r6gd nodes. For more
+	// information, see Data tiering (https://docs.aws.amazon.com/memorydb/latest/devguide/data-tiering.html).
+	// +kubebuilder:validation:Optional
+	DataTiering *string `json:"dataTiering,omitempty"`
+	// The Redis OSS engine patch version used by the cluster
 	// +kubebuilder:validation:Optional
 	EnginePatchVersion *string `json:"enginePatchVersion,omitempty"`
 	// A list of events. Each element in the list contains detailed information
 	// about one event.
 	// +kubebuilder:validation:Optional
 	Events []*Event `json:"events,omitempty"`
+	// The name of the multi-Region cluster that this cluster belongs to.
+	// +kubebuilder:validation:Optional
+	MultiRegionClusterName *string `json:"multiRegionClusterName,omitempty"`
 	// The number of shards in the cluster
 	// +kubebuilder:validation:Optional
 	NumberOfShards *int64 `json:"numberOfShards,omitempty"`
