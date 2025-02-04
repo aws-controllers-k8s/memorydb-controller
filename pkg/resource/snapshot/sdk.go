@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.MemoryDB{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Snapshot{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeSnapshotsOutput
-	resp, err = rm.sdkapi.DescribeSnapshotsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeSnapshots(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeSnapshots", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "SnapshotNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "SnapshotNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -100,6 +103,9 @@ func (rm *resourceManager) sdkFind(
 			if elem.ClusterConfiguration.Description != nil {
 				f1.Description = elem.ClusterConfiguration.Description
 			}
+			if elem.ClusterConfiguration.Engine != nil {
+				f1.Engine = elem.ClusterConfiguration.Engine
+			}
 			if elem.ClusterConfiguration.EngineVersion != nil {
 				f1.EngineVersion = elem.ClusterConfiguration.EngineVersion
 			}
@@ -113,43 +119,47 @@ func (rm *resourceManager) sdkFind(
 				f1.NodeType = elem.ClusterConfiguration.NodeType
 			}
 			if elem.ClusterConfiguration.NumShards != nil {
-				f1.NumShards = elem.ClusterConfiguration.NumShards
+				numShardsCopy := int64(*elem.ClusterConfiguration.NumShards)
+				f1.NumShards = &numShardsCopy
 			}
 			if elem.ClusterConfiguration.ParameterGroupName != nil {
 				f1.ParameterGroupName = elem.ClusterConfiguration.ParameterGroupName
 			}
 			if elem.ClusterConfiguration.Port != nil {
-				f1.Port = elem.ClusterConfiguration.Port
+				portCopy := int64(*elem.ClusterConfiguration.Port)
+				f1.Port = &portCopy
 			}
 			if elem.ClusterConfiguration.Shards != nil {
-				f1f8 := []*svcapitypes.ShardDetail{}
-				for _, f1f8iter := range elem.ClusterConfiguration.Shards {
-					f1f8elem := &svcapitypes.ShardDetail{}
-					if f1f8iter.Configuration != nil {
-						f1f8elemf0 := &svcapitypes.ShardConfiguration{}
-						if f1f8iter.Configuration.ReplicaCount != nil {
-							f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+				f1f9 := []*svcapitypes.ShardDetail{}
+				for _, f1f9iter := range elem.ClusterConfiguration.Shards {
+					f1f9elem := &svcapitypes.ShardDetail{}
+					if f1f9iter.Configuration != nil {
+						f1f9elemf0 := &svcapitypes.ShardConfiguration{}
+						if f1f9iter.Configuration.ReplicaCount != nil {
+							replicaCountCopy := int64(*f1f9iter.Configuration.ReplicaCount)
+							f1f9elemf0.ReplicaCount = &replicaCountCopy
 						}
-						if f1f8iter.Configuration.Slots != nil {
-							f1f8elemf0.Slots = f1f8iter.Configuration.Slots
+						if f1f9iter.Configuration.Slots != nil {
+							f1f9elemf0.Slots = f1f9iter.Configuration.Slots
 						}
-						f1f8elem.Configuration = f1f8elemf0
+						f1f9elem.Configuration = f1f9elemf0
 					}
-					if f1f8iter.Name != nil {
-						f1f8elem.Name = f1f8iter.Name
+					if f1f9iter.Name != nil {
+						f1f9elem.Name = f1f9iter.Name
 					}
-					if f1f8iter.Size != nil {
-						f1f8elem.Size = f1f8iter.Size
+					if f1f9iter.Size != nil {
+						f1f9elem.Size = f1f9iter.Size
 					}
-					if f1f8iter.SnapshotCreationTime != nil {
-						f1f8elem.SnapshotCreationTime = &metav1.Time{*f1f8iter.SnapshotCreationTime}
+					if f1f9iter.SnapshotCreationTime != nil {
+						f1f9elem.SnapshotCreationTime = &metav1.Time{*f1f9iter.SnapshotCreationTime}
 					}
-					f1f8 = append(f1f8, f1f8elem)
+					f1f9 = append(f1f9, f1f9elem)
 				}
-				f1.Shards = f1f8
+				f1.Shards = f1f9
 			}
 			if elem.ClusterConfiguration.SnapshotRetentionLimit != nil {
-				f1.SnapshotRetentionLimit = elem.ClusterConfiguration.SnapshotRetentionLimit
+				snapshotRetentionLimitCopy := int64(*elem.ClusterConfiguration.SnapshotRetentionLimit)
+				f1.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 			}
 			if elem.ClusterConfiguration.SnapshotWindow != nil {
 				f1.SnapshotWindow = elem.ClusterConfiguration.SnapshotWindow
@@ -166,6 +176,11 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.ClusterConfiguration = f1
 		} else {
 			ko.Status.ClusterConfiguration = nil
+		}
+		if elem.DataTiering != "" {
+			ko.Status.DataTiering = aws.String(string(elem.DataTiering))
+		} else {
+			ko.Status.DataTiering = nil
 		}
 		if elem.KmsKeyId != nil {
 			ko.Spec.KMSKeyID = elem.KmsKeyId
@@ -231,7 +246,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeSnapshotsInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -260,7 +275,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateSnapshot", err)
 	if err != nil {
 		return nil, err
@@ -281,6 +296,9 @@ func (rm *resourceManager) sdkCreate(
 		if resp.Snapshot.ClusterConfiguration.Description != nil {
 			f1.Description = resp.Snapshot.ClusterConfiguration.Description
 		}
+		if resp.Snapshot.ClusterConfiguration.Engine != nil {
+			f1.Engine = resp.Snapshot.ClusterConfiguration.Engine
+		}
 		if resp.Snapshot.ClusterConfiguration.EngineVersion != nil {
 			f1.EngineVersion = resp.Snapshot.ClusterConfiguration.EngineVersion
 		}
@@ -294,43 +312,47 @@ func (rm *resourceManager) sdkCreate(
 			f1.NodeType = resp.Snapshot.ClusterConfiguration.NodeType
 		}
 		if resp.Snapshot.ClusterConfiguration.NumShards != nil {
-			f1.NumShards = resp.Snapshot.ClusterConfiguration.NumShards
+			numShardsCopy := int64(*resp.Snapshot.ClusterConfiguration.NumShards)
+			f1.NumShards = &numShardsCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.ParameterGroupName != nil {
 			f1.ParameterGroupName = resp.Snapshot.ClusterConfiguration.ParameterGroupName
 		}
 		if resp.Snapshot.ClusterConfiguration.Port != nil {
-			f1.Port = resp.Snapshot.ClusterConfiguration.Port
+			portCopy := int64(*resp.Snapshot.ClusterConfiguration.Port)
+			f1.Port = &portCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.Shards != nil {
-			f1f8 := []*svcapitypes.ShardDetail{}
-			for _, f1f8iter := range resp.Snapshot.ClusterConfiguration.Shards {
-				f1f8elem := &svcapitypes.ShardDetail{}
-				if f1f8iter.Configuration != nil {
-					f1f8elemf0 := &svcapitypes.ShardConfiguration{}
-					if f1f8iter.Configuration.ReplicaCount != nil {
-						f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+			f1f9 := []*svcapitypes.ShardDetail{}
+			for _, f1f9iter := range resp.Snapshot.ClusterConfiguration.Shards {
+				f1f9elem := &svcapitypes.ShardDetail{}
+				if f1f9iter.Configuration != nil {
+					f1f9elemf0 := &svcapitypes.ShardConfiguration{}
+					if f1f9iter.Configuration.ReplicaCount != nil {
+						replicaCountCopy := int64(*f1f9iter.Configuration.ReplicaCount)
+						f1f9elemf0.ReplicaCount = &replicaCountCopy
 					}
-					if f1f8iter.Configuration.Slots != nil {
-						f1f8elemf0.Slots = f1f8iter.Configuration.Slots
+					if f1f9iter.Configuration.Slots != nil {
+						f1f9elemf0.Slots = f1f9iter.Configuration.Slots
 					}
-					f1f8elem.Configuration = f1f8elemf0
+					f1f9elem.Configuration = f1f9elemf0
 				}
-				if f1f8iter.Name != nil {
-					f1f8elem.Name = f1f8iter.Name
+				if f1f9iter.Name != nil {
+					f1f9elem.Name = f1f9iter.Name
 				}
-				if f1f8iter.Size != nil {
-					f1f8elem.Size = f1f8iter.Size
+				if f1f9iter.Size != nil {
+					f1f9elem.Size = f1f9iter.Size
 				}
-				if f1f8iter.SnapshotCreationTime != nil {
-					f1f8elem.SnapshotCreationTime = &metav1.Time{*f1f8iter.SnapshotCreationTime}
+				if f1f9iter.SnapshotCreationTime != nil {
+					f1f9elem.SnapshotCreationTime = &metav1.Time{*f1f9iter.SnapshotCreationTime}
 				}
-				f1f8 = append(f1f8, f1f8elem)
+				f1f9 = append(f1f9, f1f9elem)
 			}
-			f1.Shards = f1f8
+			f1.Shards = f1f9
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit != nil {
-			f1.SnapshotRetentionLimit = resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit
+			snapshotRetentionLimitCopy := int64(*resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit)
+			f1.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotWindow != nil {
 			f1.SnapshotWindow = resp.Snapshot.ClusterConfiguration.SnapshotWindow
@@ -347,6 +369,11 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.ClusterConfiguration = f1
 	} else {
 		ko.Status.ClusterConfiguration = nil
+	}
+	if resp.Snapshot.DataTiering != "" {
+		ko.Status.DataTiering = aws.String(string(resp.Snapshot.DataTiering))
+	} else {
+		ko.Status.DataTiering = nil
 	}
 	if resp.Snapshot.KmsKeyId != nil {
 		ko.Spec.KMSKeyID = resp.Snapshot.KmsKeyId
@@ -387,27 +414,27 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateSnapshotInput{}
 
 	if r.ko.Spec.ClusterName != nil {
-		res.SetClusterName(*r.ko.Spec.ClusterName)
+		res.ClusterName = r.ko.Spec.ClusterName
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
+		f3 := []svcsdktypes.Tag{}
 		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
+			f3elem := &svcsdktypes.Tag{}
 			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
+				f3elem.Key = f3iter.Key
 			}
 			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
+				f3elem.Value = f3iter.Value
 			}
-			f3 = append(f3, f3elem)
+			f3 = append(f3, *f3elem)
 		}
-		res.SetTags(f3)
+		res.Tags = f3
 	}
 
 	return res, nil
@@ -461,10 +488,10 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteSnapshot", err)
 	if err == nil {
-		rp, _ := rm.setSnapshotOutput(r, resp.Snapshot)
+		rp, _ := rm.setSnapshotOutput(r, *resp.Snapshot)
 		// Setting resource synced condition to false will trigger a requeue of
 		// the resource.
 		ackcondition.SetSynced(
@@ -491,7 +518,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteSnapshotInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -599,11 +626,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidParameterCombinationException",
 		"InvalidParameterValueException",
 		"InvalidParameter",

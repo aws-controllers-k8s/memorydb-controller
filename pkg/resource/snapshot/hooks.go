@@ -21,7 +21,9 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	"github.com/aws/aws-sdk-go/aws"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -48,7 +50,7 @@ func (rm *resourceManager) customCreateSnapshotSetOutput(
 	resp *svcsdk.CreateSnapshotOutput,
 	ko *svcapitypes.Snapshot,
 ) (*svcapitypes.Snapshot, error) {
-	rm.customSetOutput(resp.Snapshot, ko)
+	rm.customSetOutput(*resp.Snapshot, ko)
 	return ko, nil
 }
 
@@ -56,12 +58,12 @@ func (rm *resourceManager) customCopySnapshotSetOutput(
 	resp *svcsdk.CopySnapshotOutput,
 	ko *svcapitypes.Snapshot,
 ) *svcapitypes.Snapshot {
-	rm.customSetOutput(resp.Snapshot, ko)
+	rm.customSetOutput(*resp.Snapshot, ko)
 	return ko
 }
 
 func (rm *resourceManager) customSetOutput(
-	respSnapshot *svcsdk.Snapshot,
+	respSnapshot svcsdktypes.Snapshot,
 	ko *svcapitypes.Snapshot,
 ) {
 	if ko.Status.Conditions == nil {
@@ -112,7 +114,7 @@ func (rm *resourceManager) customTryCopySnapshot(
 		return nil, err
 	}
 
-	resp, respErr := rm.sdkapi.CopySnapshot(input)
+	resp, respErr := rm.sdkapi.CopySnapshot(ctx, input)
 
 	rm.metrics.RecordAPICall("CREATE", "CopySnapshot", respErr)
 	if respErr != nil {
@@ -154,13 +156,13 @@ func (rm *resourceManager) customTryCopySnapshot(
 			f1.NodeType = resp.Snapshot.ClusterConfiguration.NodeType
 		}
 		if resp.Snapshot.ClusterConfiguration.NumShards != nil {
-			f1.NumShards = resp.Snapshot.ClusterConfiguration.NumShards
+			f1.NumShards = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.NumShards))
 		}
 		if resp.Snapshot.ClusterConfiguration.ParameterGroupName != nil {
 			f1.ParameterGroupName = resp.Snapshot.ClusterConfiguration.ParameterGroupName
 		}
 		if resp.Snapshot.ClusterConfiguration.Port != nil {
-			f1.Port = resp.Snapshot.ClusterConfiguration.Port
+			f1.Port = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.Port))
 		}
 		if resp.Snapshot.ClusterConfiguration.Shards != nil {
 			f1f8 := []*svcapitypes.ShardDetail{}
@@ -169,7 +171,7 @@ func (rm *resourceManager) customTryCopySnapshot(
 				if f1f8iter.Configuration != nil {
 					f1f8elemf0 := &svcapitypes.ShardConfiguration{}
 					if f1f8iter.Configuration.ReplicaCount != nil {
-						f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+						f1f8elemf0.ReplicaCount = aws.Int64(int64(*f1f8iter.Configuration.ReplicaCount))
 					}
 					if f1f8iter.Configuration.Slots != nil {
 						f1f8elemf0.Slots = f1f8iter.Configuration.Slots
@@ -190,7 +192,7 @@ func (rm *resourceManager) customTryCopySnapshot(
 			f1.Shards = f1f8
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit != nil {
-			f1.SnapshotRetentionLimit = resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit
+			f1.SnapshotRetentionLimit = aws.Int64(int64(*resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit))
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotWindow != nil {
 			f1.SnapshotWindow = resp.Snapshot.ClusterConfiguration.SnapshotWindow
@@ -238,14 +240,14 @@ func (rm *resourceManager) newCopySnapshotPayload(
 	res := &svcsdk.CopySnapshotInput{}
 
 	if r.ko.Spec.SourceSnapshotName != nil {
-		res.SetSourceSnapshotName(*r.ko.Spec.SourceSnapshotName)
+		res.SourceSnapshotName = r.ko.Spec.SourceSnapshotName
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 
 	if r.ko.Spec.Name != nil {
-		res.SetTargetSnapshotName(*r.ko.Spec.Name)
+		res.TargetSnapshotName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -264,7 +266,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -274,7 +276,13 @@ func (rm *resourceManager) getTags(
 	if err != nil {
 		return nil, err
 	}
-	tags := resourceTagsFromSDKTags(resp.TagList)
+	tags := make([]*svcapitypes.Tag, len(resp.TagList))
+	for i, tag := range resp.TagList {
+		tags[i] = &svcapitypes.Tag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		}
+	}
 	return tags, nil
 }
 
@@ -315,14 +323,14 @@ func (rm *resourceManager) updateTags(
 	toAdd := FromACKTags(added)
 	toRemove := FromACKTags(removed)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from snapshot", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -337,7 +345,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to snapshot", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -355,10 +363,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -367,11 +375,11 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
-) []*svcapitypes.Tag {
-	tags := make([]*svcapitypes.Tag, len(sdkTags))
+	sdkTags []svcsdktypes.Tag,
+) []svcapitypes.Tag {
+	tags := make([]svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {
-		tags[i] = &svcapitypes.Tag{
+		tags[i] = svcapitypes.Tag{
 			Key:   sdkTags[i].Key,
 			Value: sdkTags[i].Value,
 		}

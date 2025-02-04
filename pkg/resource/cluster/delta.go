@@ -67,6 +67,13 @@ func newResourceDelta(
 			delta.Add("Spec.Description", a.ko.Spec.Description, b.ko.Spec.Description)
 		}
 	}
+	if ackcompare.HasNilDifference(a.ko.Spec.Engine, b.ko.Spec.Engine) {
+		delta.Add("Spec.Engine", a.ko.Spec.Engine, b.ko.Spec.Engine)
+	} else if a.ko.Spec.Engine != nil && b.ko.Spec.Engine != nil {
+		if *a.ko.Spec.Engine != *b.ko.Spec.Engine {
+			delta.Add("Spec.Engine", a.ko.Spec.Engine, b.ko.Spec.Engine)
+		}
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion) {
 		delta.Add("Spec.EngineVersion", a.ko.Spec.EngineVersion, b.ko.Spec.EngineVersion)
 	} else if a.ko.Spec.EngineVersion != nil && b.ko.Spec.EngineVersion != nil {

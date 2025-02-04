@@ -18,7 +18,8 @@ import (
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 )
@@ -28,7 +29,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -38,7 +39,13 @@ func (rm *resourceManager) getTags(
 	if err != nil {
 		return nil, err
 	}
-	tags := resourceTagsFromSDKTags(resp.TagList)
+	tags := make([]*svcapitypes.Tag, len(resp.TagList))
+	for i, tag := range resp.TagList {
+		tags[i] = &svcapitypes.Tag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		}
+	}
 	return tags, nil
 }
 
@@ -62,14 +69,14 @@ func (rm *resourceManager) updateTags(
 	toAdd := FromACKTags(added)
 	toRemove := FromACKTags(removed)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from parameter group", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -84,7 +91,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to parameter group", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -102,10 +109,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -114,11 +121,11 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
-) []*svcapitypes.Tag {
-	tags := make([]*svcapitypes.Tag, len(sdkTags))
+	sdkTags []svcsdktypes.Tag,
+) []svcapitypes.Tag {
+	tags := make([]svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {
-		tags[i] = &svcapitypes.Tag{
+		tags[i] = svcapitypes.Tag{
 			Key:   sdkTags[i].Key,
 			Value: sdkTags[i].Value,
 		}

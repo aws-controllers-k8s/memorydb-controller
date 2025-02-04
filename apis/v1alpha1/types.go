@@ -63,8 +63,8 @@ type Authentication struct {
 // Denotes the user's authentication properties, such as whether it requires
 // a password to authenticate. Used in output responses.
 type AuthenticationMode struct {
-	Passwords []*ackv1alpha1.SecretKeyReference `json:"passwords,omitempty"`
-	Type      *string                           `json:"type_,omitempty"`
+	Passwords []*string `json:"passwords,omitempty"`
+	Type      *string   `json:"type_,omitempty"`
 }
 
 // Indicates if the cluster has a Multi-AZ configuration (multiaz) or not (singleaz).
@@ -75,6 +75,7 @@ type AvailabilityZone struct {
 // A list of cluster configuration options.
 type ClusterConfiguration struct {
 	Description            *string        `json:"description,omitempty"`
+	Engine                 *string        `json:"engine,omitempty"`
 	EngineVersion          *string        `json:"engineVersion,omitempty"`
 	MaintenanceWindow      *string        `json:"maintenanceWindow,omitempty"`
 	Name                   *string        `json:"name,omitempty"`
@@ -107,17 +108,20 @@ type Cluster_SDK struct {
 	AvailabilityMode        *string `json:"availabilityMode,omitempty"`
 	// Represents the information required for client programs to connect to the
 	// cluster and its nodes.
-	ClusterEndpoint      *Endpoint `json:"clusterEndpoint,omitempty"`
-	Description          *string   `json:"description,omitempty"`
-	EnginePatchVersion   *string   `json:"enginePatchVersion,omitempty"`
-	EngineVersion        *string   `json:"engineVersion,omitempty"`
-	KMSKeyID             *string   `json:"kmsKeyID,omitempty"`
-	MaintenanceWindow    *string   `json:"maintenanceWindow,omitempty"`
-	Name                 *string   `json:"name,omitempty"`
-	NodeType             *string   `json:"nodeType,omitempty"`
-	NumberOfShards       *int64    `json:"numberOfShards,omitempty"`
-	ParameterGroupName   *string   `json:"parameterGroupName,omitempty"`
-	ParameterGroupStatus *string   `json:"parameterGroupStatus,omitempty"`
+	ClusterEndpoint        *Endpoint `json:"clusterEndpoint,omitempty"`
+	DataTiering            *string   `json:"dataTiering,omitempty"`
+	Description            *string   `json:"description,omitempty"`
+	Engine                 *string   `json:"engine,omitempty"`
+	EnginePatchVersion     *string   `json:"enginePatchVersion,omitempty"`
+	EngineVersion          *string   `json:"engineVersion,omitempty"`
+	KMSKeyID               *string   `json:"kmsKeyID,omitempty"`
+	MaintenanceWindow      *string   `json:"maintenanceWindow,omitempty"`
+	MultiRegionClusterName *string   `json:"multiRegionClusterName,omitempty"`
+	Name                   *string   `json:"name,omitempty"`
+	NodeType               *string   `json:"nodeType,omitempty"`
+	NumberOfShards         *int64    `json:"numberOfShards,omitempty"`
+	ParameterGroupName     *string   `json:"parameterGroupName,omitempty"`
+	ParameterGroupStatus   *string   `json:"parameterGroupStatus,omitempty"`
 	// A list of updates being applied to the cluster
 	PendingUpdates         *ClusterPendingUpdates     `json:"pendingUpdates,omitempty"`
 	SecurityGroups         []*SecurityGroupMembership `json:"securityGroups,omitempty"`
@@ -138,8 +142,9 @@ type Endpoint struct {
 	Port    *int64  `json:"port,omitempty"`
 }
 
-// Provides details of the Redis engine version
+// Provides details of the Redis OSS engine version
 type EngineVersionInfo struct {
+	Engine               *string `json:"engine,omitempty"`
 	EnginePatchVersion   *string `json:"enginePatchVersion,omitempty"`
 	EngineVersion        *string `json:"engineVersion,omitempty"`
 	ParameterGroupFamily *string `json:"parameterGroupFamily,omitempty"`
@@ -158,6 +163,20 @@ type Event struct {
 type Filter struct {
 	Name   *string   `json:"name,omitempty"`
 	Values []*string `json:"values,omitempty"`
+}
+
+// Represents a multi-Region cluster.
+type MultiRegionCluster struct {
+	ARN                           *string `json:"arn,omitempty"`
+	Description                   *string `json:"description,omitempty"`
+	Engine                        *string `json:"engine,omitempty"`
+	EngineVersion                 *string `json:"engineVersion,omitempty"`
+	MultiRegionClusterName        *string `json:"multiRegionClusterName,omitempty"`
+	MultiRegionParameterGroupName *string `json:"multiRegionParameterGroupName,omitempty"`
+	NodeType                      *string `json:"nodeType,omitempty"`
+	NumberOfShards                *int64  `json:"numberOfShards,omitempty"`
+	Status                        *string `json:"status,omitempty"`
+	TLSEnabled                    *bool   `json:"tlsEnabled,omitempty"`
 }
 
 // Represents an individual node within a cluster. Each node runs its own instance
@@ -205,9 +224,46 @@ type PendingModifiedServiceUpdate struct {
 	Status            *string `json:"status,omitempty"`
 }
 
+// The recurring charge to run this reserved node.
+type RecurringCharge struct {
+	RecurringChargeAmount    *float64 `json:"recurringChargeAmount,omitempty"`
+	RecurringChargeFrequency *string  `json:"recurringChargeFrequency,omitempty"`
+}
+
+// Represents a Regional cluster
+type RegionalCluster struct {
+	ARN         *string `json:"arn,omitempty"`
+	ClusterName *string `json:"clusterName,omitempty"`
+	Region      *string `json:"region,omitempty"`
+	Status      *string `json:"status,omitempty"`
+}
+
 // A request to configure the number of replicas in a shard
 type ReplicaConfigurationRequest struct {
 	ReplicaCount *int64 `json:"replicaCount,omitempty"`
+}
+
+// Represents the output of a PurchaseReservedNodesOffering operation.
+type ReservedNode struct {
+	ARN                     *string      `json:"arn,omitempty"`
+	Duration                *int64       `json:"duration,omitempty"`
+	FixedPrice              *float64     `json:"fixedPrice,omitempty"`
+	NodeCount               *int64       `json:"nodeCount,omitempty"`
+	NodeType                *string      `json:"nodeType,omitempty"`
+	OfferingType            *string      `json:"offeringType,omitempty"`
+	ReservationID           *string      `json:"reservationID,omitempty"`
+	ReservedNodesOfferingID *string      `json:"reservedNodesOfferingID,omitempty"`
+	StartTime               *metav1.Time `json:"startTime,omitempty"`
+	State                   *string      `json:"state,omitempty"`
+}
+
+// The offering type of this node.
+type ReservedNodesOffering struct {
+	Duration                *int64   `json:"duration,omitempty"`
+	FixedPrice              *float64 `json:"fixedPrice,omitempty"`
+	NodeType                *string  `json:"nodeType,omitempty"`
+	OfferingType            *string  `json:"offeringType,omitempty"`
+	ReservedNodesOfferingID *string  `json:"reservedNodesOfferingID,omitempty"`
 }
 
 // The status of the online resharding
@@ -227,6 +283,7 @@ type ServiceUpdate struct {
 	AutoUpdateStartDate *metav1.Time `json:"autoUpdateStartDate,omitempty"`
 	ClusterName         *string      `json:"clusterName,omitempty"`
 	Description         *string      `json:"description,omitempty"`
+	Engine              *string      `json:"engine,omitempty"`
 	NodesUpdated        *string      `json:"nodesUpdated,omitempty"`
 	ReleaseDate         *metav1.Time `json:"releaseDate,omitempty"`
 	ServiceUpdateName   *string      `json:"serviceUpdateName,omitempty"`
@@ -282,6 +339,7 @@ type Snapshot_SDK struct {
 	ARN *string `json:"arn,omitempty"`
 	// A list of cluster configuration options.
 	ClusterConfiguration *ClusterConfiguration `json:"clusterConfiguration,omitempty"`
+	DataTiering          *string               `json:"dataTiering,omitempty"`
 	KMSKeyID             *string               `json:"kmsKeyID,omitempty"`
 	Name                 *string               `json:"name,omitempty"`
 	Source               *string               `json:"source,omitempty"`

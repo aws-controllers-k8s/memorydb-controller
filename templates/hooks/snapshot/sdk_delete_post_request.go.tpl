@@ -1,5 +1,5 @@
     if err == nil {
-	    rp, _ := rm.setSnapshotOutput(r, resp.Snapshot)
+	    rp, _ := rm.setSnapshotOutput(r, *resp.Snapshot)
 	    // Setting resource synced condition to false will trigger a requeue of
 	    // the resource.
 	    ackcondition.SetSynced(

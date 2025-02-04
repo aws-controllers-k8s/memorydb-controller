@@ -14,8 +14,9 @@
 package cluster
 
 import (
-	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	"strconv"
+
+	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 )
 
 const (

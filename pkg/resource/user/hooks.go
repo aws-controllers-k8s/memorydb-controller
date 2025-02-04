@@ -15,15 +15,19 @@ package user
 
 import (
 	"context"
+
 	"github.com/pkg/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	"github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	svcutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 )
 
 var (
@@ -33,6 +37,7 @@ var (
 // validateUserNeedsUpdate this function's purpose is to requeue if the resource is currently unavailable and
 // to validate if resource update is required.
 func (rm *resourceManager) validateUserNeedsUpdate(
+	ctx context.Context,
 	desired *resource,
 	latest *resource,
 	delta *ackcompare.Delta,
@@ -64,14 +69,28 @@ func (rm *resourceManager) getEvents(
 	ctx context.Context,
 	r *resource,
 ) ([]*svcapitypes.Event, error) {
-	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdk.SourceTypeUser, svcutil.MaxEvents)
-	resp, err := rm.sdkapi.DescribeEventsWithContext(ctx, input)
+	maxResults := int32(svcutil.MaxEvents)
+	input := &svcsdk.DescribeEventsInput{
+		SourceName: r.ko.Spec.Name,
+		SourceType: svcsdktypes.SourceTypeUser,
+		MaxResults: &maxResults,
+	}
+	resp, err := rm.sdkapi.DescribeEvents(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeEvents", err)
 	if err != nil {
 		rm.log.V(1).Info("Error during DescribeEvents-User", "error", err)
 		return nil, err
 	}
-	return svcutil.EventsFromDescribe(resp), nil
+	events := make([]*svcapitypes.Event, len(resp.Events))
+	for i, event := range resp.Events {
+		events[i] = &svcapitypes.Event{
+			Date:       &metav1.Time{Time: *event.Date},
+			Message:    event.Message,
+			SourceName: event.SourceName,
+			SourceType: (*string)(&event.SourceType),
+		}
+	}
+	return events, nil
 }
 
 // isUserActive returns true when the status of the given User is set to `active`
@@ -87,7 +106,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -127,14 +146,14 @@ func (rm *resourceManager) updateTags(
 	toAdd := FromACKTags(added)
 	toRemove := FromACKTags(removed)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from user", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -149,7 +168,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to user", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -167,10 +186,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -179,14 +198,42 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
-) []*svcapitypes.Tag {
-	tags := make([]*svcapitypes.Tag, len(sdkTags))
+	sdkTags []svcsdktypes.Tag,
+) []svcapitypes.Tag {
+	tags := make([]svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {
-		tags[i] = &svcapitypes.Tag{
+		tags[i] = svcapitypes.Tag{
 			Key:   sdkTags[i].Key,
 			Value: sdkTags[i].Value,
 		}
 	}
 	return tags
+}
+
+func (rm *resourceManager) resolveUserPasswords(
+	ctx context.Context,
+	secretRefs []*ackv1alpha1.SecretKeyReference,
+) ([]*string, error) {
+	// If no password references
+	if len(secretRefs) == 0 {
+		return nil, nil
+	}
+
+	// This will hold the actual plaintext passwords we read from each Secret
+	var out []*string
+
+	for _, ref := range secretRefs {
+		// 1) Use the ACK runtime method to fetch the plaintext Secret value
+		//    from the Kubernetes Secret indicated by the SecretKeyReference.
+		secretValue, err := rm.rr.SecretValueFromReference(ctx, ref)
+		if err != nil {
+			return nil, err
+		}
+
+		// 2) Append that plaintext password to our out slice.
+		//    We have to pass a *string to MemoryDB
+		out = append(out, &secretValue)
+	}
+
+	return out, nil
 }

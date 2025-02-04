@@ -1,13 +1,13 @@
 	cluster := resp.Clusters[0]
 	if cluster.NumberOfShards != nil {
-		ko.Spec.NumShards = cluster.NumberOfShards
+		ko.Spec.NumShards = aws.Int64(int64(*cluster.NumberOfShards))
 	} else {
 		ko.Spec.NumShards = nil
 	}
 
 	if cluster.Shards != nil && cluster.Shards[0].NumberOfNodes != nil {
 		replicas := *cluster.Shards[0].NumberOfNodes - 1
-		ko.Spec.NumReplicasPerShard = &replicas
+		ko.Spec.NumReplicasPerShard = aws.Int64(int64(replicas))
 	} else {
 		ko.Spec.NumReplicasPerShard = nil
 	}

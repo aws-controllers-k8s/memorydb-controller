@@ -149,6 +149,8 @@ spec:
                 properties:
                   description:
                     type: string
+                  engine:
+                    type: string
                   engineVersion:
                     type: string
                   maintenanceWindow:
@@ -236,6 +238,12 @@ spec:
                   - type
                   type: object
                 type: array
+              dataTiering:
+                description: |-
+                  Enables data tiering. Data tiering is only supported for clusters using the
+                  r6gd node type. This parameter must be set when using r6gd nodes. For more
+                  information, see Data tiering (https://docs.aws.amazon.com/memorydb/latest/devguide/data-tiering.html).
+                type: string
               source:
                 description: |-
                   Indicates whether the snapshot is from an automatic backup (automated) or
