@@ -35,7 +35,7 @@
 				    }
 			    }
 
-			    input.SetUserNamesToAdd(userNamesToAdd)
+				input.UserNamesToAdd = aws.ToStringSlice(userNamesToAdd)
 		    }
 
 		    // User Ids to remove
@@ -48,7 +48,7 @@
 				    }
 			    }
 
-			    input.SetUserNamesToRemove(userNamesToRemove)
+			    input.UserNamesToRemove = aws.ToStringSlice(userNamesToRemove)
 		    }
 	    }
     }

@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.MemoryDB{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.User{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeUsersOutput
-	resp, err = rm.sdkapi.DescribeUsersWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeUsers(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeUsers", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "UserNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "UserNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -89,13 +92,7 @@ func (rm *resourceManager) sdkFind(
 	found := false
 	for _, elem := range resp.Users {
 		if elem.ACLNames != nil {
-			f0 := []*string{}
-			for _, f0iter := range elem.ACLNames {
-				var f0elem string
-				f0elem = *f0iter
-				f0 = append(f0, &f0elem)
-			}
-			ko.Status.ACLNames = f0
+			ko.Status.ACLNames = aws.StringSlice(elem.ACLNames)
 		} else {
 			ko.Status.ACLNames = nil
 		}
@@ -114,10 +111,11 @@ func (rm *resourceManager) sdkFind(
 		if elem.Authentication != nil {
 			f3 := &svcapitypes.Authentication{}
 			if elem.Authentication.PasswordCount != nil {
-				f3.PasswordCount = elem.Authentication.PasswordCount
+				passwordCountCopy := int64(*elem.Authentication.PasswordCount)
+				f3.PasswordCount = &passwordCountCopy
 			}
-			if elem.Authentication.Type != nil {
-				f3.Type = elem.Authentication.Type
+			if elem.Authentication.Type != "" {
+				f3.Type = aws.String(string(elem.Authentication.Type))
 			}
 			ko.Status.Authentication = f3
 		} else {
@@ -181,7 +179,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeUsersInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetUserName(*r.ko.Spec.Name)
+		res.UserName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -203,10 +201,27 @@ func (rm *resourceManager) sdkCreate(
 	if err != nil {
 		return nil, err
 	}
+	if desired.ko.Spec.AuthenticationMode.Passwords != nil {
+		f1f0 := []string{}
+		for _, f1f0iter := range desired.ko.Spec.AuthenticationMode.Passwords {
+			var f1f0elem string
+			if f1f0iter != nil {
+				tmpSecret, err := rm.rr.SecretValueFromReference(ctx, f1f0iter)
+				if err != nil {
+					return nil, ackrequeue.Needed(err)
+				}
+				if tmpSecret != "" {
+					f1f0elem = tmpSecret
+				}
+			}
+			f1f0 = append(f1f0, f1f0elem)
+		}
+		input.AuthenticationMode.Passwords = f1f0
+	}
 
 	var resp *svcsdk.CreateUserOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateUserWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateUser(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateUser", err)
 	if err != nil {
 		return nil, err
@@ -216,13 +231,7 @@ func (rm *resourceManager) sdkCreate(
 	ko := desired.ko.DeepCopy()
 
 	if resp.User.ACLNames != nil {
-		f0 := []*string{}
-		for _, f0iter := range resp.User.ACLNames {
-			var f0elem string
-			f0elem = *f0iter
-			f0 = append(f0, &f0elem)
-		}
-		ko.Status.ACLNames = f0
+		ko.Status.ACLNames = aws.StringSlice(resp.User.ACLNames)
 	} else {
 		ko.Status.ACLNames = nil
 	}
@@ -241,10 +250,11 @@ func (rm *resourceManager) sdkCreate(
 	if resp.User.Authentication != nil {
 		f3 := &svcapitypes.Authentication{}
 		if resp.User.Authentication.PasswordCount != nil {
-			f3.PasswordCount = resp.User.Authentication.PasswordCount
+			passwordCountCopy := int64(*resp.User.Authentication.PasswordCount)
+			f3.PasswordCount = &passwordCountCopy
 		}
-		if resp.User.Authentication.Type != nil {
-			f3.Type = resp.User.Authentication.Type
+		if resp.User.Authentication.Type != "" {
+			f3.Type = aws.String(string(resp.User.Authentication.Type))
 		}
 		ko.Status.Authentication = f3
 	} else {
@@ -280,48 +290,31 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateUserInput{}
 
 	if r.ko.Spec.AccessString != nil {
-		res.SetAccessString(*r.ko.Spec.AccessString)
+		res.AccessString = r.ko.Spec.AccessString
 	}
 	if r.ko.Spec.AuthenticationMode != nil {
-		f1 := &svcsdk.AuthenticationMode{}
-		if r.ko.Spec.AuthenticationMode.Passwords != nil {
-			f1f0 := []*string{}
-			for _, f1f0iter := range r.ko.Spec.AuthenticationMode.Passwords {
-				var f1f0elem string
-				if f1f0iter != nil {
-					tmpSecret, err := rm.rr.SecretValueFromReference(ctx, f1f0iter)
-					if err != nil {
-						return nil, ackrequeue.Needed(err)
-					}
-					if tmpSecret != "" {
-						f1f0elem = tmpSecret
-					}
-				}
-				f1f0 = append(f1f0, &f1f0elem)
-			}
-			f1.SetPasswords(f1f0)
-		}
+		f1 := &svcsdktypes.AuthenticationMode{}
 		if r.ko.Spec.AuthenticationMode.Type != nil {
-			f1.SetType(*r.ko.Spec.AuthenticationMode.Type)
+			f1.Type = svcsdktypes.InputAuthenticationType(*r.ko.Spec.AuthenticationMode.Type)
 		}
-		res.SetAuthenticationMode(f1)
+		res.AuthenticationMode = f1
 	}
 	if r.ko.Spec.Tags != nil {
-		f2 := []*svcsdk.Tag{}
+		f2 := []svcsdktypes.Tag{}
 		for _, f2iter := range r.ko.Spec.Tags {
-			f2elem := &svcsdk.Tag{}
+			f2elem := &svcsdktypes.Tag{}
 			if f2iter.Key != nil {
-				f2elem.SetKey(*f2iter.Key)
+				f2elem.Key = f2iter.Key
 			}
 			if f2iter.Value != nil {
-				f2elem.SetValue(*f2iter.Value)
+				f2elem.Value = f2iter.Value
 			}
-			f2 = append(f2, f2elem)
+			f2 = append(f2, *f2elem)
 		}
-		res.SetTags(f2)
+		res.Tags = f2
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetUserName(*r.ko.Spec.Name)
+		res.UserName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -361,10 +354,27 @@ func (rm *resourceManager) sdkUpdate(
 	if err != nil {
 		return nil, err
 	}
+	if desired.ko.Spec.AuthenticationMode.Passwords != nil {
+		f1f0 := []string{}
+		for _, f1f0iter := range desired.ko.Spec.AuthenticationMode.Passwords {
+			var f1f0elem string
+			if f1f0iter != nil {
+				tmpSecret, err := rm.rr.SecretValueFromReference(ctx, f1f0iter)
+				if err != nil {
+					return nil, ackrequeue.Needed(err)
+				}
+				if tmpSecret != "" {
+					f1f0elem = tmpSecret
+				}
+			}
+			f1f0 = append(f1f0, f1f0elem)
+		}
+		input.AuthenticationMode.Passwords = f1f0
+	}
 
 	var resp *svcsdk.UpdateUserOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateUserWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateUser(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateUser", err)
 	if err != nil {
 		return nil, err
@@ -374,13 +384,7 @@ func (rm *resourceManager) sdkUpdate(
 	ko := desired.ko.DeepCopy()
 
 	if resp.User.ACLNames != nil {
-		f0 := []*string{}
-		for _, f0iter := range resp.User.ACLNames {
-			var f0elem string
-			f0elem = *f0iter
-			f0 = append(f0, &f0elem)
-		}
-		ko.Status.ACLNames = f0
+		ko.Status.ACLNames = aws.StringSlice(resp.User.ACLNames)
 	} else {
 		ko.Status.ACLNames = nil
 	}
@@ -399,10 +403,11 @@ func (rm *resourceManager) sdkUpdate(
 	if resp.User.Authentication != nil {
 		f3 := &svcapitypes.Authentication{}
 		if resp.User.Authentication.PasswordCount != nil {
-			f3.PasswordCount = resp.User.Authentication.PasswordCount
+			passwordCountCopy := int64(*resp.User.Authentication.PasswordCount)
+			f3.PasswordCount = &passwordCountCopy
 		}
-		if resp.User.Authentication.Type != nil {
-			f3.Type = resp.User.Authentication.Type
+		if resp.User.Authentication.Type != "" {
+			f3.Type = aws.String(string(resp.User.Authentication.Type))
 		}
 		ko.Status.Authentication = f3
 	} else {
@@ -439,34 +444,17 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateUserInput{}
 
 	if r.ko.Spec.AccessString != nil {
-		res.SetAccessString(*r.ko.Spec.AccessString)
+		res.AccessString = r.ko.Spec.AccessString
 	}
 	if r.ko.Spec.AuthenticationMode != nil {
-		f1 := &svcsdk.AuthenticationMode{}
-		if r.ko.Spec.AuthenticationMode.Passwords != nil {
-			f1f0 := []*string{}
-			for _, f1f0iter := range r.ko.Spec.AuthenticationMode.Passwords {
-				var f1f0elem string
-				if f1f0iter != nil {
-					tmpSecret, err := rm.rr.SecretValueFromReference(ctx, f1f0iter)
-					if err != nil {
-						return nil, ackrequeue.Needed(err)
-					}
-					if tmpSecret != "" {
-						f1f0elem = tmpSecret
-					}
-				}
-				f1f0 = append(f1f0, &f1f0elem)
-			}
-			f1.SetPasswords(f1f0)
-		}
+		f1 := &svcsdktypes.AuthenticationMode{}
 		if r.ko.Spec.AuthenticationMode.Type != nil {
-			f1.SetType(*r.ko.Spec.AuthenticationMode.Type)
+			f1.Type = svcsdktypes.InputAuthenticationType(*r.ko.Spec.AuthenticationMode.Type)
 		}
-		res.SetAuthenticationMode(f1)
+		res.AuthenticationMode = f1
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetUserName(*r.ko.Spec.Name)
+		res.UserName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -488,7 +476,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteUserOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteUserWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteUser(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteUser", err)
 	return nil, err
 }
@@ -501,7 +489,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteUserInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetUserName(*r.ko.Spec.Name)
+		res.UserName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -609,11 +597,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "UserAlreadyExistsFault",
 		"InvalidParameterValueException",
 		"DuplicateUserNameFault",

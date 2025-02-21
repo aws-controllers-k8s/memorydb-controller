@@ -14,8 +14,9 @@
 package cluster
 
 import (
-	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	"strconv"
+
+	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 )
 
 const (
@@ -33,7 +34,7 @@ const (
 // setNumShardAnnotation sets the AnnotationLastRequestedNumShards annotation for cluster resource
 // This should only be called upon a successful create or modify call.
 func (rm *resourceManager) setNumShardAnnotation(
-	numShards int64,
+	numShards int32,
 	ko *svcapitypes.Cluster,
 ) {
 	if ko.ObjectMeta.Annotations == nil {
@@ -41,13 +42,13 @@ func (rm *resourceManager) setNumShardAnnotation(
 	}
 
 	annotations := ko.ObjectMeta.Annotations
-	annotations[AnnotationLastRequestedNumShards] = strconv.FormatInt(numShards, 10)
+	annotations[AnnotationLastRequestedNumShards] = strconv.FormatInt(int64(numShards), 10)
 }
 
 // setNumReplicasPerShardAnnotation sets the AnnotationLastRequestedNumReplicasPerShard annotation for cluster resource
 // This should only be called upon a successful create or modify call.
 func (rm *resourceManager) setNumReplicasPerShardAnnotation(
-	numReplicasPerShard int64,
+	numReplicasPerShard int32,
 	ko *svcapitypes.Cluster,
 ) {
 	if ko.ObjectMeta.Annotations == nil {
@@ -55,7 +56,7 @@ func (rm *resourceManager) setNumReplicasPerShardAnnotation(
 	}
 
 	annotations := ko.ObjectMeta.Annotations
-	annotations[AnnotationLastRequestedNumReplicasPerShard] = strconv.FormatInt(numReplicasPerShard, 10)
+	annotations[AnnotationLastRequestedNumReplicasPerShard] = strconv.FormatInt(int64(numReplicasPerShard), 10)
 }
 
 // setNodeTypeAnnotation sets the AnnotationLastRequestedNodeType annotation for cluster resource

@@ -28,8 +28,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +42,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.MemoryDB{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Snapshot{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +50,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +75,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeSnapshotsOutput
-	resp, err = rm.sdkapi.DescribeSnapshotsWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeSnapshots(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeSnapshots", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "SnapshotNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "SnapshotNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -113,13 +116,15 @@ func (rm *resourceManager) sdkFind(
 				f1.NodeType = elem.ClusterConfiguration.NodeType
 			}
 			if elem.ClusterConfiguration.NumShards != nil {
-				f1.NumShards = elem.ClusterConfiguration.NumShards
+				numShardsCopy := int64(*elem.ClusterConfiguration.NumShards)
+				f1.NumShards = &numShardsCopy
 			}
 			if elem.ClusterConfiguration.ParameterGroupName != nil {
 				f1.ParameterGroupName = elem.ClusterConfiguration.ParameterGroupName
 			}
 			if elem.ClusterConfiguration.Port != nil {
-				f1.Port = elem.ClusterConfiguration.Port
+				portCopy := int64(*elem.ClusterConfiguration.Port)
+				f1.Port = &portCopy
 			}
 			if elem.ClusterConfiguration.Shards != nil {
 				f1f8 := []*svcapitypes.ShardDetail{}
@@ -128,7 +133,8 @@ func (rm *resourceManager) sdkFind(
 					if f1f8iter.Configuration != nil {
 						f1f8elemf0 := &svcapitypes.ShardConfiguration{}
 						if f1f8iter.Configuration.ReplicaCount != nil {
-							f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+							replicaCountCopy := int64(*f1f8iter.Configuration.ReplicaCount)
+							f1f8elemf0.ReplicaCount = &replicaCountCopy
 						}
 						if f1f8iter.Configuration.Slots != nil {
 							f1f8elemf0.Slots = f1f8iter.Configuration.Slots
@@ -149,7 +155,8 @@ func (rm *resourceManager) sdkFind(
 				f1.Shards = f1f8
 			}
 			if elem.ClusterConfiguration.SnapshotRetentionLimit != nil {
-				f1.SnapshotRetentionLimit = elem.ClusterConfiguration.SnapshotRetentionLimit
+				snapshotRetentionLimitCopy := int64(*elem.ClusterConfiguration.SnapshotRetentionLimit)
+				f1.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 			}
 			if elem.ClusterConfiguration.SnapshotWindow != nil {
 				f1.SnapshotWindow = elem.ClusterConfiguration.SnapshotWindow
@@ -231,7 +238,7 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeSnapshotsInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -260,7 +267,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateSnapshot", err)
 	if err != nil {
 		return nil, err
@@ -294,13 +301,15 @@ func (rm *resourceManager) sdkCreate(
 			f1.NodeType = resp.Snapshot.ClusterConfiguration.NodeType
 		}
 		if resp.Snapshot.ClusterConfiguration.NumShards != nil {
-			f1.NumShards = resp.Snapshot.ClusterConfiguration.NumShards
+			numShardsCopy := int64(*resp.Snapshot.ClusterConfiguration.NumShards)
+			f1.NumShards = &numShardsCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.ParameterGroupName != nil {
 			f1.ParameterGroupName = resp.Snapshot.ClusterConfiguration.ParameterGroupName
 		}
 		if resp.Snapshot.ClusterConfiguration.Port != nil {
-			f1.Port = resp.Snapshot.ClusterConfiguration.Port
+			portCopy := int64(*resp.Snapshot.ClusterConfiguration.Port)
+			f1.Port = &portCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.Shards != nil {
 			f1f8 := []*svcapitypes.ShardDetail{}
@@ -309,7 +318,8 @@ func (rm *resourceManager) sdkCreate(
 				if f1f8iter.Configuration != nil {
 					f1f8elemf0 := &svcapitypes.ShardConfiguration{}
 					if f1f8iter.Configuration.ReplicaCount != nil {
-						f1f8elemf0.ReplicaCount = f1f8iter.Configuration.ReplicaCount
+						replicaCountCopy := int64(*f1f8iter.Configuration.ReplicaCount)
+						f1f8elemf0.ReplicaCount = &replicaCountCopy
 					}
 					if f1f8iter.Configuration.Slots != nil {
 						f1f8elemf0.Slots = f1f8iter.Configuration.Slots
@@ -330,7 +340,8 @@ func (rm *resourceManager) sdkCreate(
 			f1.Shards = f1f8
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit != nil {
-			f1.SnapshotRetentionLimit = resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit
+			snapshotRetentionLimitCopy := int64(*resp.Snapshot.ClusterConfiguration.SnapshotRetentionLimit)
+			f1.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 		}
 		if resp.Snapshot.ClusterConfiguration.SnapshotWindow != nil {
 			f1.SnapshotWindow = resp.Snapshot.ClusterConfiguration.SnapshotWindow
@@ -387,27 +398,27 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateSnapshotInput{}
 
 	if r.ko.Spec.ClusterName != nil {
-		res.SetClusterName(*r.ko.Spec.ClusterName)
+		res.ClusterName = r.ko.Spec.ClusterName
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Tags != nil {
-		f3 := []*svcsdk.Tag{}
+		f3 := []svcsdktypes.Tag{}
 		for _, f3iter := range r.ko.Spec.Tags {
-			f3elem := &svcsdk.Tag{}
+			f3elem := &svcsdktypes.Tag{}
 			if f3iter.Key != nil {
-				f3elem.SetKey(*f3iter.Key)
+				f3elem.Key = f3iter.Key
 			}
 			if f3iter.Value != nil {
-				f3elem.SetValue(*f3iter.Value)
+				f3elem.Value = f3iter.Value
 			}
-			f3 = append(f3, f3elem)
+			f3 = append(f3, *f3elem)
 		}
-		res.SetTags(f3)
+		res.Tags = f3
 	}
 
 	return res, nil
@@ -461,7 +472,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteSnapshotOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteSnapshotWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteSnapshot(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteSnapshot", err)
 	if err == nil {
 		rp, _ := rm.setSnapshotOutput(r, resp.Snapshot)
@@ -491,7 +502,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteSnapshotInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetSnapshotName(*r.ko.Spec.Name)
+		res.SnapshotName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -599,11 +610,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "InvalidParameterCombinationException",
 		"InvalidParameterValueException",
 		"InvalidParameter",

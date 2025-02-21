@@ -1,7 +1,19 @@
 ignore:
+  resource_names:
+    - MultiRegionCluster
   field_paths:
     - DescribeSnapshotsInput.ClusterName
     - DescribeSnapshotsInput.Source
+    - CreateClusterInput.DataTiering
+    - CreateClusterInput.Engine
+    - CreateClusterInput.MultiRegionClusterName
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.Engine
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.MultiRegionClusterName
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.MultiRegionParameterGroupName
+    - CreateSnapshotOutput.Snapshot.DataTiering
+    - CreateClusterOutput.Cluster.DataTiering
+    - CreateClusterOutput.Cluster.Engine
+    - CreateClusterOutput.Cluster.MultiRegionClusterName
 resources:
   Cluster:
     exceptions:
@@ -195,6 +207,8 @@ resources:
         is_secret: true
         compare:
           is_ignored: true
+        set:
+        - ignore: all
       Events:
         is_read_only: true
         from:
@@ -209,6 +223,10 @@ resources:
         code: "rm.setAnnotationsFields(desired, ko)"
       sdk_update_pre_build_request:
         template_path: hooks/user/sdk_update_pre_build_request.go.tpl
+      sdk_update_post_build_request:
+        template_path: hooks/user/sdk_update_post_build_request.go.tpl
+      sdk_create_post_build_request:
+        template_path: hooks/user/sdk_create_post_build_request.go.tpl
     renames:
       operations:
         CreateUser:
@@ -336,4 +354,4 @@ resources:
 operations:
   DescribeClusters:
     override_values:
-      ShowShardDetails: true
+      ShowShardDetails: aws.Bool(true)

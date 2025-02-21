@@ -16,7 +16,9 @@ package util
 import (
 	"time"
 
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 	"github.com/samber/lo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,14 +35,14 @@ var (
 
 func NewDescribeEventsInput(
 	sourceName string,
-	sourceType string,
+	sourceType svcsdktypes.SourceType,
 	maxResults int64,
 ) *svcsdk.DescribeEventsInput {
 	input := &svcsdk.DescribeEventsInput{}
-	input.SetSourceType(sourceType)
-	input.SetSourceName(sourceName)
-	input.SetMaxResults(maxResults)
-	input.SetDuration(int64(eventsDuration.Minutes()))
+	input.SourceType = sourceType
+	input.SourceName = &sourceName
+	input.MaxResults = aws.Int32(int32(maxResults))
+	input.Duration = aws.Int32(int32(eventsDuration.Minutes()))
 	return input
 }
 
@@ -49,7 +51,7 @@ func NewDescribeEventsInput(
 func EventsFromDescribe(
 	resp *svcsdk.DescribeEventsOutput,
 ) []*svcapitypes.Event {
-	events := lo.Map(resp.Events, func(respEvent *svcsdk.Event, index int) *svcapitypes.Event {
+	events := lo.Map(resp.Events, func(respEvent svcsdktypes.Event, index int) *svcapitypes.Event {
 		event := &svcapitypes.Event{
 			Message: respEvent.Message,
 		}

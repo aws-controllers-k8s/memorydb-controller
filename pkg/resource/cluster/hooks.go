@@ -23,7 +23,9 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	svcutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
@@ -98,13 +100,13 @@ func (rm *resourceManager) setAllowedNodeTypeUpdates(
 		return nil
 	}
 
-	response, respErr := rm.sdkapi.ListAllowedNodeTypeUpdatesWithContext(ctx, &svcsdk.ListAllowedNodeTypeUpdatesInput{
+	response, respErr := rm.sdkapi.ListAllowedNodeTypeUpdates(ctx, &svcsdk.ListAllowedNodeTypeUpdatesInput{
 		ClusterName: ko.Spec.Name,
 	})
 	rm.metrics.RecordAPICall("GET", "ListAllowedNodeTypeUpdates", respErr)
 	if respErr == nil {
-		ko.Status.AllowedScaleDownNodeTypes = response.ScaleDownNodeTypes
-		ko.Status.AllowedScaleUpNodeTypes = response.ScaleUpNodeTypes
+		ko.Status.AllowedScaleDownNodeTypes = aws.StringSlice(response.ScaleDownNodeTypes)
+		ko.Status.AllowedScaleUpNodeTypes = aws.StringSlice(response.ScaleUpNodeTypes)
 	}
 
 	return respErr
@@ -169,19 +171,19 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	res := &svcsdk.UpdateClusterInput{}
 
 	if delta.DifferentAt("Spec.ACLName") && desired.ko.Spec.ACLName != nil {
-		res.SetACLName(*desired.ko.Spec.ACLName)
+		res.ACLName = desired.ko.Spec.ACLName
 	}
 	if desired.ko.Spec.Name != nil {
-		res.SetClusterName(*desired.ko.Spec.Name)
+		res.ClusterName = desired.ko.Spec.Name
 	}
 	if delta.DifferentAt("Spec.Description") && desired.ko.Spec.Description != nil {
-		res.SetDescription(*desired.ko.Spec.Description)
+		res.Description = desired.ko.Spec.Description
 	}
 	if delta.DifferentAt("Spec.MaintenanceWindow") && desired.ko.Spec.MaintenanceWindow != nil {
-		res.SetMaintenanceWindow(*desired.ko.Spec.MaintenanceWindow)
+		res.MaintenanceWindow = desired.ko.Spec.MaintenanceWindow
 	}
 	if delta.DifferentAt("Spec.ParameterGroupName") && desired.ko.Spec.ParameterGroupName != nil {
-		res.SetParameterGroupName(*desired.ko.Spec.ParameterGroupName)
+		res.ParameterGroupName = desired.ko.Spec.ParameterGroupName
 	}
 	if delta.DifferentAt("Spec.SecurityGroupIDs") && desired.ko.Spec.SecurityGroupIDs != nil {
 		f8 := []*string{}
@@ -190,23 +192,23 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 			f8elem = *f8iter
 			f8 = append(f8, &f8elem)
 		}
-		res.SetSecurityGroupIds(f8)
+		res.SecurityGroupIds = aws.ToStringSlice(f8)
 	}
 	if delta.DifferentAt("Spec.SnapshotRetentionLimit") && desired.ko.Spec.SnapshotRetentionLimit != nil {
-		res.SetSnapshotRetentionLimit(*desired.ko.Spec.SnapshotRetentionLimit)
+		res.SnapshotRetentionLimit = svcutil.Int32OrNil(desired.ko.Spec.SnapshotRetentionLimit)
 	}
 	if delta.DifferentAt("Spec.SnapshotWindow") && desired.ko.Spec.SnapshotWindow != nil {
-		res.SetSnapshotWindow(*desired.ko.Spec.SnapshotWindow)
+		res.SnapshotWindow = desired.ko.Spec.SnapshotWindow
 	}
 	if delta.DifferentAt("Spec.SNSTopicARN") && desired.ko.Spec.SNSTopicARN != nil {
-		res.SetSnsTopicArn(*desired.ko.Spec.SNSTopicARN)
+		res.SnsTopicArn = desired.ko.Spec.SNSTopicARN
 	}
 	if delta.DifferentAt("Spec.SNSTopicStatus") && desired.ko.Status.SNSTopicStatus != nil {
-		res.SetSnsTopicStatus(*desired.ko.Status.SNSTopicStatus)
+		res.SnsTopicStatus = desired.ko.Status.SNSTopicStatus
 	}
 
 	if delta.DifferentAt("Spec.EngineVersion") && desired.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*desired.ko.Spec.EngineVersion)
+		res.EngineVersion = desired.ko.Spec.EngineVersion
 	}
 
 	// Determine if we are trying to scale up an instance
@@ -234,22 +236,22 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	// This means we are not scaling out, so we can perform scale up/down. Reason we give preference to scale down
 	// instead of scale in is we perform scale down and update engine version together.
 	if scaleUpUpdate {
-		res.SetNodeType(*desired.ko.Spec.NodeType)
+		res.NodeType = desired.ko.Spec.NodeType
 	}
 
 	engineUpgradeOrScaling := delta.DifferentAt("Spec.EngineVersion") || scaleUpUpdate
 
 	if !engineUpgradeOrScaling && delta.DifferentAt("Spec.NumShards") && desired.ko.Spec.NumShards != nil {
-		shardConfig := &svcsdk.ShardConfigurationRequest{}
-		shardConfig.SetShardCount(*desired.ko.Spec.NumShards)
-		res.SetShardConfiguration(shardConfig)
+		shardConfig := &svcsdktypes.ShardConfigurationRequest{}
+		shardConfig.ShardCount = int32(*desired.ko.Spec.NumShards)
+		res.ShardConfiguration = shardConfig
 	}
 
 	reSharding := delta.DifferentAt("Spec.NumShards")
 
 	// Ensure no resharding would be done in API call
 	if !reSharding && delta.DifferentAt("Spec.NodeType") && desired.ko.Spec.NodeType != nil {
-		res.SetNodeType(*desired.ko.Spec.NodeType)
+		res.NodeType = desired.ko.Spec.NodeType
 	}
 
 	// If no scaling or engine upgrade then perform replica scaling.
@@ -257,9 +259,9 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 
 	if !engineUpgradeOrScaling && !reSharding &&
 		delta.DifferentAt("Spec.NumReplicasPerShard") && desired.ko.Spec.NumReplicasPerShard != nil {
-		replicaConfig := &svcsdk.ReplicaConfigurationRequest{}
-		replicaConfig.SetReplicaCount(*desired.ko.Spec.NumReplicasPerShard)
-		res.SetReplicaConfiguration(replicaConfig)
+		replicaConfig := &svcsdktypes.ReplicaConfigurationRequest{}
+		replicaConfig.ReplicaCount = *svcutil.Int32OrNil(desired.ko.Spec.NumReplicasPerShard)
+		res.ReplicaConfiguration = replicaConfig
 	}
 
 	return res
@@ -270,8 +272,8 @@ func (rm *resourceManager) getEvents(
 	ctx context.Context,
 	r *resource,
 ) ([]*svcapitypes.Event, error) {
-	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdk.SourceTypeCluster, svcutil.MaxEvents)
-	resp, err := rm.sdkapi.DescribeEventsWithContext(ctx, input)
+	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdktypes.SourceTypeCluster, svcutil.MaxEvents)
+	resp, err := rm.sdkapi.DescribeEvents(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeEvents", err)
 	if err != nil {
 		rm.log.V(1).Info("Error during DescribeEvents-Cluster", "error", err)
@@ -293,7 +295,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -327,14 +329,14 @@ func (rm *resourceManager) updateTags(
 	toAdd := FromACKTags(added)
 	toRemove := FromACKTags(removed)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from cluster", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -349,7 +351,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to cluster", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -367,10 +369,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -379,7 +381,7 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
+	sdkTags []svcsdktypes.Tag,
 ) []*svcapitypes.Tag {
 	tags := make([]*svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {

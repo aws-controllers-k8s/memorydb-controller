@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -28,8 +29,10 @@ import (
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	"github.com/aws/aws-sdk-go/aws"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
+	smithy "github.com/aws/smithy-go"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -40,8 +43,7 @@ import (
 var (
 	_ = &metav1.Time{}
 	_ = strings.ToLower("")
-	_ = &aws.JSONValue{}
-	_ = &svcsdk.MemoryDB{}
+	_ = &svcsdk.Client{}
 	_ = &svcapitypes.Cluster{}
 	_ = ackv1alpha1.AWSAccountID("")
 	_ = &ackerr.NotFound
@@ -49,6 +51,7 @@ var (
 	_ = &reflect.Value{}
 	_ = fmt.Sprintf("")
 	_ = &ackrequeue.NoRequeue{}
+	_ = &aws.Config{}
 )
 
 // sdkFind returns SDK-specific information about a supplied resource
@@ -73,10 +76,11 @@ func (rm *resourceManager) sdkFind(
 		return nil, err
 	}
 	var resp *svcsdk.DescribeClustersOutput
-	resp, err = rm.sdkapi.DescribeClustersWithContext(ctx, input)
+	resp, err = rm.sdkapi.DescribeClusters(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeClusters", err)
 	if err != nil {
-		if awsErr, ok := ackerr.AWSError(err); ok && awsErr.Code() == "ClusterNotFoundFault" {
+		var awsErr smithy.APIError
+		if errors.As(err, &awsErr) && awsErr.ErrorCode() == "ClusterNotFoundFault" {
 			return nil, ackerr.NotFound
 		}
 		return nil, err
@@ -105,8 +109,8 @@ func (rm *resourceManager) sdkFind(
 		} else {
 			ko.Spec.AutoMinorVersionUpgrade = nil
 		}
-		if elem.AvailabilityMode != nil {
-			ko.Status.AvailabilityMode = elem.AvailabilityMode
+		if elem.AvailabilityMode != "" {
+			ko.Status.AvailabilityMode = aws.String(string(elem.AvailabilityMode))
 		} else {
 			ko.Status.AvailabilityMode = nil
 		}
@@ -115,9 +119,8 @@ func (rm *resourceManager) sdkFind(
 			if elem.ClusterEndpoint.Address != nil {
 				f4.Address = elem.ClusterEndpoint.Address
 			}
-			if elem.ClusterEndpoint.Port != nil {
-				f4.Port = elem.ClusterEndpoint.Port
-			}
+			portCopy := int64(elem.ClusterEndpoint.Port)
+			f4.Port = &portCopy
 			ko.Status.ClusterEndpoint = f4
 		} else {
 			ko.Status.ClusterEndpoint = nil
@@ -158,7 +161,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Spec.NodeType = nil
 		}
 		if elem.NumberOfShards != nil {
-			ko.Status.NumberOfShards = elem.NumberOfShards
+			numberOfShardsCopy := int64(*elem.NumberOfShards)
+			ko.Status.NumberOfShards = &numberOfShardsCopy
 		} else {
 			ko.Status.NumberOfShards = nil
 		}
@@ -185,9 +189,7 @@ func (rm *resourceManager) sdkFind(
 				f15f1 := &svcapitypes.ReshardingStatus{}
 				if elem.PendingUpdates.Resharding.SlotMigration != nil {
 					f15f1f0 := &svcapitypes.SlotMigration{}
-					if elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-						f15f1f0.ProgressPercentage = elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
-					}
+					f15f1f0.ProgressPercentage = &elem.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 					f15f1.SlotMigration = f15f1f0
 				}
 				f15.Resharding = f15f1
@@ -199,8 +201,8 @@ func (rm *resourceManager) sdkFind(
 					if f15f2iter.ServiceUpdateName != nil {
 						f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
 					}
-					if f15f2iter.Status != nil {
-						f15f2elem.Status = f15f2iter.Status
+					if f15f2iter.Status != "" {
+						f15f2elem.Status = aws.String(string(f15f2iter.Status))
 					}
 					f15f2 = append(f15f2, f15f2elem)
 				}
@@ -248,9 +250,8 @@ func (rm *resourceManager) sdkFind(
 							if f17elemf1iter.Endpoint.Address != nil {
 								f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
 							}
-							if f17elemf1iter.Endpoint.Port != nil {
-								f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-							}
+							portCopy := int64(f17elemf1iter.Endpoint.Port)
+							f17elemf1elemf2.Port = &portCopy
 							f17elemf1elem.Endpoint = f17elemf1elemf2
 						}
 						if f17elemf1iter.Name != nil {
@@ -264,7 +265,8 @@ func (rm *resourceManager) sdkFind(
 					f17elem.Nodes = f17elemf1
 				}
 				if f17iter.NumberOfNodes != nil {
-					f17elem.NumberOfNodes = f17iter.NumberOfNodes
+					numberOfNodesCopy := int64(*f17iter.NumberOfNodes)
+					f17elem.NumberOfNodes = &numberOfNodesCopy
 				}
 				if f17iter.Slots != nil {
 					f17elem.Slots = f17iter.Slots
@@ -279,7 +281,8 @@ func (rm *resourceManager) sdkFind(
 			ko.Status.Shards = nil
 		}
 		if elem.SnapshotRetentionLimit != nil {
-			ko.Spec.SnapshotRetentionLimit = elem.SnapshotRetentionLimit
+			snapshotRetentionLimitCopy := int64(*elem.SnapshotRetentionLimit)
+			ko.Spec.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 		} else {
 			ko.Spec.SnapshotRetentionLimit = nil
 		}
@@ -323,14 +326,14 @@ func (rm *resourceManager) sdkFind(
 	rm.setStatusDefaults(ko)
 	cluster := resp.Clusters[0]
 	if cluster.NumberOfShards != nil {
-		ko.Spec.NumShards = cluster.NumberOfShards
+		ko.Spec.NumShards = aws.Int64(int64(*cluster.NumberOfShards))
 	} else {
 		ko.Spec.NumShards = nil
 	}
 
 	if cluster.Shards != nil && cluster.Shards[0].NumberOfNodes != nil {
 		replicas := *cluster.Shards[0].NumberOfNodes - 1
-		ko.Spec.NumReplicasPerShard = &replicas
+		ko.Spec.NumReplicasPerShard = aws.Int64(int64(replicas))
 	} else {
 		ko.Spec.NumReplicasPerShard = nil
 	}
@@ -387,9 +390,9 @@ func (rm *resourceManager) newListRequestPayload(
 	res := &svcsdk.DescribeClustersInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetClusterName(*r.ko.Spec.Name)
+		res.ClusterName = r.ko.Spec.Name
 	}
-	res.SetShowShardDetails(true)
+	res.ShowShardDetails = aws.Bool(true)
 
 	return res, nil
 }
@@ -413,7 +416,7 @@ func (rm *resourceManager) sdkCreate(
 
 	var resp *svcsdk.CreateClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.CreateClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.CreateCluster(ctx, input)
 	rm.metrics.RecordAPICall("CREATE", "CreateCluster", err)
 	if err != nil {
 		return nil, err
@@ -439,8 +442,8 @@ func (rm *resourceManager) sdkCreate(
 	} else {
 		ko.Spec.AutoMinorVersionUpgrade = nil
 	}
-	if resp.Cluster.AvailabilityMode != nil {
-		ko.Status.AvailabilityMode = resp.Cluster.AvailabilityMode
+	if resp.Cluster.AvailabilityMode != "" {
+		ko.Status.AvailabilityMode = aws.String(string(resp.Cluster.AvailabilityMode))
 	} else {
 		ko.Status.AvailabilityMode = nil
 	}
@@ -449,9 +452,8 @@ func (rm *resourceManager) sdkCreate(
 		if resp.Cluster.ClusterEndpoint.Address != nil {
 			f4.Address = resp.Cluster.ClusterEndpoint.Address
 		}
-		if resp.Cluster.ClusterEndpoint.Port != nil {
-			f4.Port = resp.Cluster.ClusterEndpoint.Port
-		}
+		portCopy := int64(resp.Cluster.ClusterEndpoint.Port)
+		f4.Port = &portCopy
 		ko.Status.ClusterEndpoint = f4
 	} else {
 		ko.Status.ClusterEndpoint = nil
@@ -492,7 +494,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Spec.NodeType = nil
 	}
 	if resp.Cluster.NumberOfShards != nil {
-		ko.Status.NumberOfShards = resp.Cluster.NumberOfShards
+		numberOfShardsCopy := int64(*resp.Cluster.NumberOfShards)
+		ko.Status.NumberOfShards = &numberOfShardsCopy
 	} else {
 		ko.Status.NumberOfShards = nil
 	}
@@ -519,9 +522,7 @@ func (rm *resourceManager) sdkCreate(
 			f15f1 := &svcapitypes.ReshardingStatus{}
 			if resp.Cluster.PendingUpdates.Resharding.SlotMigration != nil {
 				f15f1f0 := &svcapitypes.SlotMigration{}
-				if resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-					f15f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
-				}
+				f15f1f0.ProgressPercentage = &resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 				f15f1.SlotMigration = f15f1f0
 			}
 			f15.Resharding = f15f1
@@ -533,8 +534,8 @@ func (rm *resourceManager) sdkCreate(
 				if f15f2iter.ServiceUpdateName != nil {
 					f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
 				}
-				if f15f2iter.Status != nil {
-					f15f2elem.Status = f15f2iter.Status
+				if f15f2iter.Status != "" {
+					f15f2elem.Status = aws.String(string(f15f2iter.Status))
 				}
 				f15f2 = append(f15f2, f15f2elem)
 			}
@@ -582,9 +583,8 @@ func (rm *resourceManager) sdkCreate(
 						if f17elemf1iter.Endpoint.Address != nil {
 							f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
 						}
-						if f17elemf1iter.Endpoint.Port != nil {
-							f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-						}
+						portCopy := int64(f17elemf1iter.Endpoint.Port)
+						f17elemf1elemf2.Port = &portCopy
 						f17elemf1elem.Endpoint = f17elemf1elemf2
 					}
 					if f17elemf1iter.Name != nil {
@@ -598,7 +598,8 @@ func (rm *resourceManager) sdkCreate(
 				f17elem.Nodes = f17elemf1
 			}
 			if f17iter.NumberOfNodes != nil {
-				f17elem.NumberOfNodes = f17iter.NumberOfNodes
+				numberOfNodesCopy := int64(*f17iter.NumberOfNodes)
+				f17elem.NumberOfNodes = &numberOfNodesCopy
 			}
 			if f17iter.Slots != nil {
 				f17elem.Slots = f17iter.Slots
@@ -613,7 +614,8 @@ func (rm *resourceManager) sdkCreate(
 		ko.Status.Shards = nil
 	}
 	if resp.Cluster.SnapshotRetentionLimit != nil {
-		ko.Spec.SnapshotRetentionLimit = resp.Cluster.SnapshotRetentionLimit
+		snapshotRetentionLimitCopy := int64(*resp.Cluster.SnapshotRetentionLimit)
+		ko.Spec.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 	} else {
 		ko.Spec.SnapshotRetentionLimit = nil
 	}
@@ -656,7 +658,9 @@ func (rm *resourceManager) sdkCreate(
 	}
 
 	// Update the annotations to handle async rollback
-	rm.setNodeTypeAnnotation(input.NodeType, ko)
+	if input.NodeType != nil {
+		rm.setNodeTypeAnnotation(input.NodeType, ko)
+	}
 	if input.NumReplicasPerShard != nil {
 		rm.setNumReplicasPerShardAnnotation(*input.NumReplicasPerShard, ko)
 	}
@@ -676,90 +680,98 @@ func (rm *resourceManager) newCreateRequestPayload(
 	res := &svcsdk.CreateClusterInput{}
 
 	if r.ko.Spec.ACLName != nil {
-		res.SetACLName(*r.ko.Spec.ACLName)
+		res.ACLName = r.ko.Spec.ACLName
 	}
 	if r.ko.Spec.AutoMinorVersionUpgrade != nil {
-		res.SetAutoMinorVersionUpgrade(*r.ko.Spec.AutoMinorVersionUpgrade)
+		res.AutoMinorVersionUpgrade = r.ko.Spec.AutoMinorVersionUpgrade
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetClusterName(*r.ko.Spec.Name)
+		res.ClusterName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Description != nil {
-		res.SetDescription(*r.ko.Spec.Description)
+		res.Description = r.ko.Spec.Description
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.KMSKeyID != nil {
-		res.SetKmsKeyId(*r.ko.Spec.KMSKeyID)
+		res.KmsKeyId = r.ko.Spec.KMSKeyID
 	}
 	if r.ko.Spec.MaintenanceWindow != nil {
-		res.SetMaintenanceWindow(*r.ko.Spec.MaintenanceWindow)
+		res.MaintenanceWindow = r.ko.Spec.MaintenanceWindow
 	}
 	if r.ko.Spec.NodeType != nil {
-		res.SetNodeType(*r.ko.Spec.NodeType)
+		res.NodeType = r.ko.Spec.NodeType
 	}
 	if r.ko.Spec.NumReplicasPerShard != nil {
-		res.SetNumReplicasPerShard(*r.ko.Spec.NumReplicasPerShard)
+		numReplicasPerShardCopy0 := *r.ko.Spec.NumReplicasPerShard
+		if numReplicasPerShardCopy0 > math.MaxInt32 || numReplicasPerShardCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field NumReplicasPerShard is of type int32")
+		}
+		numReplicasPerShardCopy := int32(numReplicasPerShardCopy0)
+		res.NumReplicasPerShard = &numReplicasPerShardCopy
 	}
 	if r.ko.Spec.NumShards != nil {
-		res.SetNumShards(*r.ko.Spec.NumShards)
+		numShardsCopy0 := *r.ko.Spec.NumShards
+		if numShardsCopy0 > math.MaxInt32 || numShardsCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field NumShards is of type int32")
+		}
+		numShardsCopy := int32(numShardsCopy0)
+		res.NumShards = &numShardsCopy
 	}
 	if r.ko.Spec.ParameterGroupName != nil {
-		res.SetParameterGroupName(*r.ko.Spec.ParameterGroupName)
+		res.ParameterGroupName = r.ko.Spec.ParameterGroupName
 	}
 	if r.ko.Spec.Port != nil {
-		res.SetPort(*r.ko.Spec.Port)
+		portCopy0 := *r.ko.Spec.Port
+		if portCopy0 > math.MaxInt32 || portCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field Port is of type int32")
+		}
+		portCopy := int32(portCopy0)
+		res.Port = &portCopy
 	}
 	if r.ko.Spec.SecurityGroupIDs != nil {
-		f12 := []*string{}
-		for _, f12iter := range r.ko.Spec.SecurityGroupIDs {
-			var f12elem string
-			f12elem = *f12iter
-			f12 = append(f12, &f12elem)
-		}
-		res.SetSecurityGroupIds(f12)
+		res.SecurityGroupIds = aws.ToStringSlice(r.ko.Spec.SecurityGroupIDs)
 	}
 	if r.ko.Spec.SnapshotARNs != nil {
-		f13 := []*string{}
-		for _, f13iter := range r.ko.Spec.SnapshotARNs {
-			var f13elem string
-			f13elem = *f13iter
-			f13 = append(f13, &f13elem)
-		}
-		res.SetSnapshotArns(f13)
+		res.SnapshotArns = aws.ToStringSlice(r.ko.Spec.SnapshotARNs)
 	}
 	if r.ko.Spec.SnapshotName != nil {
-		res.SetSnapshotName(*r.ko.Spec.SnapshotName)
+		res.SnapshotName = r.ko.Spec.SnapshotName
 	}
 	if r.ko.Spec.SnapshotRetentionLimit != nil {
-		res.SetSnapshotRetentionLimit(*r.ko.Spec.SnapshotRetentionLimit)
+		snapshotRetentionLimitCopy0 := *r.ko.Spec.SnapshotRetentionLimit
+		if snapshotRetentionLimitCopy0 > math.MaxInt32 || snapshotRetentionLimitCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field SnapshotRetentionLimit is of type int32")
+		}
+		snapshotRetentionLimitCopy := int32(snapshotRetentionLimitCopy0)
+		res.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 	}
 	if r.ko.Spec.SnapshotWindow != nil {
-		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
+		res.SnapshotWindow = r.ko.Spec.SnapshotWindow
 	}
 	if r.ko.Spec.SNSTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
+		res.SnsTopicArn = r.ko.Spec.SNSTopicARN
 	}
 	if r.ko.Spec.SubnetGroupName != nil {
-		res.SetSubnetGroupName(*r.ko.Spec.SubnetGroupName)
+		res.SubnetGroupName = r.ko.Spec.SubnetGroupName
 	}
 	if r.ko.Spec.TLSEnabled != nil {
-		res.SetTLSEnabled(*r.ko.Spec.TLSEnabled)
+		res.TLSEnabled = r.ko.Spec.TLSEnabled
 	}
 	if r.ko.Spec.Tags != nil {
-		f20 := []*svcsdk.Tag{}
+		f20 := []svcsdktypes.Tag{}
 		for _, f20iter := range r.ko.Spec.Tags {
-			f20elem := &svcsdk.Tag{}
+			f20elem := &svcsdktypes.Tag{}
 			if f20iter.Key != nil {
-				f20elem.SetKey(*f20iter.Key)
+				f20elem.Key = f20iter.Key
 			}
 			if f20iter.Value != nil {
-				f20elem.SetValue(*f20iter.Value)
+				f20elem.Value = f20iter.Value
 			}
-			f20 = append(f20, f20elem)
+			f20 = append(f20, *f20elem)
 		}
-		res.SetTags(f20)
+		res.Tags = f20
 	}
 
 	return res, nil
@@ -803,7 +815,7 @@ func (rm *resourceManager) sdkUpdate(
 
 	var resp *svcsdk.UpdateClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.UpdateClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.UpdateCluster(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "UpdateCluster", err)
 	if err != nil {
 		return nil, err
@@ -829,8 +841,8 @@ func (rm *resourceManager) sdkUpdate(
 	} else {
 		ko.Spec.AutoMinorVersionUpgrade = nil
 	}
-	if resp.Cluster.AvailabilityMode != nil {
-		ko.Status.AvailabilityMode = resp.Cluster.AvailabilityMode
+	if resp.Cluster.AvailabilityMode != "" {
+		ko.Status.AvailabilityMode = aws.String(string(resp.Cluster.AvailabilityMode))
 	} else {
 		ko.Status.AvailabilityMode = nil
 	}
@@ -839,9 +851,8 @@ func (rm *resourceManager) sdkUpdate(
 		if resp.Cluster.ClusterEndpoint.Address != nil {
 			f4.Address = resp.Cluster.ClusterEndpoint.Address
 		}
-		if resp.Cluster.ClusterEndpoint.Port != nil {
-			f4.Port = resp.Cluster.ClusterEndpoint.Port
-		}
+		portCopy := int64(resp.Cluster.ClusterEndpoint.Port)
+		f4.Port = &portCopy
 		ko.Status.ClusterEndpoint = f4
 	} else {
 		ko.Status.ClusterEndpoint = nil
@@ -882,7 +893,8 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Spec.NodeType = nil
 	}
 	if resp.Cluster.NumberOfShards != nil {
-		ko.Status.NumberOfShards = resp.Cluster.NumberOfShards
+		numberOfShardsCopy := int64(*resp.Cluster.NumberOfShards)
+		ko.Status.NumberOfShards = &numberOfShardsCopy
 	} else {
 		ko.Status.NumberOfShards = nil
 	}
@@ -909,9 +921,7 @@ func (rm *resourceManager) sdkUpdate(
 			f15f1 := &svcapitypes.ReshardingStatus{}
 			if resp.Cluster.PendingUpdates.Resharding.SlotMigration != nil {
 				f15f1f0 := &svcapitypes.SlotMigration{}
-				if resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage != nil {
-					f15f1f0.ProgressPercentage = resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
-				}
+				f15f1f0.ProgressPercentage = &resp.Cluster.PendingUpdates.Resharding.SlotMigration.ProgressPercentage
 				f15f1.SlotMigration = f15f1f0
 			}
 			f15.Resharding = f15f1
@@ -923,8 +933,8 @@ func (rm *resourceManager) sdkUpdate(
 				if f15f2iter.ServiceUpdateName != nil {
 					f15f2elem.ServiceUpdateName = f15f2iter.ServiceUpdateName
 				}
-				if f15f2iter.Status != nil {
-					f15f2elem.Status = f15f2iter.Status
+				if f15f2iter.Status != "" {
+					f15f2elem.Status = aws.String(string(f15f2iter.Status))
 				}
 				f15f2 = append(f15f2, f15f2elem)
 			}
@@ -972,9 +982,8 @@ func (rm *resourceManager) sdkUpdate(
 						if f17elemf1iter.Endpoint.Address != nil {
 							f17elemf1elemf2.Address = f17elemf1iter.Endpoint.Address
 						}
-						if f17elemf1iter.Endpoint.Port != nil {
-							f17elemf1elemf2.Port = f17elemf1iter.Endpoint.Port
-						}
+						portCopy := int64(f17elemf1iter.Endpoint.Port)
+						f17elemf1elemf2.Port = &portCopy
 						f17elemf1elem.Endpoint = f17elemf1elemf2
 					}
 					if f17elemf1iter.Name != nil {
@@ -988,7 +997,8 @@ func (rm *resourceManager) sdkUpdate(
 				f17elem.Nodes = f17elemf1
 			}
 			if f17iter.NumberOfNodes != nil {
-				f17elem.NumberOfNodes = f17iter.NumberOfNodes
+				numberOfNodesCopy := int64(*f17iter.NumberOfNodes)
+				f17elem.NumberOfNodes = &numberOfNodesCopy
 			}
 			if f17iter.Slots != nil {
 				f17elem.Slots = f17iter.Slots
@@ -1003,7 +1013,8 @@ func (rm *resourceManager) sdkUpdate(
 		ko.Status.Shards = nil
 	}
 	if resp.Cluster.SnapshotRetentionLimit != nil {
-		ko.Spec.SnapshotRetentionLimit = resp.Cluster.SnapshotRetentionLimit
+		snapshotRetentionLimitCopy := int64(*resp.Cluster.SnapshotRetentionLimit)
+		ko.Spec.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 	} else {
 		ko.Spec.SnapshotRetentionLimit = nil
 	}
@@ -1053,12 +1064,14 @@ func (rm *resourceManager) sdkUpdate(
 	ko.Spec.EngineVersion = desired.ko.Spec.EngineVersion
 
 	// Update the annotations to handle async rollback
-	rm.setNodeTypeAnnotation(input.NodeType, ko)
-	if input.ReplicaConfiguration != nil && input.ReplicaConfiguration.ReplicaCount != nil {
-		rm.setNumReplicasPerShardAnnotation(*input.ReplicaConfiguration.ReplicaCount, ko)
+	if input.NodeType != nil {
+		rm.setNodeTypeAnnotation(input.NodeType, ko)
 	}
-	if input.ShardConfiguration != nil && input.ShardConfiguration.ShardCount != nil {
-		rm.setNumShardAnnotation(*input.ShardConfiguration.ShardCount, ko)
+	if input.ReplicaConfiguration != nil {
+		rm.setNumReplicasPerShardAnnotation(input.ReplicaConfiguration.ReplicaCount, ko)
+	}
+	if input.ShardConfiguration != nil {
+		rm.setNumShardAnnotation(input.ShardConfiguration.ShardCount, ko)
 	}
 	return &resource{ko}, requeueWaitWhileUpdating
 
@@ -1075,46 +1088,45 @@ func (rm *resourceManager) newUpdateRequestPayload(
 	res := &svcsdk.UpdateClusterInput{}
 
 	if r.ko.Spec.ACLName != nil {
-		res.SetACLName(*r.ko.Spec.ACLName)
+		res.ACLName = r.ko.Spec.ACLName
 	}
 	if r.ko.Spec.Name != nil {
-		res.SetClusterName(*r.ko.Spec.Name)
+		res.ClusterName = r.ko.Spec.Name
 	}
 	if r.ko.Spec.Description != nil {
-		res.SetDescription(*r.ko.Spec.Description)
+		res.Description = r.ko.Spec.Description
 	}
 	if r.ko.Spec.EngineVersion != nil {
-		res.SetEngineVersion(*r.ko.Spec.EngineVersion)
+		res.EngineVersion = r.ko.Spec.EngineVersion
 	}
 	if r.ko.Spec.MaintenanceWindow != nil {
-		res.SetMaintenanceWindow(*r.ko.Spec.MaintenanceWindow)
+		res.MaintenanceWindow = r.ko.Spec.MaintenanceWindow
 	}
 	if r.ko.Spec.NodeType != nil {
-		res.SetNodeType(*r.ko.Spec.NodeType)
+		res.NodeType = r.ko.Spec.NodeType
 	}
 	if r.ko.Spec.ParameterGroupName != nil {
-		res.SetParameterGroupName(*r.ko.Spec.ParameterGroupName)
+		res.ParameterGroupName = r.ko.Spec.ParameterGroupName
 	}
 	if r.ko.Spec.SecurityGroupIDs != nil {
-		f8 := []*string{}
-		for _, f8iter := range r.ko.Spec.SecurityGroupIDs {
-			var f8elem string
-			f8elem = *f8iter
-			f8 = append(f8, &f8elem)
-		}
-		res.SetSecurityGroupIds(f8)
+		res.SecurityGroupIds = aws.ToStringSlice(r.ko.Spec.SecurityGroupIDs)
 	}
 	if r.ko.Spec.SnapshotRetentionLimit != nil {
-		res.SetSnapshotRetentionLimit(*r.ko.Spec.SnapshotRetentionLimit)
+		snapshotRetentionLimitCopy0 := *r.ko.Spec.SnapshotRetentionLimit
+		if snapshotRetentionLimitCopy0 > math.MaxInt32 || snapshotRetentionLimitCopy0 < math.MinInt32 {
+			return nil, fmt.Errorf("error: field SnapshotRetentionLimit is of type int32")
+		}
+		snapshotRetentionLimitCopy := int32(snapshotRetentionLimitCopy0)
+		res.SnapshotRetentionLimit = &snapshotRetentionLimitCopy
 	}
 	if r.ko.Spec.SnapshotWindow != nil {
-		res.SetSnapshotWindow(*r.ko.Spec.SnapshotWindow)
+		res.SnapshotWindow = r.ko.Spec.SnapshotWindow
 	}
 	if r.ko.Spec.SNSTopicARN != nil {
-		res.SetSnsTopicArn(*r.ko.Spec.SNSTopicARN)
+		res.SnsTopicArn = r.ko.Spec.SNSTopicARN
 	}
 	if r.ko.Status.SNSTopicStatus != nil {
-		res.SetSnsTopicStatus(*r.ko.Status.SNSTopicStatus)
+		res.SnsTopicStatus = r.ko.Status.SNSTopicStatus
 	}
 
 	return res, nil
@@ -1169,7 +1181,7 @@ func (rm *resourceManager) sdkDelete(
 	}
 	var resp *svcsdk.DeleteClusterOutput
 	_ = resp
-	resp, err = rm.sdkapi.DeleteClusterWithContext(ctx, input)
+	resp, err = rm.sdkapi.DeleteCluster(ctx, input)
 	rm.metrics.RecordAPICall("DELETE", "DeleteCluster", err)
 	// delete call successful
 	if err == nil {
@@ -1201,7 +1213,7 @@ func (rm *resourceManager) newDeleteRequestPayload(
 	res := &svcsdk.DeleteClusterInput{}
 
 	if r.ko.Spec.Name != nil {
-		res.SetClusterName(*r.ko.Spec.Name)
+		res.ClusterName = r.ko.Spec.Name
 	}
 
 	return res, nil
@@ -1309,11 +1321,12 @@ func (rm *resourceManager) terminalAWSError(err error) bool {
 	if err == nil {
 		return false
 	}
-	awsErr, ok := ackerr.AWSError(err)
-	if !ok {
+
+	var terminalErr smithy.APIError
+	if !errors.As(err, &terminalErr) {
 		return false
 	}
-	switch awsErr.Code() {
+	switch terminalErr.ErrorCode() {
 	case "ClusterAlreadyExistsFault",
 		"InvalidParameterValueException",
 		"InvalidParameterCombinationException",

@@ -33,13 +33,31 @@ type ClusterSpec struct {
 	AutoMinorVersionUpgrade *bool `json:"autoMinorVersionUpgrade,omitempty"`
 	// An optional description of the cluster.
 	Description *string `json:"description,omitempty"`
-	// The version number of the Redis engine to be used for the cluster.
+	// The version number of the Redis OSS engine to be used for the cluster.
 	EngineVersion *string `json:"engineVersion,omitempty"`
 	// The ID of the KMS key used to encrypt the cluster.
 	KMSKeyID *string `json:"kmsKeyID,omitempty"`
 	// Specifies the weekly time range during which maintenance on the cluster is
 	// performed. It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
 	// (24H Clock UTC). The minimum maintenance window is a 60 minute period.
+	//
+	// Valid values for ddd are:
+	//
+	//   - sun
+	//
+	//   - mon
+	//
+	//   - tue
+	//
+	//   - wed
+	//
+	//   - thu
+	//
+	//   - fri
+	//
+	//   - sat
+	//
+	// Example: sun:23:00-mon:01:30
 	MaintenanceWindow *string `json:"maintenanceWindow,omitempty"`
 	// The name of the cluster. This value must be unique as it also serves as the
 	// cluster identifier.
@@ -103,7 +121,7 @@ type ClusterStatus struct {
 	// constructed ARN for the resource
 	// +kubebuilder:validation:Optional
 	ACKResourceMetadata *ackv1alpha1.ResourceMetadata `json:"ackResourceMetadata"`
-	// All CRS managed by ACK have a common `Status.Conditions` member that
+	// All CRs managed by ACK have a common `Status.Conditions` member that
 	// contains a collection of `ackv1alpha1.Condition` objects that describe
 	// the various terminal states of the CR and its backend AWS service API
 	// resource
@@ -121,7 +139,7 @@ type ClusterStatus struct {
 	// The cluster's configuration endpoint
 	// +kubebuilder:validation:Optional
 	ClusterEndpoint *Endpoint `json:"clusterEndpoint,omitempty"`
-	// The Redis engine patch version used by the cluster
+	// The Redis OSS engine patch version used by the cluster
 	// +kubebuilder:validation:Optional
 	EnginePatchVersion *string `json:"enginePatchVersion,omitempty"`
 	// A list of events. Each element in the list contains detailed information
