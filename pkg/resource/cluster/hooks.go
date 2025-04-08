@@ -195,7 +195,7 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 		res.SecurityGroupIds = aws.ToStringSlice(f8)
 	}
 	if delta.DifferentAt("Spec.SnapshotRetentionLimit") && desired.ko.Spec.SnapshotRetentionLimit != nil {
-		res.SnapshotRetentionLimit = svcutil.Int32OrNil(desired.ko.Spec.SnapshotRetentionLimit)
+		res.SnapshotRetentionLimit = svcutil.ConvertOrNil[int64, int32](desired.ko.Spec.SnapshotRetentionLimit)
 	}
 	if delta.DifferentAt("Spec.SnapshotWindow") && desired.ko.Spec.SnapshotWindow != nil {
 		res.SnapshotWindow = desired.ko.Spec.SnapshotWindow
@@ -260,7 +260,7 @@ func (rm *resourceManager) newMemoryDBClusterUploadPayload(
 	if !engineUpgradeOrScaling && !reSharding &&
 		delta.DifferentAt("Spec.NumReplicasPerShard") && desired.ko.Spec.NumReplicasPerShard != nil {
 		replicaConfig := &svcsdktypes.ReplicaConfigurationRequest{}
-		replicaConfig.ReplicaCount = *svcutil.Int32OrNil(desired.ko.Spec.NumReplicasPerShard)
+		replicaConfig.ReplicaCount = aws.ToInt32(svcutil.ConvertOrNil[int64, int32](desired.ko.Spec.NumReplicasPerShard))
 		res.ReplicaConfiguration = replicaConfig
 	}
 

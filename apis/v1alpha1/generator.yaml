@@ -207,8 +207,7 @@ resources:
         is_secret: true
         compare:
           is_ignored: true
-        set:
-        - ignore: all
+
       Events:
         is_read_only: true
         from:
@@ -223,10 +222,6 @@ resources:
         code: "rm.setAnnotationsFields(desired, ko)"
       sdk_update_pre_build_request:
         template_path: hooks/user/sdk_update_pre_build_request.go.tpl
-      sdk_update_post_build_request:
-        template_path: hooks/user/sdk_update_post_build_request.go.tpl
-      sdk_create_post_build_request:
-        template_path: hooks/user/sdk_create_post_build_request.go.tpl
     renames:
       operations:
         CreateUser:
