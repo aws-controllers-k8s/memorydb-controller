@@ -20,7 +20,8 @@ import (
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 	"github.com/samber/lo"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
@@ -67,13 +68,13 @@ func (rm *resourceManager) describeParameters(
 	parameters := []*svcapitypes.Parameter{}
 	var nextToken *string = nil
 	for {
-		response, respErr := rm.sdkapi.DescribeParametersWithContext(ctx, &svcsdk.DescribeParametersInput{
+		response, respErr := rm.sdkapi.DescribeParameters(ctx, &svcsdk.DescribeParametersInput{
 			ParameterGroupName: parameterGroupName,
 			NextToken:          nextToken,
 		})
 		rm.metrics.RecordAPICall("GET", "DescribeParameters", respErr)
 		if respErr != nil {
-			if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.Code() == "ParameterGroupNotFound" {
+			if awsErr, ok := ackerr.AWSError(respErr); ok && awsErr.ErrorCode() == "ParameterGroupNotFound" {
 				return nil, ackerr.NotFound
 			}
 			return nil, respErr
@@ -124,10 +125,10 @@ func (rm *resourceManager) resetAllParameters(
 	desired *resource,
 ) (updated *resource, err error) {
 	input := &svcsdk.ResetParameterGroupInput{}
-	input.SetParameterGroupName(*desired.ko.Spec.Name)
-	input.SetAllParameters(true)
+	input.ParameterGroupName = desired.ko.Spec.Name
+	input.AllParameters = true
 
-	resp, err := rm.sdkapi.ResetParameterGroupWithContext(ctx, input)
+	resp, err := rm.sdkapi.ResetParameterGroup(ctx, input)
 	rm.metrics.RecordAPICall("UPDATE", "ResetParameterGroup", err)
 	if err != nil {
 		return nil, err
@@ -200,7 +201,7 @@ func (rm *resourceManager) customUpdate(
 
 	// Update 20 parameters each time
 	for _, input := range inputs {
-		resp, err = rm.sdkapi.UpdateParameterGroupWithContext(ctx, input)
+		resp, err = rm.sdkapi.UpdateParameterGroup(ctx, input)
 		rm.metrics.RecordAPICall("UPDATE", "UpdateParameterGroup", err)
 		if err != nil {
 			return nil, err
@@ -256,20 +257,20 @@ func (rm *resourceManager) updateRequestPayload(
 	return lo.Map(parameterNameValues, func(parameters []*svcapitypes.ParameterNameValue, index int) *svcsdk.UpdateParameterGroupInput {
 		res := &svcsdk.UpdateParameterGroupInput{}
 		if desired.ko.Spec.Name != nil {
-			res.SetParameterGroupName(*desired.ko.Spec.Name)
+			res.ParameterGroupName = desired.ko.Spec.Name
 		}
-		f1 := []*svcsdk.ParameterNameValue{}
+		f1 := []svcsdktypes.ParameterNameValue{}
 		for _, f1iter := range parameters {
-			f1elem := &svcsdk.ParameterNameValue{}
+			f1elem := svcsdktypes.ParameterNameValue{}
 			if f1iter.ParameterName != nil {
-				f1elem.SetParameterName(*f1iter.ParameterName)
+				f1elem.ParameterName = f1iter.ParameterName
 			}
 			if f1iter.ParameterValue != nil {
-				f1elem.SetParameterValue(*f1iter.ParameterValue)
+				f1elem.ParameterValue = f1iter.ParameterValue
 			}
 			f1 = append(f1, f1elem)
 		}
-		res.SetParameterNameValues(f1)
+		res.ParameterNameValues = f1
 		return res
 	})
 }
@@ -279,7 +280,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -305,22 +306,22 @@ func (rm *resourceManager) updateTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	desiredTags := ToACKTags(desired.ko.Spec.Tags)
-	latestTags := ToACKTags(latest.ko.Spec.Tags)
+	desiredTags, _ := convertToOrderedACKTags(desired.ko.Spec.Tags)
+	latestTags, _ := convertToOrderedACKTags(latest.ko.Spec.Tags)
 
 	added, _, removed := ackcompare.GetTagsDifference(latestTags, desiredTags)
 
-	toAdd := FromACKTags(added)
-	toRemove := FromACKTags(removed)
+	toAdd := fromACKTags(added, nil)
+	toRemove := fromACKTags(removed, nil)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from parameter group", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -335,7 +336,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to parameter group", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -353,10 +354,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -365,7 +366,7 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
+	sdkTags []svcsdktypes.Tag,
 ) []*svcapitypes.Tag {
 	tags := make([]*svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {

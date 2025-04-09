@@ -72,8 +72,8 @@ spec:
                 description: An optional description of the cluster.
                 type: string
               engineVersion:
-                description: The version number of the Redis engine to be used for
-                  the cluster.
+                description: The version number of the Redis OSS engine to be used
+                  for the cluster.
                 type: string
               kmsKeyID:
                 description: The ID of the KMS key used to encrypt the cluster.
@@ -83,6 +83,24 @@ spec:
                   Specifies the weekly time range during which maintenance on the cluster is
                   performed. It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
                   (24H Clock UTC). The minimum maintenance window is a 60 minute period.
+
+                  Valid values for ddd are:
+
+                     * sun
+
+                     * mon
+
+                     * tue
+
+                     * wed
+
+                     * thu
+
+                     * fri
+
+                     * sat
+
+                  Example: sun:23:00-mon:01:30
                 type: string
               name:
                 description: |-
@@ -326,7 +344,7 @@ spec:
                 type: object
               conditions:
                 description: |-
-                  All CRS managed by ACK have a common `Status.Conditions` member that
+                  All CRs managed by ACK have a common `Status.Conditions` member that
                   contains a collection of `ackv1alpha1.Condition` objects that describe
                   the various terminal states of the CR and its backend AWS service API
                   resource
@@ -360,7 +378,7 @@ spec:
                   type: object
                 type: array
               enginePatchVersion:
-                description: The Redis engine patch version used by the cluster
+                description: The Redis OSS engine patch version used by the cluster
                 type: string
               events:
                 description: |-

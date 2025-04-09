@@ -18,20 +18,29 @@ package v1alpha1
 type AZStatus string
 
 const (
-	AZStatus_singleaz AZStatus = "singleaz"
 	AZStatus_multiaz  AZStatus = "multiaz"
+	AZStatus_singleaz AZStatus = "singleaz"
 )
 
 type AuthenticationType string
 
 const (
-	AuthenticationType_password    AuthenticationType = "password"
+	AuthenticationType_iam         AuthenticationType = "iam"
 	AuthenticationType_no_password AuthenticationType = "no-password"
+	AuthenticationType_password    AuthenticationType = "password"
+)
+
+type DataTieringStatus string
+
+const (
+	DataTieringStatus_false DataTieringStatus = "false"
+	DataTieringStatus_true  DataTieringStatus = "true"
 )
 
 type InputAuthenticationType string
 
 const (
+	InputAuthenticationType_iam      InputAuthenticationType = "iam"
 	InputAuthenticationType_password InputAuthenticationType = "password"
 )
 
@@ -39,8 +48,8 @@ type ServiceUpdateStatus string
 
 const (
 	ServiceUpdateStatus_available   ServiceUpdateStatus = "available"
-	ServiceUpdateStatus_in_progress ServiceUpdateStatus = "in-progress"
 	ServiceUpdateStatus_complete    ServiceUpdateStatus = "complete"
+	ServiceUpdateStatus_in_progress ServiceUpdateStatus = "in-progress"
 	ServiceUpdateStatus_scheduled   ServiceUpdateStatus = "scheduled"
 )
 
@@ -53,10 +62,17 @@ const (
 type SourceType string
 
 const (
+	SourceType_acl             SourceType = "acl"
+	SourceType_cluster         SourceType = "cluster"
 	SourceType_node            SourceType = "node"
 	SourceType_parameter_group SourceType = "parameter-group"
 	SourceType_subnet_group    SourceType = "subnet-group"
-	SourceType_cluster         SourceType = "cluster"
 	SourceType_user            SourceType = "user"
-	SourceType_acl             SourceType = "acl"
+)
+
+type UpdateStrategy string
+
+const (
+	UpdateStrategy_coordinated   UpdateStrategy = "coordinated"
+	UpdateStrategy_uncoordinated UpdateStrategy = "uncoordinated"
 )

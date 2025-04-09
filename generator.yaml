@@ -1,7 +1,19 @@
 ignore:
+  resource_names:
+    - MultiRegionCluster
   field_paths:
     - DescribeSnapshotsInput.ClusterName
     - DescribeSnapshotsInput.Source
+    - CreateClusterInput.DataTiering
+    - CreateClusterInput.Engine
+    - CreateClusterInput.MultiRegionClusterName
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.Engine
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.MultiRegionClusterName
+    - CreateSnapshotOutput.Snapshot.ClusterConfiguration.MultiRegionParameterGroupName
+    - CreateSnapshotOutput.Snapshot.DataTiering
+    - CreateClusterOutput.Cluster.DataTiering
+    - CreateClusterOutput.Cluster.Engine
+    - CreateClusterOutput.Cluster.MultiRegionClusterName
 resources:
   Cluster:
     exceptions:
@@ -195,6 +207,7 @@ resources:
         is_secret: true
         compare:
           is_ignored: true
+
       Events:
         is_read_only: true
         from:
@@ -336,4 +349,4 @@ resources:
 operations:
   DescribeClusters:
     override_values:
-      ShowShardDetails: true
+      ShowShardDetails: aws.Bool(true)

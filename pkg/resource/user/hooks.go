@@ -15,12 +15,14 @@ package user
 
 import (
 	"context"
+
 	"github.com/pkg/errors"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	"github.com/aws-controllers-k8s/runtime/pkg/requeue"
 	ackrtlog "github.com/aws-controllers-k8s/runtime/pkg/runtime/log"
-	svcsdk "github.com/aws/aws-sdk-go/service/memorydb"
+	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
+	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
 
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	svcutil "github.com/aws-controllers-k8s/memorydb-controller/pkg/util"
@@ -64,8 +66,8 @@ func (rm *resourceManager) getEvents(
 	ctx context.Context,
 	r *resource,
 ) ([]*svcapitypes.Event, error) {
-	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdk.SourceTypeUser, svcutil.MaxEvents)
-	resp, err := rm.sdkapi.DescribeEventsWithContext(ctx, input)
+	input := svcutil.NewDescribeEventsInput(*r.ko.Spec.Name, svcsdktypes.SourceTypeUser, svcutil.MaxEvents)
+	resp, err := rm.sdkapi.DescribeEvents(ctx, input)
 	rm.metrics.RecordAPICall("READ_MANY", "DescribeEvents", err)
 	if err != nil {
 		rm.log.V(1).Info("Error during DescribeEvents-User", "error", err)
@@ -87,7 +89,7 @@ func (rm *resourceManager) getTags(
 	ctx context.Context,
 	resourceARN string,
 ) ([]*svcapitypes.Tag, error) {
-	resp, err := rm.sdkapi.ListTagsWithContext(
+	resp, err := rm.sdkapi.ListTags(
 		ctx,
 		&svcsdk.ListTagsInput{
 			ResourceArn: &resourceARN,
@@ -119,22 +121,22 @@ func (rm *resourceManager) updateTags(
 
 	arn := (*string)(latest.ko.Status.ACKResourceMetadata.ARN)
 
-	desiredTags := ToACKTags(desired.ko.Spec.Tags)
-	latestTags := ToACKTags(latest.ko.Spec.Tags)
+	desiredTags, _ := convertToOrderedACKTags(desired.ko.Spec.Tags)
+	latestTags, _ := convertToOrderedACKTags(latest.ko.Spec.Tags)
 
 	added, _, removed := ackcompare.GetTagsDifference(latestTags, desiredTags)
 
-	toAdd := FromACKTags(added)
-	toRemove := FromACKTags(removed)
+	toAdd := fromACKTags(added, nil)
+	toRemove := fromACKTags(removed, nil)
 
-	var toDelete []*string
+	var toDelete []string
 	for _, removedElement := range toRemove {
-		toDelete = append(toDelete, removedElement.Key)
+		toDelete = append(toDelete, *removedElement.Key)
 	}
 
 	if len(toDelete) > 0 {
 		rlog.Debug("removing tags from user", "tags", toDelete)
-		_, err = rm.sdkapi.UntagResourceWithContext(
+		_, err = rm.sdkapi.UntagResource(
 			ctx,
 			&svcsdk.UntagResourceInput{
 				ResourceArn: arn,
@@ -149,7 +151,7 @@ func (rm *resourceManager) updateTags(
 
 	if len(toAdd) > 0 {
 		rlog.Debug("adding tags to user", "tags", toAdd)
-		_, err = rm.sdkapi.TagResourceWithContext(
+		_, err = rm.sdkapi.TagResource(
 			ctx,
 			&svcsdk.TagResourceInput{
 				ResourceArn: arn,
@@ -167,10 +169,10 @@ func (rm *resourceManager) updateTags(
 
 func sdkTagsFromResourceTags(
 	rTags []*svcapitypes.Tag,
-) []*svcsdk.Tag {
-	tags := make([]*svcsdk.Tag, len(rTags))
+) []svcsdktypes.Tag {
+	tags := make([]svcsdktypes.Tag, len(rTags))
 	for i := range rTags {
-		tags[i] = &svcsdk.Tag{
+		tags[i] = svcsdktypes.Tag{
 			Key:   rTags[i].Key,
 			Value: rTags[i].Value,
 		}
@@ -179,7 +181,7 @@ func sdkTagsFromResourceTags(
 }
 
 func resourceTagsFromSDKTags(
-	sdkTags []*svcsdk.Tag,
+	sdkTags []svcsdktypes.Tag,
 ) []*svcapitypes.Tag {
 	tags := make([]*svcapitypes.Tag, len(sdkTags))
 	for i := range sdkTags {
