@@ -2,8 +2,8 @@ github.com/aws-controllers-k8s/ec2-controller v1.0.0 h1:Si71KZjjegndY8ITI732dMPx
 github.com/aws-controllers-k8s/ec2-controller v1.0.0/go.mod h1:/hrKcnF8KpsSoa5vjcVmdaR6OYWPSjkeHdVWwQljRb4=
 github.com/aws-controllers-k8s/kms-controller v1.0.0 h1:Tb1hyedoI+n51gLYmhbYhw9ae1nXQrYzrHhYFCvJSTw=
 github.com/aws-controllers-k8s/kms-controller v1.0.0/go.mod h1:eS2S9pJ6G5f4hvSoEuUyrzUjDkFnE7ctzGv3TUnnTvA=
-github.com/aws-controllers-k8s/runtime v0.45.0 h1:b0xCqIE1SNve/jcJPW/QkCGkDmjxWtWTDFHKZpHJcFQ=
-github.com/aws-controllers-k8s/runtime v0.45.0/go.mod h1:G2UMBKA7qgXG4JV16NTIUp715uqvUEvWaa7TG1I527U=
+github.com/aws-controllers-k8s/runtime v0.46.1 h1:61RU6uYiFSp0cDhv52vAmaPzrebzoudtsp1fGkk6iLk=
+github.com/aws-controllers-k8s/runtime v0.46.1/go.mod h1:G2UMBKA7qgXG4JV16NTIUp715uqvUEvWaa7TG1I527U=
 github.com/aws-controllers-k8s/sns-controller v0.0.5 h1:sFgot4v/LqeO9USfSbaWIQp7DawlF6vhMy1YU2lBXu4=
 github.com/aws-controllers-k8s/sns-controller v0.0.5/go.mod h1:zw3lE2Yie+E6dv3Guaa+tLtH2w5UKoH8IUNCSEJCUoA=
 github.com/aws/aws-sdk-go v1.49.0 h1:g9BkW1fo9GqKfwg2+zCD+TW/D36Ux+vtfJ8guF4AYmY=
