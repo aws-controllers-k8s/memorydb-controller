@@ -46,7 +46,10 @@ spec:
               MemoryDB clusters.
             properties:
               accessString:
-                description: Access permissions string used for this user.
+                description: |-
+                  Access permissions string used for this user.
+
+                  Regex Pattern: `\S`
                 type: string
               authenticationMode:
                 description: |-
@@ -82,6 +85,8 @@ spec:
                 description: |-
                   The name of the user. This value must be unique as it also serves as the
                   user identifier.
+
+                  Regex Pattern: `^[a-zA-Z][a-zA-Z0-9\-]*$`
                 type: string
               tags:
                 description: |-
