@@ -26,6 +26,8 @@ import (
 type ClusterSpec struct {
 
 	// The name of the Access Control List to associate with the cluster.
+	//
+	// Regex Pattern: `^[a-zA-Z][a-zA-Z0-9\-]*$`
 	ACLName *string                                  `json:"aclName,omitempty"`
 	ACLRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"aclRef,omitempty"`
 	// When set to true, the cluster will automatically receive minor engine version

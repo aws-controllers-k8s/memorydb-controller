@@ -29,6 +29,8 @@ import (
 type UserSpec struct {
 
 	// Access permissions string used for this user.
+	//
+	// Regex Pattern: `\S`
 	// +kubebuilder:validation:Required
 	AccessString *string `json:"accessString"`
 	// Denotes the user's authentication properties, such as whether it requires
@@ -37,6 +39,8 @@ type UserSpec struct {
 	AuthenticationMode *AuthenticationMode `json:"authenticationMode"`
 	// The name of the user. This value must be unique as it also serves as the
 	// user identifier.
+	//
+	// Regex Pattern: `^[a-zA-Z][a-zA-Z0-9\-]*$`
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// A list of tags to be added to this resource. A tag is a key-value pair. A
