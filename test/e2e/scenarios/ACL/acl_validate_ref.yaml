@@ -22,7 +22,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 180
   - id: "USER_TWO_CREATE"
@@ -43,7 +43,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 180
   - id: "ACL_CREATE_WITH_REF"
@@ -63,7 +63,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 180
           ACK.ReferencesResolved:

@@ -182,7 +182,7 @@ class ResourceHelper:
 
             elif type(expected_value) is dict:
                 # Example:
-                # ACK.ResourceSynced:
+                # Ready:
                 #     status: "False"
                 #     message: "Expected message ..."
                 #     timeout: 60 # seconds
