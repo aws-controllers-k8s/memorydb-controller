@@ -188,6 +188,7 @@ class ResourceHelper:
                 #     timeout: 60 # seconds
                 condition_value = expected_value.get("status")
                 condition_message = expected_value.get("message")
+                condition_reason = expected_value.get("reason")
                 # default wait 60 seconds
                 wait_timeout = expected_value.get("timeout", default_wait_periods)
 
@@ -201,6 +202,8 @@ class ResourceHelper:
                 assert condition_value == k8s_resource_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
                 if condition_message is not None:
                     assert condition_message == k8s_resource_condition.get("message"), f"Condition message mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
+                if condition_reason is not None:
+                    assert condition_reason in k8s_resource_condition.get("reason"), f"Condition reason mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
 
             else:
                 raise Exception(f"Condition {condition_name} is provided with invalid value: {expected_value} ")

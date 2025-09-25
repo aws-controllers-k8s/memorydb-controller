@@ -23,9 +23,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 60
+            reason: "Terminal"
   - id: "USER_UPDATE_ACCESS_STRING"
     description: "Update AccessString"
     patch:
@@ -52,9 +53,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 60
+            reason: "Terminal"
     expect_aws:
       AccessString: off resetchannels -@all +get
   - id: "DELETE_USER"

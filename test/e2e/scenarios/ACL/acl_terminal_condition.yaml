@@ -44,9 +44,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 60
+            reason: "Terminal"
   - id: "UPDATE_ACL_VALID"
     description: "Update userNames"
     patch:
@@ -85,9 +86,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 60
+            reason: "Terminal"
     expect_aws:
       UserNames:
         - user$RANDOM_SUFFIX

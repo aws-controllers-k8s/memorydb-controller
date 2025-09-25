@@ -20,9 +20,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 600
+            reason: "Terminal"
   - id: "FIX_NODE_TYPE"
     description: "Create a Cluster"
     patch:
@@ -58,9 +59,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 1800
+            reason: "Terminal"
     expect_aws:
       NumberOfShards: 2
   - id: "FIX_TERMINAL_CONDITIONS"
