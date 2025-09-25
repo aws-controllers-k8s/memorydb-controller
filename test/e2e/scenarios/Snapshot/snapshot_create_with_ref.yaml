@@ -19,7 +19,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 3600
   - id: "SNAPSHOT_CREATE_WITH_REF"
@@ -37,7 +37,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 1800
           ACK.ReferencesResolved:

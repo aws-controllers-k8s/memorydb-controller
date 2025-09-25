@@ -22,7 +22,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 180
     expect_aws:
@@ -42,7 +42,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 180
     expect_aws:
@@ -61,7 +61,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 100
     expect_aws:
@@ -82,7 +82,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 100
     expect_aws:
@@ -117,7 +117,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 3600
           ACK.ReferencesResolved:
