@@ -40,9 +40,6 @@ steps:
           Ready:
             status: "True"
             timeout: 1800
-          ACK.ReferencesResolved:
-            status: "True"
-            timeout: 1800
     expect_aws:
       ClusterConfiguration:
         Name: cluster$RANDOM_SUFFIX

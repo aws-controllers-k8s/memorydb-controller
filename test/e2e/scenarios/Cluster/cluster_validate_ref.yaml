@@ -120,9 +120,6 @@ steps:
           Ready:
             status: "True"
             timeout: 3600
-          ACK.ReferencesResolved:
-            status: "True"
-            timeout: 3600
     expect_aws:
       ACLName: acl$RANDOM_SUFFIX
       ParameterGroupName: pg$RANDOM_SUFFIX

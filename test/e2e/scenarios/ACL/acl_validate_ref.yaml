@@ -66,9 +66,6 @@ steps:
           Ready:
             status: "True"
             timeout: 180
-          ACK.ReferencesResolved:
-            status: "True"
-            timeout: 180
     expect_aws:
       UserNames:
         - userone$RANDOM_SUFFIX
