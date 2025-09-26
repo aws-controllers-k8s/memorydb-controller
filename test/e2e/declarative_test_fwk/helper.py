@@ -194,7 +194,7 @@ class ResourceHelper:
 
                 if wait:
                     assert k8s.wait_on_condition(reference, condition_name, condition_value,
-                                                 wait_periods=wait_timeout, period_length=default_period_length)
+                                                 wait_periods=wait_timeout, period_length=default_period_length, desired_condition_reason=condition_reason)
 
                 k8s_resource_condition = k8s.get_resource_condition(reference,
                                                               condition_name)
