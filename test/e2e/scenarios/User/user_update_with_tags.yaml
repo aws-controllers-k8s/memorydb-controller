@@ -23,7 +23,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 100
     expect_k8s:
@@ -43,7 +43,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 10
     expect_k8s:
@@ -69,7 +69,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 10
     expect_k8s:
@@ -91,7 +91,7 @@ steps:
     wait:
       status:
         conditions:
-          ACK.ResourceSynced:
+          Ready:
             status: "True"
             timeout: 10
     expect_k8s:

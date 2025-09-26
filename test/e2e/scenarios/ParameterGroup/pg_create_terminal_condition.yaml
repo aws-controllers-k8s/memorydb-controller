@@ -19,9 +19,10 @@ steps:
     wait:
       status:
         conditions:
-          ACK.Terminal:
-            status: "True"
+          Ready:
+            status: "False"
             timeout: 60
+            reason: "Terminal"
   - id: "DELETE_PG"
     description: "Delete parameter group"
     delete: pg$RANDOM_SUFFIX

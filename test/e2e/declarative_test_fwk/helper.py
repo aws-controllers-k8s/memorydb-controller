@@ -182,18 +182,19 @@ class ResourceHelper:
 
             elif type(expected_value) is dict:
                 # Example:
-                # ACK.ResourceSynced:
+                # Ready:
                 #     status: "False"
                 #     message: "Expected message ..."
                 #     timeout: 60 # seconds
                 condition_value = expected_value.get("status")
                 condition_message = expected_value.get("message")
+                condition_reason = expected_value.get("reason")
                 # default wait 60 seconds
                 wait_timeout = expected_value.get("timeout", default_wait_periods)
 
                 if wait:
                     assert k8s.wait_on_condition(reference, condition_name, condition_value,
-                                                 wait_periods=wait_timeout, period_length=default_period_length)
+                                                 wait_periods=wait_timeout, period_length=default_period_length, desired_condition_reason=condition_reason)
 
                 k8s_resource_condition = k8s.get_resource_condition(reference,
                                                               condition_name)
@@ -201,6 +202,8 @@ class ResourceHelper:
                 assert condition_value == k8s_resource_condition.get("status"), f"Condition status mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
                 if condition_message is not None:
                     assert condition_message == k8s_resource_condition.get("message"), f"Condition message mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
+                if condition_reason is not None:
+                    assert condition_reason in k8s_resource_condition.get("reason"), f"Condition reason mismatch. Expected condition: {condition_name} - {expected_value} but found {k8s_resource_condition}"
 
             else:
                 raise Exception(f"Condition {condition_name} is provided with invalid value: {expected_value} ")
