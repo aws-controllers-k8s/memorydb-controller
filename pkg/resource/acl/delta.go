@@ -17,16 +17,15 @@ package acl
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -62,7 +61,7 @@ func newResourceDelta(
 			delta.Add("Spec.UserNames", a.ko.Spec.UserNames, b.ko.Spec.UserNames)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.UserRefs, b.ko.Spec.UserRefs) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.UserRefs, b.ko.Spec.UserRefs) {
 		delta.Add("Spec.UserRefs", a.ko.Spec.UserRefs, b.ko.Spec.UserRefs)
 	}
 
