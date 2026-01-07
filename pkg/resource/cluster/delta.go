@@ -17,16 +17,15 @@ package cluster
 
 import (
 	"bytes"
-	"reflect"
 
 	ackcompare "github.com/aws-controllers-k8s/runtime/pkg/compare"
 	acktags "github.com/aws-controllers-k8s/runtime/pkg/tags"
+	"k8s.io/apimachinery/pkg/api/equality"
 )
 
 // Hack to avoid import errors during build...
 var (
 	_ = &bytes.Buffer{}
-	_ = &reflect.Method{}
 	_ = &acktags.Tags{}
 )
 
@@ -50,7 +49,7 @@ func newResourceDelta(
 			delta.Add("Spec.ACLName", a.ko.Spec.ACLName, b.ko.Spec.ACLName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.ACLRef, b.ko.Spec.ACLRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.ACLRef, b.ko.Spec.ACLRef) {
 		delta.Add("Spec.ACLRef", a.ko.Spec.ACLRef, b.ko.Spec.ACLRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.AutoMinorVersionUpgrade, b.ko.Spec.AutoMinorVersionUpgrade) {
@@ -123,7 +122,7 @@ func newResourceDelta(
 			delta.Add("Spec.ParameterGroupName", a.ko.Spec.ParameterGroupName, b.ko.Spec.ParameterGroupName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.ParameterGroupRef, b.ko.Spec.ParameterGroupRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.ParameterGroupRef, b.ko.Spec.ParameterGroupRef) {
 		delta.Add("Spec.ParameterGroupRef", a.ko.Spec.ParameterGroupRef, b.ko.Spec.ParameterGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.Port, b.ko.Spec.Port) {
@@ -140,7 +139,7 @@ func newResourceDelta(
 			delta.Add("Spec.SecurityGroupIDs", a.ko.Spec.SecurityGroupIDs, b.ko.Spec.SecurityGroupIDs)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs) {
 		delta.Add("Spec.SecurityGroupRefs", a.ko.Spec.SecurityGroupRefs, b.ko.Spec.SecurityGroupRefs)
 	}
 	if len(a.ko.Spec.SnapshotARNs) != len(b.ko.Spec.SnapshotARNs) {
@@ -157,7 +156,7 @@ func newResourceDelta(
 			delta.Add("Spec.SnapshotName", a.ko.Spec.SnapshotName, b.ko.Spec.SnapshotName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.SnapshotRef, b.ko.Spec.SnapshotRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SnapshotRef, b.ko.Spec.SnapshotRef) {
 		delta.Add("Spec.SnapshotRef", a.ko.Spec.SnapshotRef, b.ko.Spec.SnapshotRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SnapshotRetentionLimit, b.ko.Spec.SnapshotRetentionLimit) {
@@ -181,7 +180,7 @@ func newResourceDelta(
 			delta.Add("Spec.SNSTopicARN", a.ko.Spec.SNSTopicARN, b.ko.Spec.SNSTopicARN)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.SNSTopicRef, b.ko.Spec.SNSTopicRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SNSTopicRef, b.ko.Spec.SNSTopicRef) {
 		delta.Add("Spec.SNSTopicRef", a.ko.Spec.SNSTopicRef, b.ko.Spec.SNSTopicRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName) {
@@ -191,7 +190,7 @@ func newResourceDelta(
 			delta.Add("Spec.SubnetGroupName", a.ko.Spec.SubnetGroupName, b.ko.Spec.SubnetGroupName)
 		}
 	}
-	if !reflect.DeepEqual(a.ko.Spec.SubnetGroupRef, b.ko.Spec.SubnetGroupRef) {
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SubnetGroupRef, b.ko.Spec.SubnetGroupRef) {
 		delta.Add("Spec.SubnetGroupRef", a.ko.Spec.SubnetGroupRef, b.ko.Spec.SubnetGroupRef)
 	}
 	if ackcompare.HasNilDifference(a.ko.Spec.TLSEnabled, b.ko.Spec.TLSEnabled) {
