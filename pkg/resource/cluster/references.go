@@ -26,6 +26,7 @@ import (
 	ec2apitypes "github.com/aws-controllers-k8s/ec2-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackerr "github.com/aws-controllers-k8s/runtime/pkg/errors"
+	ackrt "github.com/aws-controllers-k8s/runtime/pkg/runtime"
 	acktypes "github.com/aws-controllers-k8s/runtime/pkg/types"
 	snsapitypes "github.com/aws-controllers-k8s/sns-controller/apis/v1alpha1"
 
@@ -175,9 +176,17 @@ func (rm *resourceManager) resolveReferenceForACLName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ACLRef")
 		}
-		namespace := ko.ObjectMeta.GetNamespace()
-		if arr.Namespace != nil && *arr.Namespace != "" {
-			namespace = *arr.Namespace
+		namespace, err := ackrt.ResolveCrossNamespaceReference(
+			ctx,
+			rm.cfg.EnableCrossNamespace,
+			&ko.Status.Conditions,
+			ackrt.CrossNamespaceRefKindResource,
+			ko.ObjectMeta.GetNamespace(),
+			arr.Namespace,
+			*arr.Name,
+		)
+		if err != nil {
+			return hasReferences, err
 		}
 		obj := &svcapitypes.ACL{}
 		if err := getReferencedResourceState_ACL(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -258,9 +267,17 @@ func (rm *resourceManager) resolveReferenceForParameterGroupName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ParameterGroupRef")
 		}
-		namespace := ko.ObjectMeta.GetNamespace()
-		if arr.Namespace != nil && *arr.Namespace != "" {
-			namespace = *arr.Namespace
+		namespace, err := ackrt.ResolveCrossNamespaceReference(
+			ctx,
+			rm.cfg.EnableCrossNamespace,
+			&ko.Status.Conditions,
+			ackrt.CrossNamespaceRefKindResource,
+			ko.ObjectMeta.GetNamespace(),
+			arr.Namespace,
+			*arr.Name,
+		)
+		if err != nil {
+			return hasReferences, err
 		}
 		obj := &svcapitypes.ParameterGroup{}
 		if err := getReferencedResourceState_ParameterGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -341,9 +358,17 @@ func (rm *resourceManager) resolveReferenceForSNSTopicARN(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SNSTopicRef")
 		}
-		namespace := ko.ObjectMeta.GetNamespace()
-		if arr.Namespace != nil && *arr.Namespace != "" {
-			namespace = *arr.Namespace
+		namespace, err := ackrt.ResolveCrossNamespaceReference(
+			ctx,
+			rm.cfg.EnableCrossNamespace,
+			&ko.Status.Conditions,
+			ackrt.CrossNamespaceRefKindResource,
+			ko.ObjectMeta.GetNamespace(),
+			arr.Namespace,
+			*arr.Name,
+		)
+		if err != nil {
+			return hasReferences, err
 		}
 		obj := &snsapitypes.Topic{}
 		if err := getReferencedResourceState_Topic(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -425,9 +450,17 @@ func (rm *resourceManager) resolveReferenceForSecurityGroupIDs(
 			if arr.Name == nil || *arr.Name == "" {
 				return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SecurityGroupRefs")
 			}
-			namespace := ko.ObjectMeta.GetNamespace()
-			if arr.Namespace != nil && *arr.Namespace != "" {
-				namespace = *arr.Namespace
+			namespace, err := ackrt.ResolveCrossNamespaceReference(
+				ctx,
+				rm.cfg.EnableCrossNamespace,
+				&ko.Status.Conditions,
+				ackrt.CrossNamespaceRefKindResource,
+				ko.ObjectMeta.GetNamespace(),
+				arr.Namespace,
+				*arr.Name,
+			)
+			if err != nil {
+				return hasReferences, err
 			}
 			obj := &ec2apitypes.SecurityGroup{}
 			if err := getReferencedResourceState_SecurityGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -512,9 +545,17 @@ func (rm *resourceManager) resolveReferenceForSnapshotName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SnapshotRef")
 		}
-		namespace := ko.ObjectMeta.GetNamespace()
-		if arr.Namespace != nil && *arr.Namespace != "" {
-			namespace = *arr.Namespace
+		namespace, err := ackrt.ResolveCrossNamespaceReference(
+			ctx,
+			rm.cfg.EnableCrossNamespace,
+			&ko.Status.Conditions,
+			ackrt.CrossNamespaceRefKindResource,
+			ko.ObjectMeta.GetNamespace(),
+			arr.Namespace,
+			*arr.Name,
+		)
+		if err != nil {
+			return hasReferences, err
 		}
 		obj := &svcapitypes.Snapshot{}
 		if err := getReferencedResourceState_Snapshot(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
@@ -595,9 +636,17 @@ func (rm *resourceManager) resolveReferenceForSubnetGroupName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SubnetGroupRef")
 		}
-		namespace := ko.ObjectMeta.GetNamespace()
-		if arr.Namespace != nil && *arr.Namespace != "" {
-			namespace = *arr.Namespace
+		namespace, err := ackrt.ResolveCrossNamespaceReference(
+			ctx,
+			rm.cfg.EnableCrossNamespace,
+			&ko.Status.Conditions,
+			ackrt.CrossNamespaceRefKindResource,
+			ko.ObjectMeta.GetNamespace(),
+			arr.Namespace,
+			*arr.Name,
+		)
+		if err != nil {
+			return hasReferences, err
 		}
 		obj := &svcapitypes.SubnetGroup{}
 		if err := getReferencedResourceState_SubnetGroup(ctx, apiReader, obj, *arr.Name, namespace); err != nil {
