@@ -38,7 +38,8 @@ type ClusterSpec struct {
 	// The version number of the Redis OSS engine to be used for the cluster.
 	EngineVersion *string `json:"engineVersion,omitempty"`
 	// The ID of the KMS key used to encrypt the cluster.
-	KMSKeyID *string `json:"kmsKeyID,omitempty"`
+	KMSKeyID  *string                                  `json:"kmsKeyID,omitempty"`
+	KMSKeyRef *ackv1alpha1.AWSResourceReferenceWrapper `json:"kmsKeyRef,omitempty"`
 	// Specifies the weekly time range during which maintenance on the cluster is
 	// performed. It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
 	// (24H Clock UTC). The minimum maintenance window is a 60 minute period.

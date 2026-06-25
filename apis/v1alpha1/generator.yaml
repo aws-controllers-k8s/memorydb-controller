@@ -59,6 +59,11 @@ resources:
         from:
           operation: DescribeEvents
           path: Events
+      KMSKeyID:
+        references:
+          resource: Key
+          service_name: kms
+          path: Status.ACKResourceMetadata.ARN
       ParameterGroupName:
         references:
           resource: ParameterGroup

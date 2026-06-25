@@ -618,6 +618,11 @@ func (in *ClusterSpec) DeepCopyInto(out *ClusterSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.KMSKeyRef != nil {
+		in, out := &in.KMSKeyRef, &out.KMSKeyRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.MaintenanceWindow != nil {
 		in, out := &in.MaintenanceWindow, &out.MaintenanceWindow
 		*out = new(string)
