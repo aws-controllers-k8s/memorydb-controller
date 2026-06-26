@@ -80,6 +80,9 @@ func newResourceDelta(
 			delta.Add("Spec.KMSKeyID", a.ko.Spec.KMSKeyID, b.ko.Spec.KMSKeyID)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef) {
+		delta.Add("Spec.KMSKeyRef", a.ko.Spec.KMSKeyRef, b.ko.Spec.KMSKeyRef)
+	}
 	if ackcompare.HasNilDifference(a.ko.Spec.MaintenanceWindow, b.ko.Spec.MaintenanceWindow) {
 		delta.Add("Spec.MaintenanceWindow", a.ko.Spec.MaintenanceWindow, b.ko.Spec.MaintenanceWindow)
 	} else if a.ko.Spec.MaintenanceWindow != nil && b.ko.Spec.MaintenanceWindow != nil {
