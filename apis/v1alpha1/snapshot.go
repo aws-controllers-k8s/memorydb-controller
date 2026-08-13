@@ -36,7 +36,8 @@ type SnapshotSpec struct {
 	// +kubebuilder:validation:Required
 	Name *string `json:"name"`
 	// The name of an existing snapshot from which to make a copy.
-	SourceSnapshotName *string `json:"sourceSnapshotName,omitempty"`
+	SourceSnapshotName *string                                  `json:"sourceSnapshotName,omitempty"`
+	SourceSnapshotRef  *ackv1alpha1.AWSResourceReferenceWrapper `json:"sourceSnapshotRef,omitempty"`
 	// A list of tags to be added to this resource. A tag is a key-value pair. A
 	// tag key must be accompanied by a tag value, although null is accepted.
 	Tags []*Tag `json:"tags,omitempty"`

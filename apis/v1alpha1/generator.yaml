@@ -261,6 +261,9 @@ resources:
         from:
           operation: CopySnapshot
           path: SourceSnapshotName
+        references:
+          resource: Snapshot
+          path: Spec.Name
       ClusterName:
         is_primary_key: false
         is_required: false
