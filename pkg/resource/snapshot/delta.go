@@ -76,6 +76,9 @@ func newResourceDelta(
 			delta.Add("Spec.SourceSnapshotName", a.ko.Spec.SourceSnapshotName, b.ko.Spec.SourceSnapshotName)
 		}
 	}
+	if !equality.Semantic.Equalities.DeepEqual(a.ko.Spec.SourceSnapshotRef, b.ko.Spec.SourceSnapshotRef) {
+		delta.Add("Spec.SourceSnapshotRef", a.ko.Spec.SourceSnapshotRef, b.ko.Spec.SourceSnapshotRef)
+	}
 	desiredACKTags, _ := convertToOrderedACKTags(a.ko.Spec.Tags)
 	latestACKTags, _ := convertToOrderedACKTags(b.ko.Spec.Tags)
 	if !ackcompare.MapStringStringEqual(desiredACKTags, latestACKTags) {

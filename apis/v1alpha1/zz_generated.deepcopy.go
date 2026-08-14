@@ -2093,6 +2093,11 @@ func (in *SnapshotSpec) DeepCopyInto(out *SnapshotSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.SourceSnapshotRef != nil {
+		in, out := &in.SourceSnapshotRef, &out.SourceSnapshotRef
+		*out = new(corev1alpha1.AWSResourceReferenceWrapper)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.Tags != nil {
 		in, out := &in.Tags, &out.Tags
 		*out = make([]*Tag, len(*in))
