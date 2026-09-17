@@ -46,19 +46,19 @@ type ClusterSpec struct {
 	//
 	// Valid values for ddd are:
 	//
-	//   - sun
+	//    * sun
 	//
-	//   - mon
+	//    * mon
 	//
-	//   - tue
+	//    * tue
 	//
-	//   - wed
+	//    * wed
 	//
-	//   - thu
+	//    * thu
 	//
-	//   - fri
+	//    * fri
 	//
-	//   - sat
+	//    * sat
 	//
 	// Example: sun:23:00-mon:01:30
 	MaintenanceWindow *string `json:"maintenanceWindow,omitempty"`
