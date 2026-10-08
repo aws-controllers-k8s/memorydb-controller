@@ -194,11 +194,8 @@ func (rm *resourceManager) resolveReferenceForACLName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ACLRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
@@ -285,11 +282,8 @@ func (rm *resourceManager) resolveReferenceForKMSKeyID(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: KMSKeyRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
@@ -376,11 +370,8 @@ func (rm *resourceManager) resolveReferenceForParameterGroupName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: ParameterGroupRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
@@ -467,11 +458,8 @@ func (rm *resourceManager) resolveReferenceForSNSTopicARN(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SNSTopicRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
@@ -559,11 +547,8 @@ func (rm *resourceManager) resolveReferenceForSecurityGroupIDs(
 			if arr.Name == nil || *arr.Name == "" {
 				return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SecurityGroupRefs")
 			}
-			namespace, err := ackrt.ResolveCrossNamespaceReference(
-				ctx,
+			namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 				rm.cfg.EnableCrossNamespace,
-				&ko.Status.Conditions,
-				ackrt.CrossNamespaceRefKindResource,
 				ko.ObjectMeta.GetNamespace(),
 				arr.Namespace,
 				*arr.Name,
@@ -654,11 +639,8 @@ func (rm *resourceManager) resolveReferenceForSnapshotName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SnapshotRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
@@ -745,11 +727,8 @@ func (rm *resourceManager) resolveReferenceForSubnetGroupName(
 		if arr.Name == nil || *arr.Name == "" {
 			return hasReferences, fmt.Errorf("provided resource reference is nil or empty: SubnetGroupRef")
 		}
-		namespace, err := ackrt.ResolveCrossNamespaceReference(
-			ctx,
+		namespace, _, err := ackrt.ValidateCrossNamespaceReference(
 			rm.cfg.EnableCrossNamespace,
-			&ko.Status.Conditions,
-			ackrt.CrossNamespaceRefKindResource,
 			ko.ObjectMeta.GetNamespace(),
 			arr.Namespace,
 			*arr.Name,
