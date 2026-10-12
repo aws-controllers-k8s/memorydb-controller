@@ -7,9 +7,9 @@ import (
 	svcapitypes "github.com/aws-controllers-k8s/memorydb-controller/apis/v1alpha1"
 	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
 	ackrequeue "github.com/aws-controllers-k8s/runtime/pkg/requeue"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	svcsdk "github.com/aws/aws-sdk-go-v2/service/memorydb"
 	svcsdktypes "github.com/aws/aws-sdk-go-v2/service/memorydb/types"
-	"github.com/aws/aws-sdk-go/aws"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
